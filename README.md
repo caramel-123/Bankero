@@ -397,12 +397,12 @@ Below is a real testnet transaction from a loan disbursement on Bankero — a le
 
 | Field | Value |
 |-------|-------|
-| **Transaction Hash** | *(paste your TX hash here after disbursing on the live app)* |
+| **Transaction Hash** | `4ed1ef6bb9ed2c3cf4738417a190fce61cce5cca5b1ed77cbacd35df48907369` |
 | **Type** | XLM Payment — Loan Disbursement |
 | **Network** | Stellar Testnet |
-| **View on Explorer** | [stellar.expert/explorer/testnet](https://stellar.expert/explorer/testnet) |
-
-> To get your TX hash: open [bankero.vercel.app/lender](https://bankero.vercel.app/lender), approve and disburse a loan — the green success banner shows the transaction hash.
+| **Amount** | 5 XLM (₱500 loan) |
+| **Date** | 2026-06-16 10:56:18 UTC |
+| **View on Explorer** | [View on stellar.expert](https://stellar.expert/explorer/testnet/tx/4ed1ef6bb9ed2c3cf4738417a190fce61cce5cca5b1ed77cbacd35df48907369) |
 
 ---
 
