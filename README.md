@@ -3,7 +3,7 @@
 > **Decentralized Credit Scoring & Micro-Lending on Stellar**
 > Giving unbanked Filipinos a verifiable, on-chain financial identity — based on actual behavior, not a bank account balance.
 
-![CI](https://github.com/<your-username>/bankero/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/caramel-123/bankero/actions/workflows/ci.yml/badge.svg)
 
 🌐 **Live App:** [https://bankero.vercel.app](https://bankero.vercel.app)
 🎥 **Demo Video:** [Watch on YouTube](https://youtube.com/your-demo-link) ← *replace with your recording*
@@ -184,7 +184,7 @@ npm test
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/bankero.git
+git clone https://github.com/caramel-123/bankero.git
 cd bankero
 ```
 
