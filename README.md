@@ -7,6 +7,21 @@
 
 ---
 
+## Deployed Contract Addresses (Stellar Testnet)
+
+| Contract | Address |
+|----------|---------|
+| `credit_score` | `CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE` |
+| `loan_registry` | `CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI` |
+| `vouching` | `CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F` |
+
+> Verify on Stellar Explorer:
+> - [credit_score on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE)
+> - [loan_registry on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI)
+> - [vouching on stellar.expert](https://stellar.expert/explorer/testnet/contract/CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F)
+
+---
+
 ## What is Bankero?
 
 Bankero is a decentralized credit scoring and micro-lending platform built on **Stellar** and **Soroban smart contracts**. It solves a real problem in the Philippines: millions of Filipinos are excluded from formal financial services because they have no credit history — not because they aren't creditworthy.
