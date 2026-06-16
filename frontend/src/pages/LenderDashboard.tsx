@@ -404,6 +404,31 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       {/* ── Main ───────────────────────────────────────────── */}
       <main style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
 
+        {/* Disburse error banner */}
+        {disburseError && (
+          <div style={{ display: 'flex', gap: 10, padding: '14px 18px', borderRadius: 'var(--r-lg)', background: '#FEF2F2', border: '1px solid #FECACA', marginBottom: 20 }}>
+            <AlertCircle size={16} strokeWidth={2} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#991B1B', margin: '0 0 2px' }}>Disbursement Failed</p>
+              <p style={{ fontSize: 13, color: '#DC2626', margin: 0 }}>{disburseError}</p>
+            </div>
+            <button onClick={() => setDisburseError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626', padding: 0 }}><X size={14} strokeWidth={2} /></button>
+          </div>
+        )}
+
+        {/* Disburse success banner */}
+        {disburseTxHash && (
+          <div style={{ display: 'flex', gap: 10, padding: '14px 18px', borderRadius: 'var(--r-lg)', background: '#F0FDF4', border: '1px solid #BBF7D0', marginBottom: 20 }}>
+            <Check size={16} strokeWidth={2.5} color="#16A34A" style={{ flexShrink: 0, marginTop: 1 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#166534', margin: '0 0 2px' }}>XLM Sent Successfully!</p>
+              <p style={{ fontSize: 12, color: '#16A34A', margin: 0, fontFamily: 'var(--font-mono)' }}>TX: {disburseTxHash.slice(0, 20)}…</p>
+            </div>
+            <button onClick={() => setDisburseTxHash(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16A34A', padding: 0 }}><X size={14} strokeWidth={2} /></button>
+          </div>
+        )}
+
+
         {/* ── DASHBOARD ──────────────────────────────────── */}
         {page === 'Dashboard' && (
           <div>
@@ -503,8 +528,10 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{loan.purpose} · {loan.term} days</p>
                     </div>
                     <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginRight: 8 }}>{formatPeso(loan.amount)}</p>
-                    <button onClick={() => disburse(loan.id)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
-                      <Banknote size={13} strokeWidth={2} /> Disburse Funds
+                    <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
+                      {disbursingId === loan.id
+                        ? <><div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
+                        : <><Banknote size={13} strokeWidth={2} /> Disburse {pesoToXlm(loan.amount)} XLM</>}
                     </button>
                   </div>
                 ))}
@@ -557,8 +584,10 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                     </div>
                   )}
                   {loan.status === 'Approved' && (
-                    <button onClick={() => disburse(loan.id)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
-                      <Banknote size={12} strokeWidth={2} /> Disburse
+                    <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
+                      {disbursingId === loan.id
+                        ? <><div style={{ width: 11, height: 11, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
+                        : <><Banknote size={12} strokeWidth={2} /> Disburse {pesoToXlm(loan.amount)} XLM</>}
                     </button>
                   )}
                   {isOverdue(loan) && (
