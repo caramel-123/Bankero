@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Download, Shield, CheckCircle, Star } from 'lucide-react'
+import { ArrowLeft, Download, Shield, CheckCircle, Star, User } from 'lucide-react'
 import { scoreTier, scorePercent, SCORE_TIERS } from '../lib/stellar'
 import { getScoreCache, computeLocalScore, getLoans } from '../lib/loanStore'
+import { getUser, type User as BorrowerUser } from '../lib/supabase'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
 function certId(wallet: string) {
-  // Deterministic short ID from wallet
   let hash = 0
   for (let i = 0; i < wallet.length; i++) hash = ((hash << 5) - hash + wallet.charCodeAt(i)) | 0
   return 'BNK-' + Math.abs(hash).toString(36).toUpperCase().slice(0, 8)
@@ -22,6 +22,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
   const printRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [score, setScore] = useState(300)
+  const [profile, setProfile] = useState<BorrowerUser | null>(null)
 
   const loans = getLoans().filter(l => l.wallet === (wallet.publicKey ?? ''))
   const repaid    = loans.filter(l => l.status === 'Repaid')
@@ -37,8 +38,10 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
   const repayRate = total.length > 0 ? Math.round((repaid.length / total.length) * 100) : 0
 
   useEffect(() => {
+    if (!wallet.publicKey) return
     const s = computeLocalScore(cache.repayment_score, 0, 0, 0)
     setScore(s)
+    getUser(wallet.publicKey).then(u => setProfile(u)).catch(() => {})
     setLoading(false)
   }, [wallet.publicKey])
 
@@ -136,13 +139,37 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
             </p>
           </div>
 
+          {/* Borrower Profile block */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderRadius: 14, background: '#F9FAFB', border: '1px solid #E5E7EB', marginBottom: 24 }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: `linear-gradient(135deg, ${tier.color}22, ${tier.color}44)`, border: `2px solid ${tier.color}40`, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+              <User size={22} strokeWidth={1.5} color={tier.color} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>
+                {profile?.display_name ?? 'Bankero Borrower'}
+              </p>
+              <p style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace', margin: '0 0 4px', wordBreak: 'break-all' }}>{wallet.publicKey}</p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {profile?.kyc_verified && (
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#DCFCE7', color: '#15803D' }}>✓ KYC Verified</span>
+                )}
+                {profile?.anchor_linked && (
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#EFF6FF', color: '#3B82F6' }}>✓ GCash/Maya Linked</span>
+                )}
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#F3F4F6', color: '#6B7280' }}>
+                  Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-PH', { month: 'short', year: 'numeric' }) : formatLongDate(issuedAt)}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Wallet + Score block */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'start', marginBottom: 28 }}>
 
             {/* Left: wallet */}
             <div style={{ background: '#F9FAFB', borderRadius: 14, padding: '20px 22px', border: '1px solid #E5E7EB' }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', fontFamily: 'sans-serif', letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 6px' }}>Wallet Address (Stellar)</p>
-              <p style={{ fontSize: 12, color: '#111827', fontFamily: 'monospace', wordBreak: 'break-all', margin: '0 0 14px', lineHeight: 1.6 }}>{wallet.publicKey}</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', fontFamily: 'sans-serif', letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 6px' }}>Stellar Wallet (Verified On-Chain)</p>
+              <p style={{ fontSize: 11, color: '#111827', fontFamily: 'monospace', wordBreak: 'break-all', margin: '0 0 14px', lineHeight: 1.7 }}>{wallet.publicKey}</p>
 
               <div style={{ display: 'flex', gap: 16 }}>
                 <div>

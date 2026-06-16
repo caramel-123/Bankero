@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home, BarChart2, CreditCard, FileText, Users, LogOut,
-  ArrowRight, ChevronRight, RefreshCw, Copy, Check, ExternalLink, Award,
+  ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, Award,
 } from 'lucide-react'
 import { stellarExplorerUrl } from '../lib/stellar'
 import { scoreTier, scorePercent, formatWallet, formatPeso } from '../lib/stellar'
@@ -94,7 +94,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,197,94,.2)'; (e.currentTarget as HTMLElement).style.color = '#4ADE80' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.08)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.5)' }}
               >
-                <ExternalLink size={11} strokeWidth={2} />
+                <Globe size={11} strokeWidth={2} />
               </a>
             )}
           </div>
