@@ -8,6 +8,7 @@ import LoanApply from './pages/LoanApply'
 import LoanTracking from './pages/LoanTracking'
 import Vouch from './pages/Vouch'
 import LenderDashboard from './pages/LenderDashboard'
+import CreditCertificate from './pages/CreditCertificate'
 
 function ProtectedRoute({ children, publicKey }: { children: React.ReactNode; publicKey: string | null }) {
   if (!publicKey) return <Navigate to="/login" replace />
@@ -48,6 +49,11 @@ export default function App() {
           </ProtectedRoute>
         } />
         <Route path="/lender" element={<LenderDashboard wallet={wallet} />} />
+        <Route path="/certificate" element={
+          <ProtectedRoute publicKey={wallet.publicKey}>
+            <CreditCertificate wallet={wallet} />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

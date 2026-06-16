@@ -2,8 +2,17 @@ import {
   isConnected,
   requestAccess,
   getAddress,
+  signTransaction,
 } from '@stellar/freighter-api'
-import { Networks } from '@stellar/stellar-sdk'
+import {
+  Networks,
+  Horizon,
+  TransactionBuilder,
+  Operation,
+  Asset,
+  Memo,
+  BASE_FEE,
+} from '@stellar/stellar-sdk'
 
 export const NETWORK = import.meta.env.VITE_STELLAR_NETWORK === 'testnet' ? Networks.TESTNET : Networks.PUBLIC
 export const RPC_URL = import.meta.env.VITE_SOROBAN_RPC as string
@@ -107,4 +116,72 @@ export function formatXLM(stroops: number): string {
 
 export function formatPeso(amount: number): string {
   return '₱' + amount.toLocaleString('en-PH')
+}
+
+const NETWORK_SLUG = import.meta.env.VITE_STELLAR_NETWORK === 'testnet' ? 'testnet' : 'public'
+
+export function stellarExplorerUrl(address: string, type: 'account' | 'contract' = 'account'): string {
+  return `https://stellar.expert/explorer/${NETWORK_SLUG}/${type}/${address}`
+}
+
+// ── XLM / Peso conversion (testnet: 1 XLM = ₱100) ────────
+export const XLM_PER_PESO = 0.01       // 1 ₱ = 0.01 XLM  →  ₱500 = 5 XLM
+export function pesoToXlm(peso: number): string {
+  return (peso * XLM_PER_PESO).toFixed(7)
+}
+
+const HORIZON_URL = import.meta.env.VITE_STELLAR_NETWORK === 'testnet'
+  ? 'https://horizon-testnet.stellar.org'
+  : 'https://horizon.stellar.org'
+
+/**
+ * Send XLM from lender (Freighter) to borrower as loan disbursement.
+ * Returns the transaction hash on success.
+ */
+export async function disburseXlmPayment(opts: {
+  lenderAddress: string
+  borrowerAddress: string
+  pesoAmount: number
+  loanId: string
+}): Promise<string> {
+  const { lenderAddress, borrowerAddress, pesoAmount, loanId } = opts
+  const xlmAmount = pesoToXlm(pesoAmount)
+  const server = new Horizon.Server(HORIZON_URL)
+
+  // Load lender's account sequence number
+  const account = await server.loadAccount(lenderAddress)
+
+  // Build the payment transaction
+  const tx = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORK,
+  })
+    .addOperation(Operation.payment({
+      destination: borrowerAddress,
+      asset: Asset.native(),
+      amount: xlmAmount,
+    }))
+    .addMemo(Memo.text(`Bankero loan ${loanId.slice(0, 16)}`))
+    .setTimeout(300)
+    .build()
+
+  // Ask Freighter to sign
+  const xdr = tx.toXDR()
+  const signResult = await signTransaction(xdr, {
+    networkPassphrase: NETWORK,
+    address: lenderAddress,
+  })
+
+  if (signResult.error) {
+    throw new Error(typeof signResult.error === 'string' ? signResult.error : 'Signing rejected')
+  }
+  if (!signResult.signedTxXdr) {
+    throw new Error('Signing cancelled')
+  }
+
+  // Submit to Horizon
+  const { TransactionBuilder: TB } = await import('@stellar/stellar-sdk')
+  const signedTx = TB.fromXDR(signResult.signedTxXdr, NETWORK)
+  const result = await server.submitTransaction(signedTx)
+  return result.hash
 }

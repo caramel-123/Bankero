@@ -57,14 +57,28 @@ function supabaseToLocal(l: SupabaseLoan): LocalLoan {
 
 // ── Public API ─────────────────────────────────────────────
 
-/** Read-sync: fetch from Supabase, update cache, return list */
+/** Read-sync: fetch from Supabase, merge with cache, return list */
 export async function fetchLoans(borrowerWallet: string): Promise<LocalLoan[]> {
   try {
     const remote = await getLoansFromSupabase(borrowerWallet)
-    const local = remote.map(supabaseToLocal)
-    cacheSet(local)
-    return local
+    const fromDB = remote.map(supabaseToLocal)
+
+    // Merge: keep any locally-cached loans for this wallet that haven't
+    // synced to Supabase yet (e.g. save failed / offline).
+    const cachedForWallet = cacheGet().filter(l => l.wallet === borrowerWallet)
+    const dbIds = new Set(fromDB.map(l => l.id))
+    const pendingLocal = cachedForWallet.filter(l => !dbIds.has(l.id))
+
+    // Merge: Supabase is source of truth for known IDs; keep unsynced local entries
+    const merged = [...fromDB, ...pendingLocal]
+
+    // Only update the cache for this wallet; leave other wallets' entries intact
+    const others = cacheGet().filter(l => l.wallet !== borrowerWallet)
+    cacheSet([...others, ...merged])
+
+    return merged
   } catch {
+    // Network/auth failure — fall back to local cache
     return cacheGet().filter(l => l.wallet === borrowerWallet)
   }
 }
@@ -91,19 +105,23 @@ export async function saveLoan(loan: LocalLoan): Promise<void> {
   loans.unshift(loan)
   cacheSet(loans)
 
-  // Push to Supabase
-  await saveLoanToSupabase({
-    id: loan.id,
-    borrower_wallet: loan.wallet,
-    amount: loan.amount,
-    interest: loan.interest,
-    total: loan.total,
-    purpose: loan.purpose,
-    term: loan.term,
-    notes: loan.notes,
-    status: loan.status,
-    applied_at: loan.appliedAt,
-  })
+  // Push to Supabase (non-fatal — localStorage is the safety net)
+  try {
+    await saveLoanToSupabase({
+      id: loan.id,
+      borrower_wallet: loan.wallet,
+      amount: loan.amount,
+      interest: loan.interest,
+      total: loan.total,
+      purpose: loan.purpose ?? '',
+      term: loan.term,
+      notes: loan.notes ?? '',
+      status: loan.status,
+      applied_at: loan.appliedAt,
+    })
+  } catch (err) {
+    console.error('[Bankero] Loan save to Supabase failed (stored locally):', err)
+  }
 }
 
 /** Update loan status in Supabase + cache */
@@ -130,10 +148,15 @@ export async function updateLoanStatus(id: string, status: LoanStatus, extra?: {
     dueAt = due.toISOString()
   }
 
-  await updateLoanStatusInSupabase(id, status, {
-    lender_wallet: extra?.lenderWallet,
-    due_at: dueAt,
-  })
+  try {
+    await updateLoanStatusInSupabase(id, status, {
+      lender_wallet: extra?.lenderWallet,
+      due_at: dueAt,
+    })
+  } catch (err) {
+    console.error('[Bankero] Loan status update to Supabase failed (cache updated):', err)
+    throw err  // re-throw so callers (lender dashboard) can surface the error
+  }
 }
 
 export function daysUntil(iso: string): number {
