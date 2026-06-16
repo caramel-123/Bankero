@@ -3,7 +3,10 @@
 > **Decentralized Credit Scoring & Micro-Lending on Stellar**
 > Giving unbanked Filipinos a verifiable, on-chain financial identity — based on actual behavior, not a bank account balance.
 
+![CI](https://github.com/<your-username>/bankero/actions/workflows/ci.yml/badge.svg)
+
 🌐 **Live App:** [https://bankero.vercel.app](https://bankero.vercel.app)
+🎥 **Demo Video:** [Watch on YouTube](https://youtube.com/your-demo-link) ← *replace with your recording*
 
 ---
 
@@ -96,7 +99,54 @@ Three contracts deployed on **Stellar Testnet**:
 
 ---
 
+## CI/CD Pipeline
+
+Every push to `main` automatically runs tests and builds via **GitHub Actions**.
+
+### Pipeline steps:
+1. Install dependencies (`npm ci`)
+2. Run all unit tests (`npm test`)
+3. Build production bundle (`npm run build`)
+4. Upload build artifact
+
+### Screenshot: CI passing
+![CI pipeline passing on GitHub Actions](docs/screenshots/ci-pipeline.png)
+
+---
+
+## Test Suite
+
+**38 tests — all passing** across 2 test files.
+
+```
+ RUN  v4.1.9
+
+ Test Files  2 passed (2)
+      Tests  38 passed (38)
+   Duration  421ms
+```
+
+### What's tested:
+| Test File | Coverage |
+|-----------|----------|
+| `stellar.test.ts` | `scoreTier()`, `scorePercent()`, `nextScoreTier()`, `SCORE_TIERS` array, `formatWallet()`, `formatPeso()`, `pesoToXlm()` |
+| `loanStore.test.ts` | `computeLocalScore()`, Laplace smoothing formula, `daysUntil()`, `formatDate()` |
+
+### Screenshot: Test output
+![Vitest test output showing 38 passing tests](docs/screenshots/test-output.png)
+
+### Run tests locally:
+```bash
+cd frontend
+npm test
+```
+
+---
+
 ## Screenshots
+
+### Mobile Responsive UI
+![Bankero running on mobile viewport — dashboard and loan screens](docs/screenshots/mobile-responsive.png)
 
 ### Wallet Connected — Dashboard
 ![Dashboard with wallet connected and live credit score](docs/screenshots/dashboard.png)
@@ -338,6 +388,21 @@ bankero/
 └── supabase/
     └── migrations/          # SQL schema migrations
 ```
+
+---
+
+## Transaction Hash (Contract Interaction)
+
+Below is a real testnet transaction from a loan disbursement on Bankero — a lender sending XLM to a borrower's wallet via the platform:
+
+| Field | Value |
+|-------|-------|
+| **Transaction Hash** | *(paste your TX hash here after disbursing on the live app)* |
+| **Type** | XLM Payment — Loan Disbursement |
+| **Network** | Stellar Testnet |
+| **View on Explorer** | [stellar.expert/explorer/testnet](https://stellar.expert/explorer/testnet) |
+
+> To get your TX hash: open [bankero.vercel.app/lender](https://bankero.vercel.app/lender), approve and disburse a loan — the green success banner shows the transaction hash.
 
 ---
 

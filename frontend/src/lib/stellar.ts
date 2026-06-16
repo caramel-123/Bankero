@@ -161,7 +161,7 @@ export async function disburseXlmPayment(opts: {
       asset: Asset.native(),
       amount: xlmAmount,
     }))
-    .addMemo(Memo.text(`Bankero loan ${loanId.slice(0, 16)}`))
+    .addMemo(Memo.text(`BNK:${loanId.slice(0, 23)}`))
     .setTimeout(300)
     .build()
 
