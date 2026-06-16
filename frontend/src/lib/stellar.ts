@@ -2,8 +2,17 @@ import {
   isConnected,
   requestAccess,
   getAddress,
+  signTransaction,
 } from '@stellar/freighter-api'
-import { Networks } from '@stellar/stellar-sdk'
+import {
+  Networks,
+  Horizon,
+  TransactionBuilder,
+  Operation,
+  Asset,
+  Memo,
+  BASE_FEE,
+} from '@stellar/stellar-sdk'
 
 export const NETWORK = import.meta.env.VITE_STELLAR_NETWORK === 'testnet' ? Networks.TESTNET : Networks.PUBLIC
 export const RPC_URL = import.meta.env.VITE_SOROBAN_RPC as string
