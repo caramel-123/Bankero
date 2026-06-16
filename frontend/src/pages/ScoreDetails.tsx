@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, TrendingUp, RefreshCw, Users, Banknote,
   Lightbulb, RotateCw, Link2, CheckCircle, X, Plus, Trash2,
-  Download, Copy, Check,
+  Download, Copy, Check, ExternalLink,
 } from 'lucide-react'
-import { scoreTier, scorePercent, formatWallet } from '../lib/stellar'
+import { scoreTier, scorePercent, formatWallet, stellarExplorerUrl } from '../lib/stellar'
 import { useScore } from '../hooks/useScore'
 import {
   PROVIDERS, getLinkedAccounts, linkAccount, unlinkAccount, syncTransactions,
@@ -197,15 +197,27 @@ export default function ScoreDetails({ wallet }: { wallet: WalletHook }) {
                 {wallet.publicKey ? formatWallet(wallet.publicKey) : '—'} · Live from Stellar testnet
               </p>
               {wallet.publicKey && (
-                <button
-                  onClick={copyAddress}
-                  className="btn btn-sm"
-                  title="Copy full wallet address"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', fontSize: 12, fontWeight: 600, color: copied ? 'var(--green-hi)' : 'var(--ink-4)', background: copied ? 'var(--green-tint)' : 'var(--surface-3)', border: `1px solid ${copied ? 'var(--green-border)' : 'var(--border)'}`, borderRadius: 'var(--r-full)', transition: 'all 200ms' }}
-                >
-                  {copied ? <Check size={11} strokeWidth={2.5} /> : <Copy size={11} strokeWidth={2} />}
-                  {copied ? 'Copied!' : 'Copy address'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button
+                    onClick={copyAddress}
+                    className="btn btn-sm"
+                    title="Copy full wallet address"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', fontSize: 12, fontWeight: 600, color: copied ? 'var(--green-hi)' : 'var(--ink-4)', background: copied ? 'var(--green-tint)' : 'var(--surface-3)', border: `1px solid ${copied ? 'var(--green-border)' : 'var(--border)'}`, borderRadius: 'var(--r-full)', transition: 'all 200ms' }}
+                  >
+                    {copied ? <Check size={11} strokeWidth={2.5} /> : <Copy size={11} strokeWidth={2} />}
+                    {copied ? 'Copied!' : 'Copy address'}
+                  </button>
+                  <a
+                    href={stellarExplorerUrl(wallet.publicKey)}
+                    target="_blank" rel="noreferrer"
+                    title="View on Stellar Expert blockchain explorer"
+                    style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--surface-3)', border: '1px solid var(--border)', display: 'grid', placeItems: 'center', color: 'var(--ink-4)', textDecoration: 'none', flexShrink: 0, transition: 'background 150ms, color 150ms' }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--green-tint)'; el.style.color = 'var(--green-hi)'; el.style.borderColor = 'var(--green-border)' }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--surface-3)'; el.style.color = 'var(--ink-4)'; el.style.borderColor = 'var(--border)' }}
+                  >
+                    <ExternalLink size={12} strokeWidth={2} />
+                  </a>
+                </div>
               )}
             </div>
           </div>

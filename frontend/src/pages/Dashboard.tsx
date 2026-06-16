@@ -2,19 +2,21 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home, BarChart2, CreditCard, FileText, Users, LogOut,
-  ArrowRight, ChevronRight, RefreshCw, Copy, Check,
+  ArrowRight, ChevronRight, RefreshCw, Copy, Check, ExternalLink, Award,
 } from 'lucide-react'
+import { stellarExplorerUrl } from '../lib/stellar'
 import { scoreTier, scorePercent, formatWallet, formatPeso } from '../lib/stellar'
 import { useScore } from '../hooks/useScore'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
 const NAV = [
-  { icon: Home,       label: 'Dashboard',  path: '/dashboard' },
-  { icon: BarChart2,  label: 'My Score',   path: '/score' },
-  { icon: CreditCard, label: 'Apply Loan', path: '/apply' },
-  { icon: FileText,   label: 'My Loans',   path: '/loans' },
-  { icon: Users,      label: 'Vouch',      path: '/vouch' },
+  { icon: Home,       label: 'Dashboard',   path: '/dashboard' },
+  { icon: BarChart2,  label: 'My Score',    path: '/score' },
+  { icon: CreditCard, label: 'Apply Loan',  path: '/apply' },
+  { icon: FileText,   label: 'My Loans',    path: '/loans' },
+  { icon: Users,      label: 'Vouch',       path: '/vouch' },
+  { icon: Award,      label: 'Certificate', path: '/certificate' },
 ]
 
 export default function Dashboard({ wallet }: { wallet: WalletHook }) {
@@ -79,9 +81,23 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: 5 }}>
             Connected wallet
           </p>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', fontWeight: 600, wordBreak: 'break-all', marginBottom: 8 }}>
-            {wallet.publicKey ? formatWallet(wallet.publicKey) : '—'}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {wallet.publicKey ? formatWallet(wallet.publicKey) : '—'}
+            </p>
+            {wallet.publicKey && (
+              <a
+                href={stellarExplorerUrl(wallet.publicKey)}
+                target="_blank" rel="noreferrer"
+                title="View on Stellar Explorer"
+                style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', display: 'grid', placeItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,.5)', textDecoration: 'none', transition: 'background 150ms, color 150ms' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,197,94,.2)'; (e.currentTarget as HTMLElement).style.color = '#4ADE80' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.08)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.5)' }}
+              >
+                <ExternalLink size={11} strokeWidth={2} />
+              </a>
+            )}
+          </div>
           <button
             onClick={copyAddress}
             className="btn btn-sm"
@@ -233,9 +249,10 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
             <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 16 }}>Quick actions</h3>
           </div>
           {[
-            { Icon: CreditCard, title: 'Apply for a Loan', desc: `Borrow up to ${formatPeso(tier.max)} at a flat 5% rate`, action: () => nav('/apply'), accent: 'var(--green)', tint: 'var(--green-tint)' },
-            { Icon: Users,      title: 'Vouch for Someone', desc: 'Stake XLM to help a friend build their credit score', action: () => nav('/vouch'), accent: '#D97706', tint: 'var(--amber-tint)' },
-            { Icon: FileText,   title: 'Track My Loans',   desc: 'View repayment schedule and full loan history', action: () => nav('/loans'), accent: '#3B82F6', tint: '#EFF6FF' },
+            { Icon: CreditCard, title: 'Apply for a Loan',    desc: `Borrow up to ${formatPeso(tier.max)} at a flat 5% rate`, action: () => nav('/apply'),       accent: 'var(--green)', tint: 'var(--green-tint)' },
+            { Icon: Users,      title: 'Vouch for Someone',   desc: 'Stake XLM to help a friend build their credit score',  action: () => nav('/vouch'),       accent: '#D97706',      tint: 'var(--amber-tint)' },
+            { Icon: FileText,   title: 'Track My Loans',      desc: 'View repayment schedule and full loan history',         action: () => nav('/loans'),       accent: '#3B82F6',      tint: '#EFF6FF' },
+            { Icon: Award,      title: 'Credit Certificate',  desc: 'Download proof of good credit to show lenders & banks', action: () => nav('/certificate'), accent: '#7C3AED',      tint: '#F5F3FF' },
           ].map((c, i) => {
             const Icon = c.Icon
             return (
