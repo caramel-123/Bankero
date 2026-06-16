@@ -110,7 +110,7 @@ Every push to `main` automatically runs tests and builds via **GitHub Actions**.
 4. Upload build artifact
 
 ### Screenshot: CI passing
-![CI pipeline passing on GitHub Actions](docs/screenshots/ci-pipeline.png)
+![CI pipeline passing on GitHub Actions](docs/screenshots/ci-passing.png)
 
 ---
 
@@ -133,7 +133,7 @@ Every push to `main` automatically runs tests and builds via **GitHub Actions**.
 | `loanStore.test.ts` | `computeLocalScore()`, Laplace smoothing formula, `daysUntil()`, `formatDate()` |
 
 ### Screenshot: Test output
-![Vitest test output showing 38 passing tests](docs/screenshots/test-output.png)
+![Vitest test output showing 38 passing tests](docs/screenshots/ci-passing.png)
 
 ### Run tests locally:
 ```bash
@@ -145,26 +145,26 @@ npm test
 
 ## Screenshots
 
-### Mobile Responsive UI
-![Bankero running on mobile viewport — dashboard and loan screens](docs/screenshots/mobile-responsive.png)
+### Landing Page
+![Bankero landing page](docs/screenshots/landing-page.png)
 
-### Wallet Connected — Dashboard
-![Dashboard with wallet connected and live credit score](docs/screenshots/dashboard.png)
-
-### Credit Score Breakdown
-![Score details page showing repayment, transaction, vouch, and anchor scores](docs/screenshots/score-details.png)
+### Borrower Dashboard
+![Borrower dashboard with credit score](docs/screenshots/borrower-page.png)
 
 ### Loan Application
-![Loan application form with dynamic limits based on credit score tier](docs/screenshots/loan-apply.png)
+![Loan application form with dynamic limits based on credit score tier](docs/screenshots/borrower-loan-apply.png)
 
-### Lender Dashboard — Approving a Loan
-![Lender dashboard showing pending applications with borrower credit profiles](docs/screenshots/lender-dashboard.png)
+### Loan Tracking
+![Borrower loan tracking page](docs/screenshots/loan-track.png)
 
-### Disburse — Real XLM Payment via Freighter
-![Freighter popup confirming XLM payment from lender to borrower](docs/screenshots/disburse-freighter.png)
+### Lender Dashboard
+![Lender dashboard showing pending applications with borrower credit profiles](docs/screenshots/lender-page.png)
 
-### Successful Testnet Transaction
-![Transaction result shown to lender with Stellar Explorer link](docs/screenshots/tx-success.png)
+### Successful XLM Disbursement
+![Transaction result shown to lender with Stellar Explorer link](docs/screenshots/lender-successful-sent.png)
+
+### Community Vouching
+![Community vouching page](docs/screenshots/voucher.png)
 
 ### Credit Certificate (Downloadable PDF)
 ![Printable credit standing certificate with score, history, and Stellar verification](docs/screenshots/certificate.png)
