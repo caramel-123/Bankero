@@ -1,0 +1,14 @@
+/Users/melfredbernabe/Desktop/Bankero/target/release/deps/serde-5b118482dac81ff6.d: /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/melfredbernabe/Desktop/Bankero/target/release/build/serde-d1a93b8a8aabd9a8/out/private.rs
+
+/Users/melfredbernabe/Desktop/Bankero/target/release/deps/libserde-5b118482dac81ff6.rlib: /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/melfredbernabe/Desktop/Bankero/target/release/build/serde-d1a93b8a8aabd9a8/out/private.rs
+
+/Users/melfredbernabe/Desktop/Bankero/target/release/deps/libserde-5b118482dac81ff6.rmeta: /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/melfredbernabe/Desktop/Bankero/target/release/build/serde-d1a93b8a8aabd9a8/out/private.rs
+
+/Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/Users/melfredbernabe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/Users/melfredbernabe/Desktop/Bankero/target/release/build/serde-d1a93b8a8aabd9a8/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/melfredbernabe/Desktop/Bankero/target/release/build/serde-d1a93b8a8aabd9a8/out
