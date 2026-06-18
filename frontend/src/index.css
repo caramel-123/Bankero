@@ -361,6 +361,9 @@ img, svg { display: block; }
   }
 }
 
+/* ── Bottom nav hidden on desktop ────────────────────────── */
+.mobile-bottom-nav { display: none; }
+
 /* ── Mobile responsive overrides (≤ 768px) ───────────────── */
 @media (max-width: 768px) {
 
@@ -420,30 +423,27 @@ img, svg { display: block; }
     padding-right: 20px !important;
   }
 
-  /* App layout — hide sidebar, show full width */
+  /* App layout — hide sidebar, content fills full width */
   .app-layout {
     flex-direction: column !important;
   }
   .app-sidebar {
-    width: 100% !important;
-    height: auto !important;
-    position: relative !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    padding: 12px 16px !important;
-    gap: 8px !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    overflow-y: visible !important;
-  }
-  .app-sidebar > div:first-child {
-    display: none !important; /* hide logo block */
-  }
-  .app-sidebar > div:last-child {
-    display: none !important; /* hide bottom section (wallet / logout) */
+    display: none !important;
   }
   .app-main {
-    padding: 20px 16px !important;
+    padding: 16px !important;
+    padding-bottom: 72px !important; /* space for bottom nav */
+  }
+
+  /* Mobile bottom nav — shown only on mobile */
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
+    background: var(--panel) !important;
+    border-top: 1px solid rgba(255,255,255,.08) !important;
+    z-index: 999 !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
   }
 
   /* General: tighten paddings */

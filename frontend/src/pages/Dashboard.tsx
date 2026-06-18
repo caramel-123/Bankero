@@ -289,6 +289,21 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
         </div>
       </main>
 
+      {/* ── MOBILE BOTTOM NAV ───────────────────────────────── */}
+      <nav className="mobile-bottom-nav">
+        {NAV.map(n => {
+          const Icon = n.icon
+          const active = path === n.path
+          return (
+            <button key={n.path} onClick={() => nav(n.path)}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer', color: active ? 'var(--green)' : 'rgba(255,255,255,.4)', fontSize: 9, fontWeight: 700 }}>
+              <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+              {n.label}
+            </button>
+          )
+        })}
+      </nav>
+
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
       `}</style>
