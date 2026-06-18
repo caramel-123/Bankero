@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Smartphone, Monitor } from 'lucide-react'
 import { useWallet } from './hooks/useWallet'
 import Landing from './pages/Landing'
@@ -17,90 +17,93 @@ function ProtectedRoute({ children, publicKey }: { children: React.ReactNode; pu
   return <>{children}</>
 }
 
+// Syncs iframe src when the outer app navigates
+function IframePhone({ onClose }: { onClose: () => void }) {
+  const location = useLocation()
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  useEffect(() => {
+    if (iframeRef.current) {
+      const target = window.location.origin + location.pathname + location.search
+      if (iframeRef.current.src !== target) {
+        iframeRef.current.src = target
+      }
+    }
+  }, [location])
+
+  return (
+    <div style={{
+      minHeight: '100dvh',
+      background: '#111',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      paddingTop: 24,
+      paddingBottom: 80,
+    }}>
+      {/* Phone shell */}
+      <div style={{
+        width: 390,
+        height: 780,
+        border: '8px solid #1a1a1a',
+        borderRadius: 48,
+        overflow: 'hidden',
+        boxShadow: '0 32px 80px rgba(0,0,0,.7)',
+        background: '#fff',
+        position: 'relative',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+        {/* Notch */}
+        <div style={{
+          position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+          width: 120, height: 28, background: '#1a1a1a',
+          borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
+          zIndex: 10,
+          pointerEvents: 'none',
+        }} />
+        {/* iframe renders at true 390px viewport — vw/vh/clamp all compute correctly */}
+        <iframe
+          ref={iframeRef}
+          src={window.location.origin + location.pathname + location.search}
+          style={{
+            width: '100%',
+            flex: 1,
+            border: 'none',
+            display: 'block',
+          }}
+          title="Mobile preview"
+        />
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const wallet = useWallet()
   const [mobileMode, setMobileMode] = useState(false)
 
   return (
     <BrowserRouter>
-      {/* ── Mobile view wrapper ── */}
+      <AppInner wallet={wallet} mobileMode={mobileMode} setMobileMode={setMobileMode} />
+    </BrowserRouter>
+  )
+}
+
+function AppInner({
+  wallet,
+  mobileMode,
+  setMobileMode,
+}: {
+  wallet: ReturnType<typeof useWallet>
+  mobileMode: boolean
+  setMobileMode: (v: boolean | ((p: boolean) => boolean)) => void
+}) {
+  return (
+    <>
       {mobileMode ? (
-        <div style={{
-          minHeight: '100dvh',
-          background: '#111',
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
-          paddingTop: 24,
-          paddingBottom: 24,
-        }}>
-          {/* Phone shell — fixed height so 100dvh pages don't expand it.
-              transform creates a new containing block so position:fixed children stay inside. */}
-          <div style={{
-            width: 390,
-            height: 780,
-            border: '8px solid #1a1a1a',
-            borderRadius: 48,
-            overflow: 'hidden',
-            boxShadow: '0 32px 80px rgba(0,0,0,.7)',
-            background: 'var(--surface)',
-            position: 'relative',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            transform: 'translateZ(0)',
-          }}>
-            {/* Notch */}
-            <div style={{
-              position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
-              width: 120, height: 28, background: '#1a1a1a',
-              borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
-              zIndex: 10,
-            }} />
-            {/* Scrollable content area — zoom scales desktop pages (designed ~1024px)
-                down to fit 390px phone shell while keeping all proportions correct */}
-            <div style={{ paddingTop: 28, flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-              <div style={{ width: `${Math.round(390 / 0.38)}px`, zoom: 0.38, transformOrigin: 'top left' }}>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<Login wallet={wallet} />} />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute publicKey={wallet.publicKey}>
-                    <Dashboard wallet={wallet} />
-                  </ProtectedRoute>
-                } />
-                <Route path="/score" element={
-                  <ProtectedRoute publicKey={wallet.publicKey}>
-                    <ScoreDetails wallet={wallet} />
-                  </ProtectedRoute>
-                } />
-                <Route path="/apply" element={
-                  <ProtectedRoute publicKey={wallet.publicKey}>
-                    <LoanApply wallet={wallet} />
-                  </ProtectedRoute>
-                } />
-                <Route path="/loans" element={
-                  <ProtectedRoute publicKey={wallet.publicKey}>
-                    <LoanTracking wallet={wallet} />
-                  </ProtectedRoute>
-                } />
-                <Route path="/vouch" element={
-                  <ProtectedRoute publicKey={wallet.publicKey}>
-                    <Vouch wallet={wallet} />
-                  </ProtectedRoute>
-                } />
-                <Route path="/lender" element={<LenderDashboard wallet={wallet} />} />
-                <Route path="/certificate" element={
-                  <ProtectedRoute publicKey={wallet.publicKey}>
-                    <CreditCertificate wallet={wallet} />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-              </div>
-            </div>
-          </div>
-        </div>
+        <IframePhone onClose={() => setMobileMode(false)} />
       ) : (
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -164,6 +167,6 @@ export default function App() {
           : <><Smartphone size={15} strokeWidth={2} /> Mobile View</>
         }
       </button>
-    </BrowserRouter>
+    </>
   )
 }
