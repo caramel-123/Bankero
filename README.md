@@ -7,7 +7,7 @@
 ![CI](https://github.com/caramel-123/bankero/actions/workflows/ci.yml/badge.svg)
 
 🌐 **Live App:** [https://bankero.vercel.app](https://bankero.vercel.app)
-🎥 **Demo Video:** [Watch on YouTube](https://youtube.com/your-demo-link) ← *replace with your recording*
+🎥 **Demo Video:** [[Watch on YouTube](https://youtube.com/your-demo-link) ← *replace with your recording*](https://youtu.be/xhMVzAy9vIE?feature=shared)
 
 ---
 
@@ -111,7 +111,8 @@ Every push to `main` automatically runs tests and builds via **GitHub Actions**.
 4. Upload build artifact
 
 ### Screenshot: CI passing
-![CI pipeline passing on GitHub Actions](docs/screenshots/ci-passing.png)
+<img width="1866" height="1136" alt="image" src="https://github.com/user-attachments/assets/aa526a77-b4b4-44fb-b91f-be1118f7b1a3" />
+
 
 ---
 
