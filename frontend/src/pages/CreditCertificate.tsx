@@ -102,7 +102,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
           <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
           <div style={{ position: 'absolute', bottom: -30, left: 200, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+          <div className="cert-header-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center', border: '1.5px solid rgba(255,255,255,.25)' }}>
@@ -164,7 +164,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
           </div>
 
           {/* Wallet + Score block */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'start', marginBottom: 28 }}>
+          <div className="cert-wallet-score" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'start', marginBottom: 28 }}>
 
             {/* Left: wallet */}
             <div style={{ background: '#F9FAFB', borderRadius: 14, padding: '20px 22px', border: '1px solid #E5E7EB' }}>
@@ -199,7 +199,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
           </div>
 
           {/* Stats row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
+          <div className="cert-stats-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
             {[
               { label: 'Loans Taken',   value: total.length,      color: '#374151' },
               { label: 'Loans Repaid',  value: repaid.length,     color: '#15803D' },

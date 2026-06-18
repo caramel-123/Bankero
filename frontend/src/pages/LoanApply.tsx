@@ -222,7 +222,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
               <Calendar size={15} strokeWidth={2} color="var(--ink-4)" />
               <label style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>Repayment Term</label>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="term-selector" style={{ display: 'flex', gap: 8 }}>
               {TERMS.map(t => (
                 <button key={t} onClick={() => setTerm(t)} className="btn"
                   style={{ flex: 1, padding: '11px 0', borderRadius: 'var(--r-md)', border: `2px solid ${term === t ? 'var(--green)' : 'var(--border)'}`, background: term === t ? 'var(--green-tint)' : 'var(--surface)', color: term === t ? 'var(--green)' : 'var(--ink-3)', fontSize: 14, fontWeight: 700 }}>
@@ -238,7 +238,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
               <Tag size={15} strokeWidth={2} color="var(--ink-4)" />
               <label style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>Purpose</label>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+            <div className="purpose-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
               {PURPOSES.map(p => (
                 <button key={p} onClick={() => setPurpose(p)} className="btn"
                   style={{ padding: '10px 0', borderRadius: 'var(--r-md)', border: `2px solid ${purpose === p ? 'var(--green)' : 'var(--border)'}`, background: purpose === p ? 'var(--green-tint)' : 'var(--surface)', color: purpose === p ? 'var(--green)' : 'var(--ink-3)', fontSize: 13, fontWeight: 700 }}>

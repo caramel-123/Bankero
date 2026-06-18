@@ -480,6 +480,78 @@ img, svg { display: block; }
     padding: 16px !important;
   }
 
+  /* Stats/data strip: 4 columns → 2×2 grid */
+  .stats-row,
+  .data-strip {
+    flex-wrap: wrap !important;
+  }
+  .stats-row > *,
+  .data-strip > * {
+    flex: 1 1 45% !important;
+    min-width: 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-2) !important;
+  }
+  .stats-row > *:last-child,
+  .data-strip > *:last-child {
+    border-bottom: none !important;
+  }
+
+  /* Dashboard score + factors: single column */
+  .score-factors-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Loan tracking 4-col summary: 2×2 */
+  .loan-summary-strip {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Reports 2-col grid: single column */
+  .reports-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Settings 2-col grids: single column */
+  .settings-grid,
+  .profile-fields-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* LoanApply term selector: stay as flex but equal */
+  .term-selector > * {
+    min-width: 0 !important;
+    font-size: 13px !important;
+  }
+
+  /* LoanApply purpose grid: 2 columns */
+  .purpose-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* CreditCertificate header: stack logo and badge */
+  .cert-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  /* CreditCertificate wallet+score: stack vertically */
+  .cert-wallet-score {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* CreditCertificate stats: 2×2 */
+  .cert-stats-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* CreditCertificate body padding */
+  [style*="padding: '36px 40px'"],
+  [style*="padding: '32px 40px'"] {
+    padding: 20px 16px !important;
+  }
+
   /* Modals — prevent overflow */
   [style*="width: 480"] {
     width: calc(100vw - 32px) !important;

@@ -136,7 +136,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
         </div>
 
         {/* ── SCORE + FACTORS row ─────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, marginBottom: 20 }}>
+        <div className="score-factors-row" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, marginBottom: 20 }}>
 
           {/* Score card */}
           <div className="panel-card" style={{ padding: '28px 24px' }}>
@@ -223,7 +223,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
         </div>
 
         {/* ── DATA ROW (replaces 4-column identical cards) ─── */}
-        <div className="card" style={{ display: 'flex', marginBottom: 20 }}>
+        <div className="card data-strip" style={{ display: 'flex', marginBottom: 20 }}>
           {[
             { label: 'Loan Limit',     value: isLoading ? '—' : formatPeso(tier.max),                color: 'var(--green)',   sub: 'Based on your score' },
             { label: 'Total Loans',    value: isLoading ? '—' : String(record?.total_loans ?? 0),    color: 'var(--ink)',     sub: 'Lifetime on-chain' },

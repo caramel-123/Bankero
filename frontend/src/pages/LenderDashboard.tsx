@@ -443,7 +443,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
             </div>
 
             {/* Stats row */}
-            <div className="card" style={{ display: 'flex', marginBottom: 20 }}>
+            <div className="card stats-row" style={{ display: 'flex', marginBottom: 20 }}>
               {[
                 { label: 'Pending',         value: String(pending.length),     color: '#D97706',      Icon: Clock },
                 { label: 'Active Loans',    value: String(active.length),      color: 'var(--green)', Icon: CreditCard },
@@ -605,7 +605,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
         {page === 'Reports' && (
           <div>
             <h1 className="heading" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 24 }}>Reports</h1>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="reports-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               {[
                 { label: 'Portfolio Value',  value: formatPeso(totalDisbursed), Icon: Banknote,    color: 'var(--green)' },
                 { label: 'Repayment Rate',   value: repaid.length + defaulted.length > 0 ? `${Math.round((repaid.length / (repaid.length + defaulted.length)) * 100)}%` : '—', Icon: TrendingUp, color: '#3B82F6' },
@@ -631,11 +631,11 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
           <div>
             <h1 className="heading" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 6 }}>Settings</h1>
             <p style={{ color: 'var(--ink-3)', fontSize: 14, marginBottom: 28 }}>Your lending preferences — saved to your Bankero profile.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 720 }}>
+            <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 720 }}>
               {/* Profile */}
               <div className="card" style={{ padding: 24, gridColumn: '1/-1' }}>
                 <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 18 }}>Profile</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="profile-fields-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
                     <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-2)', display: 'block', marginBottom: 6 }}>Display Name</label>
                     <input className="input" value={lender.display_name} disabled style={{ color: 'var(--ink-3)' }} />

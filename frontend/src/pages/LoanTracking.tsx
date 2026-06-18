@@ -236,7 +236,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
 
         {/* Summary strip */}
         {loans.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 24 }}>
+          <div className="loan-summary-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 24 }}>
             {[
               { label: 'Total Applied', value: formatPeso(loans.reduce((s, l) => s + l.amount, 0)), color: 'var(--ink)' },
               { label: 'Active Loans',  value: String(counts['Disbursed'] ?? 0), color: 'var(--green)' },
