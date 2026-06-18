@@ -359,3 +359,105 @@ img, svg { display: block; }
     transition: none;
   }
 }
+
+/* ── Mobile responsive overrides (≤ 768px) ───────────────── */
+@media (max-width: 768px) {
+
+  /* Landing — nav */
+  .landing-nav {
+    padding: 0 16px !important;
+    height: 56px !important;
+  }
+  .landing-nav-links {
+    display: none !important;
+  }
+
+  /* Landing — hero: stack vertically */
+  .landing-hero {
+    flex-direction: column !important;
+    padding: 80px 20px 48px !important;
+    gap: 32px !important;
+    align-items: flex-start !important;
+  }
+  .landing-hero-card {
+    width: 100% !important;
+    flex-shrink: unset !important;
+  }
+  .landing-hero-card > * {
+    width: 100% !important;
+  }
+
+  /* Landing — how it works: single column */
+  .landing-steps {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+    padding: 48px 20px !important;
+  }
+
+  /* Landing — features: single column */
+  .landing-features {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .landing-features > section,
+  .landing-features > div {
+    padding: 20px !important;
+  }
+
+  /* Landing — CTA banner: stack */
+  .landing-cta {
+    flex-direction: column !important;
+    padding: 40px 24px !important;
+    gap: 24px !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  /* Landing — sections horizontal padding */
+  section {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* App layout — hide sidebar, show full width */
+  .app-layout {
+    flex-direction: column !important;
+  }
+  .app-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+  .app-sidebar > div:first-child {
+    display: none !important; /* hide logo block */
+  }
+  .app-sidebar > div:last-child {
+    display: none !important; /* hide bottom section (wallet / logout) */
+  }
+  .app-main {
+    padding: 20px 16px !important;
+  }
+
+  /* General: tighten paddings */
+  .card {
+    padding: 16px !important;
+  }
+  .panel-card {
+    padding: 24px 20px !important;
+  }
+
+  /* Display/heading font sizes */
+  .display {
+    font-size: clamp(28px, 8vw, 40px) !important;
+  }
+  .heading {
+    font-size: clamp(16px, 4vw, 22px) !important;
+  }
+}
