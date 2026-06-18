@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Wallet, TrendingUp, Users, ShieldCheck, ArrowRight,
-  Zap, BarChart2, ChevronRight, Star,
+  Zap, BarChart2, ChevronRight, Star, Smartphone, X,
 } from 'lucide-react'
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
@@ -72,8 +73,73 @@ function ScoreCard() {
   )
 }
 
+function MobilePreview({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,.72)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        backdropFilter: 'blur(6px)',
+      }}
+    >
+      <div onClick={e => e.stopPropagation()} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        {/* close */}
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute', top: -12, right: -12, zIndex: 1,
+            width: 32, height: 32, borderRadius: '50%',
+            background: '#fff', border: 'none', cursor: 'pointer',
+            display: 'grid', placeItems: 'center',
+            boxShadow: '0 2px 12px rgba(0,0,0,.25)',
+          }}
+        >
+          <X size={15} strokeWidth={2.5} color="#111" />
+        </button>
+
+        {/* phone shell */}
+        <div style={{
+          width: 390, height: 720,
+          border: '8px solid #1a1a1a',
+          borderRadius: 48,
+          overflow: 'hidden',
+          boxShadow: '0 32px 80px rgba(0,0,0,.6)',
+          background: '#000',
+          position: 'relative',
+        }}>
+          {/* notch */}
+          <div style={{
+            position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+            width: 120, height: 28, background: '#1a1a1a',
+            borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
+            zIndex: 2,
+          }} />
+          <iframe
+            src="/"
+            style={{
+              width: '390px',
+              height: '844px',
+              border: 'none',
+              transform: 'scale(0.854)',
+              transformOrigin: 'top left',
+            }}
+            title="Bankero Mobile Preview"
+          />
+        </div>
+
+        <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>
+          Click outside to close
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function Landing() {
   const nav = useNavigate()
+  const [showMobile, setShowMobile] = useState(false)
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--surface)', fontFamily: 'var(--font)' }}>
@@ -344,6 +410,31 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* ── MOBILE PREVIEW BUTTON ────────────────────────────── */}
+      <button
+        onClick={() => setShowMobile(true)}
+        style={{
+          position: 'fixed', bottom: 28, right: 28, zIndex: 100,
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '12px 20px',
+          background: 'var(--panel)',
+          color: '#fff',
+          border: '1px solid rgba(255,255,255,.12)',
+          borderRadius: 'var(--r-full)',
+          cursor: 'pointer',
+          fontSize: 14, fontWeight: 600,
+          boxShadow: '0 8px 32px rgba(0,0,0,.35)',
+          transition: 'transform 150ms ease, box-shadow 150ms ease',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')}
+        onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+      >
+        <Smartphone size={16} strokeWidth={2} />
+        View Mobile
+      </button>
+
+      {showMobile && <MobilePreview onClose={() => setShowMobile(false)} />}
 
       {/* ── FOOTER ───────────────────────────────────────────── */}
       <footer style={{
