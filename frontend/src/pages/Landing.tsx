@@ -73,7 +73,8 @@ function ScoreCard() {
   )
 }
 
-function MobilePreview({ onClose }: { onClose: () => void }) {
+function MobilePreview({ onClose, onNavigate }: { onClose: () => void; onNavigate: (path: string) => void }) {
+  const nav = onNavigate
   return (
     <div
       onClick={onClose}
@@ -478,7 +479,7 @@ export default function Landing() {
         View Mobile
       </button>
 
-      {showMobile && <MobilePreview onClose={() => setShowMobile(false)} />}
+      {showMobile && <MobilePreview onClose={() => setShowMobile(false)} onNavigate={nav} />}
 
       {/* ── FOOTER ───────────────────────────────────────────── */}
       <footer style={{
