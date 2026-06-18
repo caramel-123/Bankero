@@ -18,7 +18,7 @@ function ProtectedRoute({ children, publicKey }: { children: React.ReactNode; pu
 }
 
 // Syncs iframe src when the outer app navigates
-function IframePhone({ onClose }: { onClose: () => void }) {
+function IframePhone(_: { onClose: () => void }) {
   const location = useLocation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
