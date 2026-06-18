@@ -79,7 +79,7 @@ export default function Landing() {
     <div style={{ minHeight: '100dvh', background: 'var(--surface)', fontFamily: 'var(--font)' }}>
 
       {/* ── NAV ─────────────────────────────────────────────── */}
-      <nav style={{
+      <nav className="landing-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 'var(--z-sticky)' as any,
         display: 'flex', alignItems: 'center',
         padding: '0 40px', height: 64,
@@ -100,7 +100,7 @@ export default function Landing() {
           </span>
         </button>
 
-        <div style={{ display: 'flex', gap: 2, marginLeft: 'auto', marginRight: 20 }}>
+        <div className="landing-nav-links" style={{ display: 'flex', gap: 2, marginLeft: 'auto', marginRight: 20 }}>
           {['How it works', 'For Lenders'].map(l => (
             <button key={l} className="btn btn-sm" style={{ background: 'none', border: 'none', color: 'var(--ink-3)', fontWeight: 500, borderRadius: 'var(--r-full)', padding: '7px 14px', fontSize: 14 }}>
               {l}
@@ -114,7 +114,7 @@ export default function Landing() {
       </nav>
 
       {/* ── HERO ────────────────────────────────────────────── */}
-      <section style={{
+      <section className="landing-hero" style={{
         maxWidth: 1160, margin: '0 auto',
         padding: '136px 40px 100px',
         display: 'flex', alignItems: 'center',
@@ -201,6 +201,7 @@ export default function Landing() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.28, ease: EASE_OUT }}
+          className="landing-hero-card"
           style={{ flexShrink: 0 }}
         >
           <ScoreCard />
@@ -213,7 +214,7 @@ export default function Landing() {
         borderTop: '1px solid var(--border-2)',
         borderBottom: '1px solid var(--border-2)',
       }}>
-        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '80px 40px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 80, alignItems: 'start' }}>
+        <div className="landing-steps" style={{ maxWidth: 1160, margin: '0 auto', padding: '80px 40px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 80, alignItems: 'start' }}>
           {/* Left label */}
           <div>
             <h2 className="heading" style={{ fontSize: 'clamp(32px, 3.5vw, 46px)', color: 'var(--ink)', marginBottom: 16 }}>
@@ -258,7 +259,7 @@ export default function Landing() {
 
       {/* ── FEATURES — asymmetric 2-col ─────────────────────── */}
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '96px 40px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
+        <div className="landing-features" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
           {/* Large feature left */}
           <div className="card hover-lift" style={{ padding: 36, display: 'flex', flexDirection: 'column', gap: 20, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
             <div style={{ width: 52, height: 52, borderRadius: 'var(--r-xl)', background: 'var(--green-tint)', display: 'grid', placeItems: 'center', color: 'var(--green)' }}>
@@ -312,7 +313,7 @@ export default function Landing() {
 
       {/* ── CTA BANNER ───────────────────────────────────────── */}
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 96px' }}>
-        <div className="panel-card" style={{ padding: '60px 64px', display: 'flex', alignItems: 'center', gap: 56 }}>
+        <div className="panel-card landing-cta" style={{ padding: '60px 64px', display: 'flex', alignItems: 'center', gap: 56 }}>
           {/* bg glow */}
           <div style={{
             position: 'absolute', top: -80, right: -60,

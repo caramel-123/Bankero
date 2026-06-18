@@ -37,10 +37,10 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
   const path    = window.location.pathname
 
   return (
-    <div style={{ display: 'flex', minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)' }}>
+    <div className="app-layout" style={{ display: 'flex', minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)' }}>
 
       {/* ── SIDEBAR ─────────────────────────────────────────── */}
-      <aside style={{
+      <aside className="app-sidebar" style={{
         width: 232, flexShrink: 0,
         background: 'var(--panel)',
         display: 'flex', flexDirection: 'column',
@@ -117,7 +117,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
       </aside>
 
       {/* ── MAIN ────────────────────────────────────────────── */}
-      <main style={{ flex: 1, padding: '36px 32px', overflowY: 'auto' }}>
+      <main className="app-main" style={{ flex: 1, padding: '36px 32px', overflowY: 'auto' }}>
 
         {/* Page header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32 }}>
