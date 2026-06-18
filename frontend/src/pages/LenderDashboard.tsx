@@ -686,6 +686,23 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
         )}
       </main>
 
+      {/* ── MOBILE BOTTOM NAV ─────────────────────────────── */}
+      <nav className="mobile-bottom-nav">
+        {[
+          { icon: Home, label: 'Dashboard', path: '/lender' },
+          { icon: LogOut, label: 'Sign Out', path: '/' },
+        ].map(n => {
+          const Icon = n.icon
+          return (
+            <button key={n.path} onClick={() => nav(n.path)}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.5)', fontSize: 9, fontWeight: 700 }}>
+              <Icon size={20} strokeWidth={2} />
+              {n.label}
+            </button>
+          )
+        })}
+      </nav>
+
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
 
       {/* ── Borrower Profile Modal ──────────────────────── */}
