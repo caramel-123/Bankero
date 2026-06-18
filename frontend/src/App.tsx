@@ -57,8 +57,10 @@ export default function App() {
               borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
               zIndex: 10,
             }} />
-            {/* Scrollable content area */}
+            {/* Scrollable content area — zoom scales desktop pages (designed ~1024px)
+                down to fit 390px phone shell while keeping all proportions correct */}
             <div style={{ paddingTop: 28, flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+              <div style={{ width: `${Math.round(390 / 0.38)}px`, zoom: 0.38, transformOrigin: 'top left' }}>
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login wallet={wallet} />} />
@@ -95,6 +97,7 @@ export default function App() {
                 } />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
+              </div>
             </div>
           </div>
         </div>
