@@ -101,13 +101,14 @@ function MobilePreview({ onClose }: { onClose: () => void }) {
 
         {/* phone shell */}
         <div style={{
-          width: 390, height: 720,
+          width: 375, height: 720,
           border: '8px solid #1a1a1a',
           borderRadius: 48,
           overflow: 'hidden',
           boxShadow: '0 32px 80px rgba(0,0,0,.6)',
-          background: '#000',
+          background: 'var(--surface)',
           position: 'relative',
+          display: 'flex', flexDirection: 'column',
         }}>
           {/* notch */}
           <div style={{
@@ -116,17 +117,60 @@ function MobilePreview({ onClose }: { onClose: () => void }) {
             borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
             zIndex: 2,
           }} />
-          <iframe
-            src="/"
-            style={{
-              width: '390px',
-              height: '844px',
-              border: 'none',
-              transform: 'scale(0.854)',
-              transformOrigin: 'top left',
-            }}
-            title="Bankero Mobile Preview"
-          />
+
+          {/* mobile nav */}
+          <div style={{ padding: '36px 20px 12px', borderBottom: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,.9)', backdropFilter: 'blur(12px)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--panel)', display: 'grid', placeItems: 'center' }}>
+                <span style={{ color: 'var(--green-soft)', fontWeight: 900, fontSize: 12 }}>₱</span>
+              </div>
+              <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--ink)' }}>Bank<span style={{ color: 'var(--green)' }}>e</span>ro</span>
+            </div>
+            <button onClick={() => nav('/login')} className="btn btn-primary btn-sm" style={{ marginLeft: 'auto', fontSize: 12, padding: '6px 14px' }}>
+              Get Started
+            </button>
+          </div>
+
+          {/* mobile hero */}
+          <div style={{ padding: '28px 20px 0', flex: 1, overflow: 'auto' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 'var(--r-full)', background: 'var(--green-tint)', border: '1px solid var(--green-border)', marginBottom: 18 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green-soft)' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--green-hi)' }}>Live on Stellar Testnet</span>
+            </div>
+            <h1 style={{ fontSize: 34, fontWeight: 900, color: 'var(--ink)', lineHeight: 1.1, marginBottom: 14, fontFamily: 'var(--font)' }}>
+              Your financial<br />reputation,<br /><span style={{ color: 'var(--green)' }}>on-chain.</span>
+            </h1>
+            <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.6, marginBottom: 24 }}>
+              No bank account? No credit history? Bankero gives unbanked Filipinos a verifiable credit score.
+            </p>
+            <button onClick={() => nav('/login')} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '13px' }}>
+              Build your score →
+            </button>
+            <button onClick={() => nav('/login?role=lender')} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', fontSize: 14, marginTop: 10 }}>
+              Lender access
+            </button>
+
+            {/* mini score card */}
+            <div style={{ marginTop: 28, background: 'var(--panel)', borderRadius: 20, padding: '20px', boxShadow: '0 8px 32px rgba(17,26,21,.25)' }}>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.4)', marginBottom: 8 }}>Credit Score</p>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 8 }}>
+                <span style={{ fontSize: 56, fontWeight: 900, color: '#fff', lineHeight: 1 }}>725</span>
+                <span style={{ padding: '3px 10px', borderRadius: 'var(--r-full)', background: 'var(--green)', color: '#fff', fontSize: 11, fontWeight: 700, marginBottom: 6 }}>Good</span>
+              </div>
+              <div style={{ height: 4, borderRadius: 'var(--r-full)', background: 'rgba(255,255,255,.1)', marginBottom: 14, overflow: 'hidden' }}>
+                <div style={{ width: '78%', height: '100%', background: 'linear-gradient(90deg,var(--green-soft),var(--panel-hi))' }} />
+              </div>
+              {[['Loan Repayment','88%','var(--green-soft)'],['Transactions','64%','#60A5FA'],['Community Trust','50%','var(--amber)'],['Remittance','42%','#A78BFA']].map(([label,pct,color])=>(
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', flex: 1 }}>{label}</span>
+                  <div style={{ width: 56, height: 3, borderRadius: 'var(--r-full)', background: 'rgba(255,255,255,.1)', overflow: 'hidden' }}>
+                    <div style={{ width: pct, height: '100%', background: color }} />
+                  </div>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.4)', width: 24, textAlign: 'right' }}>{pct}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 13 }}>
