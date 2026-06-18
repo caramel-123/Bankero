@@ -34,10 +34,11 @@ export default function App() {
           paddingTop: 24,
           paddingBottom: 24,
         }}>
-          {/* Phone shell */}
+          {/* Phone shell — fixed height so 100dvh pages don't expand it.
+              transform creates a new containing block so position:fixed children stay inside. */}
           <div style={{
             width: 390,
-            minHeight: 720,
+            height: 780,
             border: '8px solid #1a1a1a',
             borderRadius: 48,
             overflow: 'hidden',
@@ -45,15 +46,19 @@ export default function App() {
             background: 'var(--surface)',
             position: 'relative',
             flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            transform: 'translateZ(0)',
           }}>
             {/* Notch */}
             <div style={{
               position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
               width: 120, height: 28, background: '#1a1a1a',
               borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
-              zIndex: 100,
+              zIndex: 10,
             }} />
-            <div style={{ paddingTop: 28, height: '100%' }}>
+            {/* Scrollable content area */}
+            <div style={{ paddingTop: 28, flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login wallet={wallet} />} />
@@ -136,7 +141,7 @@ export default function App() {
       <button
         onClick={() => setMobileMode(m => !m)}
         style={{
-          position: 'fixed', bottom: 28, right: 28, zIndex: 9999,
+          position: 'fixed', bottom: 28, right: 28, zIndex: 2147483647,
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '11px 20px',
           background: mobileMode ? '#fff' : '#111',
