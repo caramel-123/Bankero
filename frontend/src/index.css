@@ -3,6 +3,7 @@
 /* ── Reset ───────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+html, body { overflow-x: hidden; max-width: 100%; }
 
 /* ── Design tokens ───────────────────────────────────────── */
 :root {
@@ -459,5 +460,34 @@ img, svg { display: block; }
   }
   .heading {
     font-size: clamp(16px, 4vw, 22px) !important;
+  }
+
+  /* Login — hide decorative left panel, full-width right form */
+  .login-left {
+    display: none !important;
+  }
+  .login-right {
+    padding: 32px 20px !important;
+    align-items: flex-start !important;
+    padding-top: 48px !important;
+  }
+
+  /* All inner-page padding */
+  [style*="padding: 32"] {
+    padding: 16px !important;
+  }
+  [style*="padding: '28px 32px'"] {
+    padding: 16px !important;
+  }
+
+  /* Modals — prevent overflow */
+  [style*="width: 480"] {
+    width: calc(100vw - 32px) !important;
+    max-width: 100% !important;
+  }
+  [style*="maxWidth: 640"],
+  [style*="maxWidth: 720"],
+  [style*="maxWidth: 760"] {
+    max-width: 100% !important;
   }
 }

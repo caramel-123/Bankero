@@ -365,10 +365,10 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)' }}>
+    <div className="app-layout" style={{ display: 'flex', minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)' }}>
 
       {/* ── Sidebar ────────────────────────────────────────── */}
-      <aside style={{ width: 220, background: 'var(--panel)', display: 'flex', flexDirection: 'column', padding: '24px 14px', flexShrink: 0, position: 'sticky', top: 0, height: '100dvh' }}>
+      <aside className="app-sidebar" style={{ width: 220, background: 'var(--panel)', display: 'flex', flexDirection: 'column', padding: '24px 14px', flexShrink: 0, position: 'sticky', top: 0, height: '100dvh' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 6px', marginBottom: 8 }}>
           <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,.08)', display: 'grid', placeItems: 'center' }}>
             <span style={{ color: 'var(--panel-hi)', fontWeight: 900, fontSize: 13 }}>₱</span>
@@ -402,7 +402,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       </aside>
 
       {/* ── Main ───────────────────────────────────────────── */}
-      <main style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
+      <main className="app-main" style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
 
         {/* Disburse error banner */}
         {disburseError && (

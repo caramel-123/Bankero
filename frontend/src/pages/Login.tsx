@@ -63,7 +63,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
     <div style={{ minHeight: '100dvh', display: 'flex', fontFamily: 'var(--font)' }}>
 
       {/* ── LEFT panel (dark) ─────────────────────────────── */}
-      <div className="panel-card" style={{
+      <div className="panel-card login-left" style={{
         width: 420, display: 'flex', flexDirection: 'column',
         padding: '40px 36px', flexShrink: 0, borderRadius: 0,
       }}>
@@ -133,7 +133,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
       </div>
 
       {/* ── RIGHT panel ───────────────────────────────────── */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', padding: 48 }}>
+      <div className="login-right" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', padding: 48 }}>
         <div style={{ width: '100%', maxWidth: 380 }}>
           <h2 className="heading" style={{ fontSize: 30, color: 'var(--ink)', marginBottom: 6 }}>
             Welcome to Bankero
