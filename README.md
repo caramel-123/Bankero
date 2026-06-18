@@ -1,3 +1,4 @@
+
 # Bankero 💚
 
 > **Decentralized Credit Scoring & Micro-Lending on Stellar**
@@ -11,7 +12,7 @@
 ---
 
 ## Deployed Contract Addresses (Stellar Testnet)
-
+<img width="952" height="613" alt="Screenshot 2026-06-18 at 3 42 18 PM" src="https://github.com/user-attachments/assets/3e851654-99bb-4971-9802-cd7b319d5ca5" />
 | Contract | Address |
 |----------|---------|
 | `credit_score` | `CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE` |
