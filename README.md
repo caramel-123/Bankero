@@ -26,6 +26,22 @@
 
 ---
 
+## Project Description
+
+Bankero is a decentralized credit scoring and micro-lending platform built on **Stellar** and **Soroban smart contracts**, designed to give unbanked Filipinos a verifiable, on-chain financial identity. By aggregating behavioral signals — loan repayments, wallet activity, community vouches, and anchor-linked remittances — into a transparent 300–850 credit score, Bankero enables peer-to-peer micro-loans without requiring a bank account, payslip, or credit card. The score lives on the blockchain, is owned by the borrower, and is verifiable by any lender, anywhere.
+
+---
+
+## Project Vision
+
+Most of the world's unbanked are not untrustworthy — they're just **invisible** to the formal financial system. Bankero's vision is to make financial reputation portable and self-sovereign: a score earned through real behavior, not institutional gatekeeping.
+
+We believe that if someone has been repaying debts in their community for years, their neighbors know it — even if no bank does. Bankero turns that social trust into verifiable on-chain proof, starting in the Philippines and eventually expandable to any community where peer trust precedes institutional credit.
+
+The long-term goal is a world where any person with a smartphone can walk up to a lender — whether that's a neighbor, an NGO, or a rural cooperative — and say: *"Here is my Bankero score. Here is my history. Verify it yourself on Stellar."*
+
+---
+
 ## What is Bankero?
 
 Bankero is a decentralized credit scoring and micro-lending platform built on **Stellar** and **Soroban smart contracts**. It solves a real problem in the Philippines: millions of Filipinos are excluded from formal financial services because they have no credit history — not because they aren't creditworthy.
@@ -446,6 +462,30 @@ final_score = 300 + (
 ```
 repayment_score = (loans_repaid / (total_loans + 2)) × 100 − (defaults × 15)
 ```
+
+---
+
+## Future Scope
+
+Bankero is currently an MVP targeting the Stellar testnet. The roadmap ahead:
+
+### Near-Term (Post-Hackathon)
+- **Mainnet deployment** — migrate all 3 contracts from testnet to Stellar mainnet with real XLM
+- **GCash / Maya anchor integration** — automate anchor score updates via Stellar SEP-6/24 instead of manual admin attestation
+- **Mobile app** — React Native wrapper using Lobstr wallet for users without desktop browsers
+- **SMS / USSD fallback** — for users without smartphones, enable loan status checks via text
+
+### Medium-Term
+- **Lender marketplace** — multiple lenders compete for borrowers, driving interest rates down through transparency
+- **Score decay automation** — scheduled Soroban invocations for inactive wallet score decay (currently admin-triggered)
+- **Vouch rewards** — on-chain distribution of the 1% voucher incentive when a borrower repays
+- **Group lending** — support for bayanihan-style group loans where repayment responsibility is shared
+
+### Long-Term
+- **Cross-border portability** — OFW (overseas Filipino worker) score contributions from remittance corridors
+- **Institutional lender API** — let rural banks and MFIs (microfinance institutions) query Bankero scores via REST
+- **Reputation export** — let borrowers export their score proof to other DeFi platforms on Stellar
+- **DAO governance** — community-governed score weight parameters, replacing admin control with token-weighted voting
 
 ---
 
