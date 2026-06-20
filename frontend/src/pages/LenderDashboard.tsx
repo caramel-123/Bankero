@@ -689,14 +689,17 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       {/* ── MOBILE BOTTOM NAV ─────────────────────────────── */}
       <nav className="mobile-bottom-nav">
         {[
-          { icon: Home, label: 'Dashboard', path: '/lender' },
-          { icon: LogOut, label: 'Sign Out', path: '/' },
+          { icon: Home,       label: 'Dashboard', pageId: 'Dashboard' },
+          { icon: CreditCard, label: 'Loans',     pageId: 'Loans' },
+          { icon: BarChart2,  label: 'Reports',   pageId: 'Reports' },
+          { icon: Settings,   label: 'Settings',  pageId: 'Settings' },
         ].map(n => {
           const Icon = n.icon
+          const active = page === n.pageId
           return (
-            <button key={n.path} onClick={() => nav(n.path)}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.5)', fontSize: 9, fontWeight: 700 }}>
-              <Icon size={20} strokeWidth={2} />
+            <button key={n.pageId} onClick={() => setPage(n.pageId)}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer', color: active ? 'var(--green)' : 'rgba(255,255,255,.4)', fontSize: 9, fontWeight: 700 }}>
+              <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               {n.label}
             </button>
           )

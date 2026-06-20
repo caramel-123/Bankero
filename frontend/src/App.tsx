@@ -143,8 +143,8 @@ function AppInner({
         </Routes>
       )}
 
-      {/* ── Toggle button (always visible) ── */}
-      <button
+      {/* ── Toggle button (hidden inside iframe) ── */}
+      {window.self === window.top && <button
         onClick={() => setMobileMode(m => !m)}
         style={{
           position: 'fixed', bottom: 28, right: 28, zIndex: 2147483647,
@@ -166,7 +166,7 @@ function AppInner({
           ? <><Monitor size={15} strokeWidth={2} /> Web View</>
           : <><Smartphone size={15} strokeWidth={2} /> Mobile View</>
         }
-      </button>
+      </button>}
     </>
   )
 }
