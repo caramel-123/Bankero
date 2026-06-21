@@ -485,20 +485,23 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                   <p style={{ color: 'var(--ink-4)', fontSize: 14 }}>No pending applications right now</p>
                 </div>
               ) : pending.map((loan, i) => (
-                <div key={loan.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 0', borderBottom: i < pending.length - 1 ? '1px solid var(--border-2)' : 'none' }}>
-                  <button onClick={() => viewProfile(loan.wallet)} disabled={profileLoading === loan.wallet}
-                    style={{ width: 38, height: 38, borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-2)', display: 'grid', placeItems: 'center', flexShrink: 0, cursor: 'pointer' }}
-                    title="View borrower profile">
+                <div key={loan.id}
+                  onClick={() => viewProfile(loan.wallet)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 12px', marginLeft: -12, marginRight: -12, borderRadius: 12, borderBottom: i < pending.length - 1 ? '1px solid var(--border-2)' : 'none', cursor: 'pointer', transition: 'background 120ms ease' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                >
+                  <div style={{ width: 38, height: 38, borderRadius: 'var(--r-md)', background: 'var(--green-tint)', border: '1px solid var(--green-border)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     {profileLoading === loan.wallet
-                      ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--border)', borderTopColor: 'var(--green)', animation: 'spin 0.8s linear infinite' }} />
-                      : <Users size={16} strokeWidth={2} color="var(--ink-4)" />}
-                  </button>
-                  <div style={{ flex: 1 }}>
-                    <button onClick={() => viewProfile(loan.wallet)} style={{ all: 'unset', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--green)', marginBottom: 2, display: 'block' }}>{formatWallet(loan.wallet)}</button>
+                      ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--green-border)', borderTopColor: 'var(--green)', animation: 'spin 0.8s linear infinite' }} />
+                      : <Users size={16} strokeWidth={2} color="var(--green)" />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{formatWallet(loan.wallet)}</p>
                     <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{loan.purpose} · {loan.term} days · Applied {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}</p>
                   </div>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginRight: 8 }}>{formatPeso(loan.amount)}</p>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
+                  <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
                     <button onClick={() => approve(loan.id)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
                       <Check size={13} strokeWidth={2.5} /> Approve
                     </button>
@@ -515,24 +518,29 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
               <div className="card" style={{ padding: 24 }}>
                 <h3 className="heading" style={{ fontSize: 16, color: 'var(--ink)', marginBottom: 16 }}>Approved — Disburse Now</h3>
                 {approved.map((loan, i) => (
-                  <div key={loan.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 0', borderBottom: i < approved.length - 1 ? '1px solid var(--border-2)' : 'none' }}>
-                    <button onClick={() => viewProfile(loan.wallet)} disabled={profileLoading === loan.wallet}
-                      style={{ width: 38, height: 38, borderRadius: 'var(--r-md)', background: '#EFF6FF', border: '1px solid #BFDBFE', display: 'grid', placeItems: 'center', flexShrink: 0, cursor: 'pointer' }}
-                      title="View borrower profile">
+                  <div key={loan.id}
+                    onClick={() => viewProfile(loan.wallet)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 12px', marginLeft: -12, marginRight: -12, borderRadius: 12, borderBottom: i < approved.length - 1 ? '1px solid var(--border-2)' : 'none', cursor: 'pointer', transition: 'background 120ms ease' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                  >
+                    <div style={{ width: 38, height: 38, borderRadius: 'var(--r-md)', background: '#EFF6FF', border: '1px solid #BFDBFE', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                       {profileLoading === loan.wallet
                         ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #BFDBFE', borderTopColor: '#3B82F6', animation: 'spin 0.8s linear infinite' }} />
                         : <Users size={16} strokeWidth={2} color="#3B82F6" />}
-                    </button>
-                    <div style={{ flex: 1 }}>
-                      <button onClick={() => viewProfile(loan.wallet)} style={{ all: 'unset', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--green)', marginBottom: 2, display: 'block' }}>{formatWallet(loan.wallet)}</button>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{formatWallet(loan.wallet)}</p>
                       <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{loan.purpose} · {loan.term} days</p>
                     </div>
-                    <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginRight: 8 }}>{formatPeso(loan.amount)}</p>
-                    <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
-                      {disbursingId === loan.id
-                        ? <><div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
-                        : <><Banknote size={13} strokeWidth={2} /> Disburse {pesoToXlm(loan.amount)} XLM</>}
-                    </button>
+                    <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
+                    <div onClick={e => e.stopPropagation()}>
+                      <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
+                        {disbursingId === loan.id
+                          ? <><div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
+                          : <><Banknote size={13} strokeWidth={2} /> Disburse {pesoToXlm(loan.amount)} XLM</>}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -559,42 +567,45 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                   <p style={{ color: 'var(--ink-4)', fontSize: 14 }}>No loans in the system yet</p>
                 </div>
               ) : loans.map((loan, i) => (
-                <div key={loan.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderBottom: i < loans.length - 1 ? '1px solid var(--border-2)' : 'none' }}>
-                  <button onClick={() => viewProfile(loan.wallet)} disabled={profileLoading === loan.wallet}
-                    style={{ width: 38, height: 38, borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-2)', display: 'grid', placeItems: 'center', flexShrink: 0, cursor: 'pointer' }}
-                    title="View borrower profile">
+                <div key={loan.id}
+                  onClick={() => viewProfile(loan.wallet)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 12px', marginLeft: -12, marginRight: -12, borderRadius: 12, borderBottom: i < loans.length - 1 ? '1px solid var(--border-2)' : 'none', cursor: 'pointer', transition: 'background 120ms ease' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                >
+                  <div style={{ width: 38, height: 38, borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-2)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     {profileLoading === loan.wallet
                       ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--border)', borderTopColor: 'var(--green)', animation: 'spin 0.8s linear infinite' }} />
                       : <Users size={16} strokeWidth={2} color="var(--ink-4)" />}
-                  </button>
-                  <div style={{ flex: 1 }}>
-                    <button onClick={() => viewProfile(loan.wallet)} style={{ all: 'unset', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--green)', marginBottom: 2, display: 'block' }}>{formatWallet(loan.wallet)}</button>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{formatWallet(loan.wallet)}</p>
                     <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{loan.purpose} · {loan.term} days · {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}</p>
                   </div>
                   <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
                   <StatusPill status={loan.status} />
-                  {loan.status === 'Pending' && (
-                    <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
+                    {loan.status === 'Pending' && (<>
                       <button onClick={() => approve(loan.id)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
                         <Check size={12} strokeWidth={2.5} /> Approve
                       </button>
                       <button onClick={() => reject(loan.id)} className="btn btn-sm" style={{ borderRadius: 'var(--r-md)', background: '#FEF2F2', color: '#DC2626', border: 'none' }}>
                         <X size={12} strokeWidth={2.5} /> Reject
                       </button>
-                    </div>
-                  )}
-                  {loan.status === 'Approved' && (
-                    <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
-                      {disbursingId === loan.id
-                        ? <><div style={{ width: 11, height: 11, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
-                        : <><Banknote size={12} strokeWidth={2} /> Disburse {pesoToXlm(loan.amount)} XLM</>}
-                    </button>
-                  )}
-                  {isOverdue(loan) && (
-                    <button onClick={() => markDefaulted(loan.id)} className="btn btn-sm" style={{ borderRadius: 'var(--r-md)', background: '#FEF2F2', color: '#DC2626', border: 'none', fontSize: 11 }}>
-                      <AlertCircle size={11} strokeWidth={2.5} /> Mark Defaulted
-                    </button>
-                  )}
+                    </>)}
+                    {loan.status === 'Approved' && (
+                      <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
+                        {disbursingId === loan.id
+                          ? <><div style={{ width: 11, height: 11, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
+                          : <><Banknote size={12} strokeWidth={2} /> Disburse {pesoToXlm(loan.amount)} XLM</>}
+                      </button>
+                    )}
+                    {isOverdue(loan) && (
+                      <button onClick={() => markDefaulted(loan.id)} className="btn btn-sm" style={{ borderRadius: 'var(--r-md)', background: '#FEF2F2', color: '#DC2626', border: 'none', fontSize: 11 }}>
+                        <AlertCircle size={11} strokeWidth={2.5} /> Mark Defaulted
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
