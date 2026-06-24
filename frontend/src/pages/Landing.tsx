@@ -92,7 +92,7 @@ export default function Landing() {
           onClick={() => nav('/')}
           style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          <img src="/bankero-logo.png" alt="Bankero" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
+          <img src="/bankero-logo.png" alt="Bankero" style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'contain' }} />
           <span className="heading" style={{ fontSize: 18 }}>
             Bank<span style={{ color: 'var(--green)' }}>e</span>ro
           </span>

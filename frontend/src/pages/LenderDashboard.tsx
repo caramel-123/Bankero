@@ -370,7 +370,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       {/* ── Sidebar ────────────────────────────────────────── */}
       <aside className="app-sidebar" style={{ width: 220, background: 'var(--panel)', display: 'flex', flexDirection: 'column', padding: '24px 14px', flexShrink: 0, position: 'sticky', top: 0, height: '100dvh' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 6px', marginBottom: 8 }}>
-          <img src="/bankero-logo.png" alt="Bankero" style={{ width: 30, height: 30, borderRadius: 8, objectFit: 'contain' }} />
+          <img src="/bankero-logo.png" alt="Bankero" style={{ width: 50, height: 50, borderRadius: 10, objectFit: 'contain' }} />
           <span className="heading" style={{ fontSize: 16, color: '#fff' }}>Bank<span style={{ color: 'var(--panel-hi)' }}>e</span>ro</span>
         </div>
 
