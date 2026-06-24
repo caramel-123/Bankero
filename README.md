@@ -8,6 +8,7 @@
 
 🌐 **Live App:** [https://bankero.vercel.app](https://bankero.vercel.app)
 🎥 **Demo Video:** [Watch on YouTube](https://youtu.be/xhMVzAy9vIE?feature=shared)
+📊 **Pitch Deck:** [View on Canva](https://canva.link/bgjjy7fbpq9yswg)
 
 ---
 
