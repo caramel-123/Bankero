@@ -89,6 +89,28 @@ The result is a **300–850 credit score** stored transparently on the blockchai
 | 800–849 | Excellent | ₱25,000 | 4% |
 | 850 | Elite | ₱50,000 | 3.5% |
 
+
+Borrower POV: 
+<img width="1074" height="719" alt="Screenshot 2026-06-24 at 10 42 24 AM" src="https://github.com/user-attachments/assets/e64f657d-2088-4ed1-9898-321d674e8525" />
+<img width="1021" height="722" alt="Screenshot 2026-06-24 at 10 42 39 AM" src="https://github.com/user-attachments/assets/7d152986-63a3-4646-b8d3-0805eb71ff54" />
+<img width="1024" height="725" alt="Screenshot 2026-06-24 at 10 42 46 AM" src="https://github.com/user-attachments/assets/1d2be0ed-9eb1-4319-af57-8b4d43accdcf" />
+<img width="1021" height="723" alt="Screenshot 2026-06-24 at 10 42 52 AM" src="https://github.com/user-attachments/assets/c5f9eaeb-b5d7-48f9-9c58-4cea2a2fef8e" />
+
+Lender POV:
+<img width="1016" height="716" alt="Screenshot 2026-06-24 at 10 43 07 AM" src="https://github.com/user-attachments/assets/dfd70249-0d78-40e0-b6d6-f3434c8596db" />
+<img width="1021" height="716" alt="Screenshot 2026-06-24 at 10 43 52 AM" src="https://github.com/user-attachments/assets/1ec76fa6-0d18-4e27-b307-44f94d8ca481" />
+<img width="1025" height="719" alt="Screenshot 2026-06-24 at 10 44 01 AM" src="https://github.com/user-attachments/assets/34a4ac77-0ec5-4ee4-a2a4-f896231d7430" />
+
+Borrower POV:
+<img width="1074" height="719" alt="Screenshot 2026-06-24 at 10 42 24 AM" src="https://github.com/user-attachments/assets/b9e97c6a-b518-440d-99bb-7cc70ab01f32" />
+<img width="1018" height="720" alt="Screenshot 2026-06-24 at 10 47 26 AM" src="https://github.com/user-attachments/assets/f99dbba9-4082-48f9-b767-2ebd76201411" />
+<img width="1022" height="720" alt="Screenshot 2026-06-24 at 10 47 10 AM" src="https://github.com/user-attachments/assets/a1932a98-9381-46eb-84f8-4a7b6a88290c" />
+<img width="1022" height="717" alt="Screenshot 2026-06-24 at 10 46 57 AM" src="https://github.com/user-attachments/assets/4542ec24-7584-42fc-a93c-16cd674ae0d0" />
+
+
+
+
+
 ---
 
 ## Tech Stack
