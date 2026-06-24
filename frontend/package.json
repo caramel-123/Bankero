@@ -17,6 +17,7 @@
     "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "^15.1.0",
     "@supabase/supabase-js": "^2.108.1",
+    "@vercel/analytics": "^2.0.1",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.18.0",
     "react": "^19.2.6",
