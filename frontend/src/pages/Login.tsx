@@ -79,7 +79,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
           onClick={() => nav('/')}
           style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', marginBottom: 52, padding: 0, position: 'relative' }}
         >
-          <img src="/logo.png" alt="Bankero" style={{ width: 32, height: 32, borderRadius: 9, objectFit: 'contain' }} />
+          <img src="/bankero-logo.png" alt="Bankero" style={{ width: 32, height: 32, borderRadius: 9, objectFit: 'contain' }} />
           <span className="heading" style={{ fontSize: 18, color: '#fff' }}>
             Bank<span style={{ color: 'var(--green-soft)' }}>e</span>ro
           </span>
