@@ -135,6 +135,7 @@ The borrower receives the XLM and repays through the platform before the due dat
 
 
 Mobile View
+
 <img width="264" height="509" alt="Screenshot 2026-06-24 at 11 17 01 AM" src="https://github.com/user-attachments/assets/a2a68cf3-4b1d-444d-b7b4-06c041514759" />
 <img width="265" height="514" alt="Screenshot 2026-06-24 at 11 16 54 AM" src="https://github.com/user-attachments/assets/fb698962-eeb4-4008-9026-722428163ce6" />
 <img width="260" height="511" alt="Screenshot 2026-06-24 at 11 16 49 AM" src="https://github.com/user-attachments/assets/43fa77db-6db8-4c1b-a003-8ec316f58cb9" />
