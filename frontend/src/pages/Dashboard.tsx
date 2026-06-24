@@ -50,9 +50,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '4px 10px', marginBottom: 28 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,.08)', display: 'grid', placeItems: 'center' }}>
-            <span style={{ color: 'var(--panel-hi)', fontWeight: 900, fontSize: 13 }}>₱</span>
-          </div>
+          <img src="/logo.png" alt="Bankero" style={{ width: 30, height: 30, borderRadius: 8, objectFit: 'contain' }} />
           <span className="heading" style={{ fontSize: 16, color: '#fff' }}>
             Bank<span style={{ color: 'var(--panel-hi)' }}>e</span>ro
           </span>

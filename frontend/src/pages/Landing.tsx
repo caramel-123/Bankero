@@ -92,9 +92,7 @@ export default function Landing() {
           onClick={() => nav('/')}
           style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          <div style={{ width: 32, height: 32, borderRadius: 9, background: 'var(--panel)', display: 'grid', placeItems: 'center' }}>
-            <span style={{ color: 'var(--green-soft)', fontWeight: 900, fontSize: 15 }}>₱</span>
-          </div>
+          <img src="/logo.png" alt="Bankero" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
           <span className="heading" style={{ fontSize: 18 }}>
             Bank<span style={{ color: 'var(--green)' }}>e</span>ro
           </span>

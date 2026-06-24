@@ -79,9 +79,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
           onClick={() => nav('/')}
           style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', marginBottom: 52, padding: 0, position: 'relative' }}
         >
-          <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,255,255,.08)', display: 'grid', placeItems: 'center' }}>
-            <span style={{ color: 'var(--green-soft)', fontWeight: 900, fontSize: 15 }}>₱</span>
-          </div>
+          <img src="/logo.png" alt="Bankero" style={{ width: 32, height: 32, borderRadius: 9, objectFit: 'contain' }} />
           <span className="heading" style={{ fontSize: 18, color: '#fff' }}>
             Bank<span style={{ color: 'var(--green-soft)' }}>e</span>ro
           </span>
