@@ -133,6 +133,14 @@ The borrower receives the XLM and repays through the platform before the due dat
 
 <img width="714" height="635" alt="Stellar Explorer showing 10+ contract transactions on credit_score contract" src="https://github.com/user-attachments/assets/9e05e5fa-762c-4f2a-924e-f6c8b784d9f7" />
 
+
+Mobile View
+
+<img width="264" height="509" alt="Screenshot 2026-06-24 at 11 17 01 AM" src="https://github.com/user-attachments/assets/a2a68cf3-4b1d-444d-b7b4-06c041514759" />
+<img width="265" height="514" alt="Screenshot 2026-06-24 at 11 16 54 AM" src="https://github.com/user-attachments/assets/fb698962-eeb4-4008-9026-722428163ce6" />
+<img width="260" height="511" alt="Screenshot 2026-06-24 at 11 16 49 AM" src="https://github.com/user-attachments/assets/43fa77db-6db8-4c1b-a003-8ec316f58cb9" />
+<img width="253" height="501" alt="Screenshot 2026-06-24 at 11 16 43 AM" src="https://github.com/user-attachments/assets/0cb59df3-021b-48a1-a5b5-dbd9ae548712" />
+
 ## Tech Stack
 
 | Layer | Technology |
