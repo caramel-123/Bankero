@@ -141,6 +141,9 @@ Mobile View
 <img width="260" height="511" alt="Screenshot 2026-06-24 at 11 16 49 AM" src="https://github.com/user-attachments/assets/43fa77db-6db8-4c1b-a003-8ec316f58cb9" />
 <img width="253" height="501" alt="Screenshot 2026-06-24 at 11 16 43 AM" src="https://github.com/user-attachments/assets/0cb59df3-021b-48a1-a5b5-dbd9ae548712" />
 
+Analytics
+<img width="624" height="655" alt="Screenshot 2026-06-24 at 11 43 05 AM" src="https://github.com/user-attachments/assets/7b0e54ac-bce1-48ad-bb8b-9e61bb87dbab" />
+
 ## Tech Stack
 
 | Layer | Technology |
