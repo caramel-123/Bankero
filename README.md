@@ -123,9 +123,9 @@ The lender logs into the dashboard and reviews the borrower's full credit profil
 The borrower receives the XLM and repays through the platform before the due date. Each on-time repayment raises their credit score. Once they have repayment history, they can download a **Credit Certificate** — a verifiable, printable proof of creditworthiness backed by Stellar blockchain data.
 
 <img width="1074" height="719" alt="Borrower receives XLM and views active loan details" src="https://github.com/user-attachments/assets/b9e97c6a-b518-440d-99bb-7cc70ab01f32" />
-<img width="1018" height="720" alt="Borrower repays loan before due date" src="https://github.com/user-attachments/assets/f99dbba9-4082-48f9-b767-2ebd76201411" />
-<img width="1022" height="720" alt="Credit score increases after successful on-time repayment" src="https://github.com/user-attachments/assets/a1932a98-9381-46eb-84f8-4a7b6a88290c" />
 <img width="1022" height="717" alt="Borrower downloads verifiable Credit Certificate as PDF" src="https://github.com/user-attachments/assets/4542ec24-7584-42fc-a93c-16cd674ae0d0" />
+<img width="1022" height="720" alt="Credit score increases after successful on-time repayment" src="https://github.com/user-attachments/assets/a1932a98-9381-46eb-84f8-4a7b6a88290c" />
+<img width="1018" height="720" alt="Borrower repays loan before due date" src="https://github.com/user-attachments/assets/f99dbba9-4082-48f9-b767-2ebd76201411" />
 
 ### On-Chain Transaction Proof
 
