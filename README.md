@@ -465,6 +465,68 @@ repayment_score = (loans_repaid / (total_loans + 2)) × 100 − (defaults × 15)
 
 ---
 
+## User Onboarding
+
+We are collecting real user feedback to guide the next phase of Bankero's development.
+
+### Onboarding Form
+
+**[Fill out the Bankero User Onboarding & Feedback Form →](https://forms.gle/REPLACE_WITH_YOUR_FORM_LINK)**
+
+The form collects:
+- Full name and email
+- Stellar wallet address
+- Features used (Borrow / Lend / Vouch / Credit Certificate)
+- Overall experience rating (1–5)
+- What users liked most
+- What users want improved
+
+### Collected Responses
+
+All responses are exported and maintained in:
+
+**[`docs/bankero-user-feedback.xlsx`](docs/bankero-user-feedback.xlsx)**
+
+The spreadsheet is updated as new responses come in and serves as the primary record for product iteration decisions.
+
+---
+
+## Improvement Plan (Based on User Feedback)
+
+The following improvements are planned for Phase 2, informed directly by user feedback collected through the onboarding form:
+
+### 1. Mobile App (React Native)
+**Feedback signal:** Users on mobile report the web app is functional but a native app feel is missing.
+**Plan:** Build a React Native wrapper using Lobstr wallet for users without desktop browsers. Priority feature for borrowers in rural areas.
+**Commit reference:** *(to be added after implementation)*
+
+### 2. GCash / Maya Anchor Automation
+**Feedback signal:** Users want their GCash history to automatically update their score without waiting for admin verification.
+**Plan:** Integrate Stellar SEP-6/24 anchor protocol to automate anchor score updates directly from GCash and Maya transaction history.
+**Commit reference:** *(to be added after implementation)*
+
+### 3. Simplified Onboarding for Non-Tech Users
+**Feedback signal:** New users unfamiliar with Stellar wallets find the Freighter setup confusing.
+**Plan:** Add a step-by-step in-app wallet setup guide with screenshots, and an explainer video linked from the dashboard for first-time users.
+**Commit reference:** *(to be added after implementation)*
+
+### 4. Filipino Language Support
+**Feedback signal:** Several users requested full Filipino (Tagalog / Cebuano) UI translation.
+**Plan:** Add i18n support with Filipino as the default language option, English as secondary. All CTAs, error messages, and score explanations translated.
+**Commit reference:** *(to be added after implementation)*
+
+### 5. SMS / Push Repayment Reminders
+**Feedback signal:** Borrowers want reminders before their loan due date to avoid accidental defaults.
+**Plan:** Integrate Supabase Edge Functions with an SMS gateway (e.g. Semaphore PH) to send repayment reminders 3 days and 1 day before due date.
+**Commit reference:** *(to be added after implementation)*
+
+### 6. Lender Marketplace
+**Feedback signal:** Borrowers want to choose from multiple lenders and compare interest rates.
+**Plan:** Build a lender discovery page where borrowers can browse verified lenders, their rates, and specializations before submitting a loan application.
+**Commit reference:** *(to be added after implementation)*
+
+---
+
 ## Future Scope
 
 Bankero is currently an MVP targeting the Stellar testnet. The roadmap ahead:
