@@ -128,6 +128,9 @@ The borrower receives the XLM and repays through the platform before the due dat
 <img width="1018" height="720" alt="Borrower repays loan before due date" src="https://github.com/user-attachments/assets/f99dbba9-4082-48f9-b767-2ebd76201411" />
 
 
+Transactions: 
+<img width="714" height="635" alt="Screenshot 2026-06-24 at 11 10 45 AM" src="https://github.com/user-attachments/assets/9e05e5fa-762c-4f2a-924e-f6c8b784d9f7" />
+
 ---
 
 ## Tech Stack
