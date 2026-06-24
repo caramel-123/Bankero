@@ -105,7 +105,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
           <div className="cert-header-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <img src="/logo.png" alt="Bankero" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'contain' }} />
+                <img src="/bankero-logo.png" alt="Bankero" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'contain' }} />
                 <span style={{ color: '#fff', fontWeight: 800, fontSize: 20, fontFamily: 'sans-serif', letterSpacing: '-0.02em' }}>Bankero</span>
               </div>
               <p style={{ color: 'rgba(255,255,255,.7)', fontSize: 12, fontFamily: 'sans-serif', letterSpacing: '0.12em', textTransform: 'uppercase', margin: 0 }}>
