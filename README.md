@@ -471,7 +471,7 @@ We are collecting real user feedback to guide the next phase of Bankero's develo
 
 ### Onboarding Form
 
-**[Fill out the Bankero User Onboarding & Feedback Form →](https://forms.gle/REPLACE_WITH_YOUR_FORM_LINK)**
+**[Fill out the Bankero User Onboarding & Feedback Form →](https://docs.google.com/forms/d/e/1FAIpQLSf4d5o2ryMU9h1_ANlqES3Xr92xnU9Sq4AcS-QUDOZYlJCEiQ/viewform)**
 
 The form collects:
 - Full name and email
