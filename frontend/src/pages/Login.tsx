@@ -173,9 +173,9 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
 
               <button
                 onClick={wallet.connect}
-                disabled={wallet.state === 'connecting' || wallet.freighterInstalled === false}
+                disabled={wallet.state === 'connecting'}
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '15px 0', fontSize: 16, borderRadius: 'var(--r-lg)', opacity: (wallet.state === 'connecting' || wallet.freighterInstalled === false) ? 0.5 : 1 }}
+                style={{ width: '100%', padding: '15px 0', fontSize: 16, borderRadius: 'var(--r-lg)', opacity: wallet.state === 'connecting' ? 0.65 : 1 }}
               >
                 {wallet.state === 'connecting' ? (
                   <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Connecting…</>
