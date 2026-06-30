@@ -35,13 +35,13 @@ function GroupCard({ group, onClick }: { group: PaluwagaGroupView; onClick: () =
     <button
       onClick={onClick}
       style={{
-        width: '100%', textAlign: 'left', background: 'var(--panel)',
-        border: `1px solid ${urgent ? 'rgba(245,158,11,.4)' : 'var(--border)'}`,
+        width: '100%', textAlign: 'left', background: 'var(--card, #fff)',
+        border: `1px solid ${urgent ? 'rgba(245,158,11,.4)' : 'var(--border-2)'}`,
         borderRadius: 'var(--r-lg)', padding: '18px 20px',
         cursor: 'pointer', transition: 'all 150ms',
       }}
       onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--green)')}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = urgent ? 'rgba(245,158,11,.4)' : 'var(--border)')}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = urgent ? 'rgba(245,158,11,.4)' : 'var(--border-2)')}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <div>
@@ -61,7 +61,7 @@ function GroupCard({ group, onClick }: { group: PaluwagaGroupView; onClick: () =
       <div style={{ marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>
-            Cycle {group.current_cycle} ng {group.total_cycles}
+            Cycle {group.current_cycle} of {group.total_cycles}
           </span>
           {group.my_rotation_order === group.current_cycle && group.status === 'active' && (
             <span style={{ fontSize: 12, fontWeight: 700, color: '#F59E0B' }}>
@@ -174,7 +174,7 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
               My Paluwagan
             </h1>
             <p style={{ fontSize: 14, color: 'var(--ink-3)', margin: 0 }}>
-              Rotating savings groups sa Stellar blockchain
+              Rotating savings groups on the Stellar blockchain
             </p>
           </div>
           <button
