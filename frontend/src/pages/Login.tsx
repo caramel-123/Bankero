@@ -163,27 +163,19 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
           {/* ── BORROWER ── */}
           {tab === 'borrower' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {wallet.error && (
+              {/* Only show error for non-"not installed" cases (rejected, locked, etc.) */}
+              {wallet.error && !wallet.error.includes('not installed') && (
                 <div style={{ display: 'flex', gap: 10, padding: '12px 16px', borderRadius: 'var(--r-lg)', background: 'var(--red-tint)', border: '1px solid #FECACA', color: 'var(--red)', fontSize: 14 }}>
                   <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
-                  <div>
-                    {wallet.error.includes('not installed') ? (
-                      <>
-                        <div style={{ fontWeight: 600, marginBottom: 6 }}>Freighter wallet is not installed.</div>
-                        <a href="https://freighter.app" target="_blank" rel="noreferrer"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700, color: 'var(--red)', textDecoration: 'underline' }}>
-                          Download at freighter.app <ExternalLink size={11} strokeWidth={2} />
-                        </a>
-                      </>
-                    ) : wallet.error}
-                  </div>
+                  <span>{wallet.error}</span>
                 </div>
               )}
+
               <button
                 onClick={wallet.connect}
-                disabled={wallet.state === 'connecting'}
+                disabled={wallet.state === 'connecting' || wallet.freighterInstalled === false}
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '15px 0', fontSize: 16, borderRadius: 'var(--r-lg)', opacity: wallet.state === 'connecting' ? 0.65 : 1 }}
+                style={{ width: '100%', padding: '15px 0', fontSize: 16, borderRadius: 'var(--r-lg)', opacity: (wallet.state === 'connecting' || wallet.freighterInstalled === false) ? 0.5 : 1 }}
               >
                 {wallet.state === 'connecting' ? (
                   <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Connecting…</>
@@ -210,9 +202,15 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
                 Browse as Guest — No wallet needed
               </button>
 
-              <div style={{ display: 'flex', gap: 10, padding: '11px 14px', borderRadius: 'var(--r-md)', background: '#EFF6FF', border: '1px solid #BFDBFE', fontSize: 13, color: '#1D4ED8' }}>
+              {/* Freighter install notice — shown always so user knows what to install */}
+              <div style={{ display: 'flex', gap: 10, padding: '11px 14px', borderRadius: 'var(--r-md)', background: wallet.freighterInstalled === false ? '#FEF2F2' : '#EFF6FF', border: `1px solid ${wallet.freighterInstalled === false ? '#FECACA' : '#BFDBFE'}`, fontSize: 13, color: wallet.freighterInstalled === false ? '#DC2626' : '#1D4ED8' }}>
                 <ExternalLink size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span>No Freighter? Install it at <a href="https://freighter.app" target="_blank" rel="noreferrer" style={{ color: '#1D4ED8', fontWeight: 700 }}>freighter.app</a></span>
+                <span>
+                  {wallet.freighterInstalled === false ? 'Freighter is not installed. ' : 'No Freighter? '}
+                  <a href="https://freighter.app" target="_blank" rel="noreferrer" style={{ color: wallet.freighterInstalled === false ? '#DC2626' : '#1D4ED8', fontWeight: 700 }}>
+                    Install at freighter.app
+                  </a>
+                </span>
               </div>
             </div>
           )}
