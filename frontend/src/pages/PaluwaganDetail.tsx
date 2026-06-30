@@ -4,7 +4,6 @@ import { ArrowLeft, CheckCircle, Clock, XCircle, Trophy, ChevronRight } from 'lu
 import { supabase } from '../lib/supabase'
 import type { PaluwagaGroup, PaluwagaMember, PaluwagaContribution, PaluwagaPotRelease } from '../types/paluwagan'
 import { checkAndEnforceDeadlines } from '../services/paluwagaScoring'
-import { DEMO_PALUWAGAN_GROUPS, DEMO_PALUWAGAN_MEMBERS, DEMO_PALUWAGAN_CONTRIBUTIONS } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -53,15 +52,6 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current')
 
   useEffect(() => {
-    if (wallet.isGuest) {
-      const g = (DEMO_PALUWAGAN_GROUPS as any[]).find(g => g.id === id) ?? DEMO_PALUWAGAN_GROUPS[0]
-      setGroup(g as unknown as PaluwagaGroup)
-      setMembers(DEMO_PALUWAGAN_MEMBERS as unknown as PaluwagaMember[])
-      setContributions(DEMO_PALUWAGAN_CONTRIBUTIONS as unknown as PaluwagaContribution[])
-      setMyMembership(DEMO_PALUWAGAN_MEMBERS[0] as unknown as PaluwagaMember)
-      setLoading(false)
-      return
-    }
     if (!id) return
 
     async function load() {
@@ -108,7 +98,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
 
   const currentCycleContribs = contributions.filter(c => c.cycle_number === group.current_cycle)
   const contributedIds = new Set(currentCycleContribs.map(c => c.user_id))
-  const recipientThisCycle = members.find(m => m.rotation_order === group.current_cycle)
+  const _recipientThisCycle = members.find(m => m.rotation_order === group.current_cycle)
   const myRotationOrder = myMembership?.rotation_order ?? null
   const iAmRecipientThisCycle = myRotationOrder === group.current_cycle
   const iHaveContributed = myMembership ? contributedIds.has(myMembership.user_id) : false

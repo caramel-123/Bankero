@@ -15,7 +15,7 @@ async function getUserId(walletAddress: string): Promise<string | null> {
   return data?.id ?? null
 }
 
-async function getCurrentTxScore(userId: string): Promise<number> {
+async function _getCurrentTxScore(userId: string): Promise<number> {
   const { data } = await supabase
     .from('tx_score_cache')
     .select('tx_score')

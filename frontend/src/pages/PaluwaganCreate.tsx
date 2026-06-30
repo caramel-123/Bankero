@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, CheckCircle, Users, Calendar, Coins } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import type { CreateGroupPayload } from '../types/paluwagan'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 

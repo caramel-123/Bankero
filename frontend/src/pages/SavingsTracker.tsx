@@ -5,7 +5,6 @@ import { supabase } from '../lib/supabase'
 import {
   getSavingsStreak, getWeeklyDeposits, updateSavingsStreak, getCurrentWeekIdentifier,
 } from '../services/savingsTracker'
-import { DEMO_SAVINGS_STREAK, DEMO_WEEKLY_DEPOSITS } from '../lib/demoData'
 import type { SavingsStreak, WeeklyDeposit } from '../types/savings'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -54,12 +53,6 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
   const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (wallet.isGuest) {
-      setStreak(DEMO_SAVINGS_STREAK as unknown as SavingsStreak)
-      setDeposits(DEMO_WEEKLY_DEPOSITS as unknown as WeeklyDeposit[])
-      setLoading(false)
-      return
-    }
     if (!wallet.publicKey) return
     async function load() {
       const { data: user } = await supabase.from('users').select('id').eq('wallet_address', wallet.publicKey!).maybeSingle()
@@ -74,10 +67,9 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
       setLoading(false)
     }
     load()
-  }, [wallet.publicKey, wallet.isGuest])
+  }, [wallet.publicKey])
 
   async function checkDeposit() {
-    if (wallet.isGuest) return   // demo: no real check
     if (!userId || !wallet.publicKey) return
     setRefreshing(true)
     try {

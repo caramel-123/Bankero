@@ -4,7 +4,6 @@ import { ArrowLeft, CheckCircle, Coins, TrendingUp, AlertTriangle } from 'lucide
 import { supabase } from '../lib/supabase'
 import { applyContributionBonus } from '../services/paluwagaScoring'
 import type { PaluwagaGroup, PaluwagaMember } from '../types/paluwagan'
-import { DEMO_PALUWAGAN_GROUPS, DEMO_PALUWAGAN_MEMBERS } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -22,14 +21,6 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (wallet.isGuest) {
-      const g = (DEMO_PALUWAGAN_GROUPS as any[]).find(g => g.id === id) ?? DEMO_PALUWAGAN_GROUPS[0]
-      setGroup(g as unknown as PaluwagaGroup)
-      setMyMembership(DEMO_PALUWAGAN_MEMBERS[1] as unknown as PaluwagaMember)
-      setRecipientMember(DEMO_PALUWAGAN_MEMBERS[0] as unknown as PaluwagaMember)
-      setLoading(false)
-      return
-    }
     if (!id || !wallet.publicKey) return
 
     async function load() {
@@ -48,7 +39,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
       setLoading(false)
     }
     load()
-  }, [id, wallet.publicKey, wallet.isGuest])
+  }, [id, wallet.publicKey])
 
   async function handleContribute() {
     if (!group || !myMembership) return
@@ -56,15 +47,6 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
     setError('')
 
     try {
-      // Guest: simulate
-      if (wallet.isGuest) {
-        await new Promise(r => setTimeout(r, 1200))
-        setScoreBonus(3)
-        setStage('success')
-        return
-      }
-
-      // Real: would trigger Freighter signing here
       // For now, record in Supabase as a local loan store (contract call pending)
       const { data: user } = await supabase.from('users').select('id').eq('wallet_address', wallet.publicKey!).maybeSingle()
       if (!user) throw new Error('Hindi mahanap ang account.')

@@ -23,7 +23,7 @@ const NAV = [
 
 export default function Dashboard({ wallet }: { wallet: WalletHook }) {
   const nav = useNavigate()
-  const { record, isLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
+  const { record, isLoading } = useScore(wallet.publicKey)
   const [copied, setCopied] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
 
@@ -34,7 +34,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
       setTimeout(() => setCopied(false), 2000)
     })
   }
-  const score   = wallet.isGuest ? 725 : (record?.score ?? 300)
+  const score   = record?.score ?? 300
   const tier    = scoreTier(score)
   const pct     = scorePercent(score)
   const path    = window.location.pathname

@@ -5,7 +5,6 @@ import { scoreTier, scorePercent, SCORE_TIERS } from '../lib/stellar'
 import { fetchLoans, type LocalLoan } from '../lib/loanStore'
 import { getUser, type User as BorrowerUser } from '../lib/supabase'
 import { useScore } from '../hooks/useScore'
-import { DEMO_SCORE_RECORD, DEMO_LOANS, DEMO_WALLET, DEMO_USER } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -26,11 +25,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
   const [loans, setLoans] = useState<LocalLoan[]>([])
   const [loansLoading, setLoansLoading] = useState(true)
 
-  // Live score from Supabase + on-chain (all 4 components)
-  const { record: liveRecord, isLoading: scoreLoading } = useScore(
-    wallet.isGuest ? null : wallet.publicKey
-  )
-  const record = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
+  const { record, isLoading: scoreLoading } = useScore(wallet.publicKey)
   const score  = record?.score ?? 300
 
   const repaid    = loans.filter(l => l.status === 'Repaid')
@@ -41,34 +36,26 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
   const issuedAt  = new Date()
   const validUntil = new Date(issuedAt)
   validUntil.setFullYear(validUntil.getFullYear() + 1)
-  const walletKey = wallet.isGuest ? DEMO_WALLET : (wallet.publicKey ?? 'unknown')
+  const walletKey = wallet.publicKey ?? 'unknown'
   const id        = certId(walletKey)
   const repayRate = total.length > 0 ? Math.round((repaid.length / total.length) * 100) : 0
 
   const loading = scoreLoading || loansLoading
 
   useEffect(() => {
-    if (wallet.isGuest) {
-      setLoans(DEMO_LOANS as unknown as LocalLoan[])
-      setProfile(DEMO_USER as unknown as BorrowerUser)
-      setLoansLoading(false)
-      return
-    }
     if (!wallet.publicKey) return
-    // Fetch live loans from Supabase
     fetchLoans(wallet.publicKey)
       .then(l => setLoans(l))
       .catch(() => setLoans([]))
       .finally(() => setLoansLoading(false))
-    // Fetch live profile
     getUser(wallet.publicKey).then(u => setProfile(u)).catch(() => {})
-  }, [wallet.publicKey, wallet.isGuest])
+  }, [wallet.publicKey])
 
   function handlePrint() {
     window.print()
   }
 
-  if (!wallet.publicKey && !wallet.isGuest) return null
+  if (!wallet.publicKey) return null
   if (loading) return (
     <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: 'var(--surface-2)' }}>
       <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid var(--border)', borderTopColor: 'var(--green)', animation: 'spin 0.8s linear infinite' }} />

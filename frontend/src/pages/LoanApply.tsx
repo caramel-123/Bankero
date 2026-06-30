@@ -7,7 +7,6 @@ import {
 import { scoreTier, SCORE_TIERS, nextScoreTier, formatPeso } from '../lib/stellar'
 import { saveLoan, fetchLoans, type LocalLoan } from '../lib/loanStore'
 import { useScore } from '../hooks/useScore'
-import { DEMO_SCORE_RECORD, DEMO_LOANS } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -16,8 +15,7 @@ const TERMS    = [7, 14, 30]
 
 export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const nav  = useNavigate()
-  const { record: liveRecord, isLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
-  const record = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
+  const { record, isLoading } = useScore(wallet.publicKey)
   const score   = record?.score ?? 300
   const tier    = scoreTier(score)
   const next    = nextScoreTier(score)
@@ -33,14 +31,9 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const [showLadder, setShowLadder] = useState(false)
 
   useEffect(() => {
-    if (wallet.isGuest) {
-      setMyLoans(DEMO_LOANS as unknown as LocalLoan[])
-      setLoansLoading(false)
-      return
-    }
     if (!wallet.publicKey) return
     fetchLoans(wallet.publicKey).then(l => { setMyLoans(l); setLoansLoading(false) })
-  }, [wallet.publicKey, wallet.isGuest])
+  }, [wallet.publicKey])
 
   const activeLoan = myLoans.find(l => ['Pending', 'Approved', 'Disbursed'].includes(l.status))
 
@@ -56,7 +49,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   async function handleSubmit() {
     if (activeLoan || submitting) return
     setSubmitting(true)
-    if (!wallet.isGuest) {
+    if (wallet.publicKey) {
       const loan: LocalLoan = {
         id: crypto.randomUUID(),
         amount: safeAmount, interest, total, purpose, term, notes,
@@ -67,7 +60,6 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
       }
       try { await saveLoan(loan) } catch (err) { console.error('[Bankero] saveLoan error:', err) }
     }
-    // Guest: simulate a short delay then show success
     await new Promise(r => setTimeout(r, 800))
     setSubmitted(true)
     setSubmitting(false)

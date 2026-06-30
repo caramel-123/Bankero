@@ -74,7 +74,7 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
         setStep(i)
         await new Promise(r => setTimeout(r, 700))
       }
-      setResult({ isValid: true, confidence: 0.96, issues: [], summary: 'Bayad na-verify! Demo mode.' })
+      setResult({ passed: true, errors: [], billData: {} as any, receiptData: {} as any })
       setDone(true)
       return
     }

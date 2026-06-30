@@ -4,7 +4,6 @@ import { ArrowLeft, Plus, Users, Clock, ChevronRight, Trophy, AlertTriangle } fr
 import { supabase } from '../lib/supabase'
 import type { PaluwagaGroupView } from '../types/paluwagan'
 import type { useWallet } from '../hooks/useWallet'
-import { DEMO_PALUWAGAN_GROUPS } from '../lib/demoData'
 type WalletHook = ReturnType<typeof useWallet>
 
 function daysUntil(iso: string | null): number | null {
@@ -112,11 +111,6 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (wallet.isGuest) {
-      setGroups(DEMO_PALUWAGAN_GROUPS as unknown as PaluwagaGroupView[])
-      setLoading(false)
-      return
-    }
     if (!wallet.publicKey) return
 
     async function load() {
