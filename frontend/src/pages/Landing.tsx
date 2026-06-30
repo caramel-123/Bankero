@@ -6,6 +6,7 @@ import {
   Zap, BarChart2, ChevronRight, Star, MessageSquare,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { formatWallet } from '../lib/stellar'
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
 const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }
@@ -95,49 +96,87 @@ function StarRow({ rating }: { rating: number }) {
 
 function TestimonialsSection() {
   const [items, setItems] = useState<FeedbackRow[]>([])
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     supabase
       .from('feedback')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(6)
-      .then(({ data }) => setItems((data ?? []) as FeedbackRow[]))
+      .limit(9)
+      .then(({ data }) => { setItems((data ?? []) as FeedbackRow[]); setLoaded(true) })
   }, [])
 
-  if (items.length === 0) return null
+  const displayName = (f: FeedbackRow) => {
+    if (f.is_guest || !f.display_name || f.display_name === 'Guest') return 'Guest User'
+    // if it looks like a stellar address (long), truncate it
+    if (f.display_name.length > 20) return formatWallet(f.display_name)
+    return f.display_name
+  }
 
   return (
-    <section style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 80px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
-        <MessageSquare size={20} color="var(--green)" />
-        <h2 className="heading" style={{ fontSize: 'clamp(22px, 2.5vw, 30px)', color: 'var(--ink)' }}>
-          Sinasabi ng mga Users
-        </h2>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-        {items.map(f => (
-          <div key={f.id} className="panel-card" style={{ padding: '22px 24px' }}>
-            <StarRow rating={f.rating} />
-            <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.65, margin: '12px 0' }}>
-              "{f.message}"
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: 'var(--green)', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 700, flexShrink: 0,
-              }}>
-                {f.display_name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{f.display_name}</div>
-                <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>{f.is_guest ? 'Guest User' : 'Verified User'}</div>
-              </div>
-            </div>
+    <section style={{ background: 'var(--surface-2)', padding: '80px 0' }}>
+      <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px' }}>
+
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(22,163,74,.1)', border: '1px solid rgba(22,163,74,.2)', marginBottom: 16 }}>
+            <MessageSquare size={14} color="var(--green)" />
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--green)' }}>User Reviews</span>
           </div>
-        ))}
+          <h2 className="heading" style={{ fontSize: 'clamp(24px, 3vw, 36px)', color: 'var(--ink)', marginBottom: 12 }}>
+            What Users Are Saying
+          </h2>
+          <p style={{ fontSize: 16, color: 'var(--ink-3)', maxWidth: 480, margin: '0 auto' }}>
+            Real feedback from borrowers and community members using Bankero.
+          </p>
+        </div>
+
+        {/* Cards */}
+        {!loaded ? (
+          <div style={{ textAlign: 'center', color: 'var(--ink-4)', padding: '40px 0' }}>Loading reviews...</div>
+        ) : items.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 24px', borderRadius: 16, background: 'var(--surface)', border: '1.5px dashed var(--border)' }}>
+            <MessageSquare size={32} color="var(--ink-4)" style={{ marginBottom: 12 }} />
+            <p style={{ color: 'var(--ink-3)', fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No reviews yet</p>
+            <p style={{ color: 'var(--ink-4)', fontSize: 14 }}>Be the first to leave feedback after using Bankero.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+            {items.map(f => (
+              <div key={f.id} style={{
+                background: 'var(--surface)',
+                borderRadius: 16,
+                padding: '24px',
+                border: '1.5px solid var(--border)',
+                display: 'flex', flexDirection: 'column', gap: 14,
+                boxShadow: '0 2px 8px rgba(0,0,0,.04)',
+              }}>
+                <StarRow rating={f.rating} />
+                <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.75, flex: 1, fontStyle: 'italic' }}>
+                  "{f.message}"
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 12, borderTop: '1px solid var(--border-2)' }}>
+                  <div style={{
+                    width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+                    background: f.is_guest ? 'var(--surface-3)' : '#DCFCE7',
+                    display: 'grid', placeItems: 'center',
+                  }}>
+                    <Wallet size={14} color={f.is_guest ? 'var(--ink-4)' : '#16A34A'} strokeWidth={2} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'monospace' }}>
+                      {displayName(f)}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 1 }}>
+                      {f.is_guest ? 'Guest' : 'Verified Wallet'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Star, X, Send, CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { formatWallet } from '../lib/stellar'
 
 interface Props {
   walletAddress: string | null
@@ -11,7 +12,6 @@ interface Props {
 export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props) {
   const [rating, setRating] = useState(0)
   const [hovered, setHovered] = useState(0)
-  const [name, setName] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -19,12 +19,12 @@ export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!rating || !name.trim() || !message.trim()) return
+    if (!rating || !message.trim()) return
     setLoading(true)
     setError('')
     try {
       const { error: err } = await supabase.from('feedback').insert({
-        display_name: name.trim(),
+        display_name: walletAddress && !isGuest ? walletAddress : 'Guest',
         wallet_address: isGuest ? null : walletAddress,
         rating,
         message: message.trim(),
@@ -33,7 +33,7 @@ export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props
       if (err) throw new Error(err.message)
       setDone(true)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'May error. Subukan muli.')
+      setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -51,33 +51,36 @@ export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'var(--panel)', borderRadius: 'var(--r-2xl)',
+          background: 'var(--surface)', borderRadius: 20,
           padding: '28px 24px', maxWidth: 400, width: '100%',
-          border: '1px solid rgba(255,255,255,.08)',
+          boxShadow: '0 24px 64px rgba(0,0,0,.25)',
+          border: '1px solid var(--border)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>Mag-iwan ng Feedback</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.4)', padding: 4 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)' }}>Leave Feedback</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-4)', padding: 4 }}>
             <X size={18} />
           </button>
         </div>
 
         {done ? (
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><CheckCircle size={48} color="#4ade80" strokeWidth={1.5} /></div>
-            <p style={{ color: '#4ade80', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Thank you for your feedback!</p>
-            <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 14 }}>Makikita ito sa aming landing page.</p>
-            <button onClick={onClose} style={{ marginTop: 20, padding: '10px 24px', borderRadius: 10, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-              Isara
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+              <CheckCircle size={48} color="#16A34A" strokeWidth={1.5} />
+            </div>
+            <p style={{ color: '#16A34A', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Thank you for your feedback!</p>
+            <p style={{ color: 'var(--ink-4)', fontSize: 14, marginBottom: 20 }}>Your review will appear on our landing page.</p>
+            <button onClick={onClose} style={{ padding: '10px 28px', borderRadius: 10, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+              Close
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Star rating */}
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.45)', display: 'block', marginBottom: 10 }}>
-                Rating mo (1–5 bituin)
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', display: 'block', marginBottom: 10 }}>
+                Your rating (1–5 stars)
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[1, 2, 3, 4, 5].map(n => (
@@ -92,7 +95,7 @@ export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props
                     <Star
                       size={32}
                       fill={(hovered || rating) >= n ? '#F59E0B' : 'none'}
-                      color={(hovered || rating) >= n ? '#F59E0B' : 'rgba(255,255,255,.2)'}
+                      color={(hovered || rating) >= n ? '#F59E0B' : 'var(--border)'}
                       strokeWidth={1.5}
                     />
                   </button>
@@ -100,61 +103,45 @@ export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props
               </div>
             </div>
 
-            {/* Name */}
-            <div>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.45)', display: 'block', marginBottom: 6 }}>
-                Iyong Pangalan
-              </label>
-              <input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="hal. Juan Dela Cruz"
-                required
-                style={{
-                  width: '100%', padding: '11px 14px', borderRadius: 10,
-                  background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)',
-                  color: '#fff', fontSize: 14, outline: 'none', boxSizing: 'border-box',
-                }}
-              />
-            </div>
-
             {/* Message */}
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.45)', display: 'block', marginBottom: 6 }}>
-                Ano ang masasabi mo?
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', display: 'block', marginBottom: 6 }}>
+                Your comment
               </label>
               <textarea
                 value={message}
                 onChange={e => setMessage(e.target.value)}
-                placeholder="hal. Maganda ang app, madaling gamitin..."
+                placeholder="e.g. Great app, easy to use..."
                 required
-                rows={3}
+                rows={4}
                 style={{
                   width: '100%', padding: '11px 14px', borderRadius: 10,
-                  background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)',
-                  color: '#fff', fontSize: 14, outline: 'none', resize: 'vertical',
+                  background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                  color: 'var(--ink)', fontSize: 14, outline: 'none', resize: 'vertical',
                   boxSizing: 'border-box', fontFamily: 'inherit',
                 }}
               />
             </div>
 
             {error && (
-              <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(239,68,68,.12)', color: '#fca5a5', fontSize: 13 }}>
+              <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', color: '#DC2626', fontSize: 13 }}>
                 {error}
               </div>
             )}
 
             <button
               type="submit"
-              disabled={loading || !rating || !name.trim() || !message.trim()}
+              disabled={loading || !rating || !message.trim()}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '13px 0', borderRadius: 12, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-                background: !rating || !name.trim() || !message.trim() ? 'rgba(22,163,74,.3)' : '#16A34A',
-                color: '#fff', fontWeight: 700, fontSize: 15, minHeight: 48,
+                padding: '13px 0', borderRadius: 12, border: 'none',
+                cursor: loading || !rating || !message.trim() ? 'not-allowed' : 'pointer',
+                background: !rating || !message.trim() ? '#D1FAE5' : '#16A34A',
+                color: !rating || !message.trim() ? '#6EE7B7' : '#fff',
+                fontWeight: 700, fontSize: 15, minHeight: 48, transition: 'background 150ms',
               }}
             >
-              <Send size={15} /> {loading ? 'Sinisend...' : 'Isend ang Feedback'}
+              <Send size={15} /> {loading ? 'Sending...' : 'Send Feedback'}
             </button>
           </form>
         )}

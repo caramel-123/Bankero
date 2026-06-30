@@ -153,7 +153,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
         <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24 }}>{group.group_name} · Cycle {group.current_cycle}</p>
 
         {/* Amount card */}
-        <div style={{ background: 'var(--panel)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16, textAlign: 'center' }}>
+        <div className="card" style={{ marginBottom: 16, textAlign: 'center' }}>
           <p style={{ fontSize: 13, color: 'var(--ink-4)', marginBottom: 8 }}>Contribution Amount</p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 8 }}>
             <Coins size={28} color="#F59E0B" />
@@ -186,7 +186,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
         <div style={{ background: 'rgba(22,163,74,.06)', border: '1px solid rgba(22,163,74,.15)', borderRadius: 'var(--r-lg)', padding: 16, marginBottom: 24 }}>
           <p style={{ fontSize: 13, color: 'var(--green)', margin: 0, lineHeight: 1.6 }}>
             <TrendingUp size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-            On-time na kontribusyon = <strong>+3 tx_score</strong> (max +15 sa grupong ito)
+            On-time contribution = <strong>+3 tx_score</strong> (max +15 in this group)
           </p>
         </div>
 
