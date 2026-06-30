@@ -264,7 +264,6 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       </div>
 
       <style>{`
-        body, * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cdefs%3E%3CradialGradient id='beam' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='1'/%3E%3Cstop offset='30%25' stop-color='%2386efac' stop-opacity='0.9'/%3E%3Cstop offset='70%25' stop-color='%2322c55e' stop-opacity='0.4'/%3E%3Cstop offset='100%25' stop-color='%2316a34a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='4' result='blur'/%3E%3CfeMerge%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='20' cy='20' r='18' fill='url(%23beam)' filter='url(%23glow)'/%3E%3Ccircle cx='20' cy='20' r='3' fill='%23ffffff'/%3E%3C/svg%3E") 20 20, auto !important; }
         @keyframes heroBlurUp {
           from { opacity: 0; filter: blur(18px); transform: translateY(32px); }
           to   { opacity: 1; filter: blur(0);    transform: translateY(0); }
