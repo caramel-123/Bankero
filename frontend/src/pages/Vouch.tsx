@@ -7,6 +7,7 @@ import {
 import { scoreTier, scorePercent, formatWallet, stellarExplorerUrl } from '../lib/stellar'
 import { getScoreCacheFromSupabase } from '../lib/supabase'
 import { computeLocalScore } from '../lib/loanStore'
+import { DEMO_SCORE_RECORD, DEMO_WALLET } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -36,7 +37,7 @@ async function lookupBorrowerScore(wallet: string): Promise<{
 
 export default function Vouch({ wallet }: { wallet: WalletHook }) {
   const nav = useNavigate()
-  const [search, setSearch]   = useState('')
+  const [search, setSearch]   = useState(wallet.isGuest ? DEMO_WALLET : '')
   const [stake, setStake]     = useState(50)
   const [vouched, setVouched] = useState(false)
   const [looking, setLooking] = useState(false)
@@ -47,15 +48,30 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
   const [lookupError, setLookupError] = useState<string | null>(null)
 
   // Is the searched address the same as the logged-in wallet?
-  const isSelfVouch = search.trim().length > 10 && wallet.publicKey
+  const isSelfVouch = !wallet.isGuest && search.trim().length > 10 && wallet.publicKey
     ? search.trim().toLowerCase() === wallet.publicKey.toLowerCase()
     : false
 
   // Debounced lookup when address reaches minimum Stellar address length (56 chars)
   const doLookup = useCallback(async (addr: string) => {
     if (addr.length < 56) { setBorrower(null); setLookupError(null); return }
-    if (wallet.publicKey && addr.toLowerCase() === wallet.publicKey.toLowerCase()) {
+    if (!wallet.isGuest && wallet.publicKey && addr.toLowerCase() === wallet.publicKey.toLowerCase()) {
       setBorrower(null); setLookupError(null); return
+    }
+    // Guest mode: return demo borrower data for the demo wallet
+    if (wallet.isGuest && addr === DEMO_WALLET) {
+      setBorrower({
+        wallet: DEMO_WALLET,
+        score: DEMO_SCORE_RECORD.score,
+        repayment: DEMO_SCORE_RECORD.repayment_score,
+        tx: DEMO_SCORE_RECORD.tx_score,
+        vouch: DEMO_SCORE_RECORD.vouch_score,
+        anchor: DEMO_SCORE_RECORD.anchor_score,
+        totalLoans: DEMO_SCORE_RECORD.total_loans,
+        loansRepaid: DEMO_SCORE_RECORD.loans_repaid,
+        loansDefaulted: DEMO_SCORE_RECORD.loans_defaulted,
+      })
+      return
     }
     setLooking(true)
     setLookupError(null)
@@ -68,7 +84,7 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
       setLookupError('No Bankero profile found for this wallet. They may not have connected yet.')
     }
     setLooking(false)
-  }, [wallet.publicKey])
+  }, [wallet.publicKey, wallet.isGuest])
 
   useEffect(() => {
     const t = setTimeout(() => doLookup(search.trim()), 600)
@@ -77,6 +93,11 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
 
   function handleVouch() {
     if (!canVouch) return
+    // Guest: simulate vouch with a short delay
+    if (wallet.isGuest) {
+      setTimeout(() => setVouched(true), 600)
+      return
+    }
     setVouched(true)
   }
 

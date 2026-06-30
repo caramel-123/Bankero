@@ -66,6 +66,18 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
   const [done, setDone] = useState(false)
 
   async function handleSubmit() {
+    if (wallet.isGuest) {
+      // Demo: simulate full POP verification flow
+      setError('')
+      setResult(null)
+      for (let i = 0; i < STEPS.length; i++) {
+        setStep(i)
+        await new Promise(r => setTimeout(r, 700))
+      }
+      setResult({ isValid: true, confidence: 0.96, issues: [], summary: 'Bayad na-verify! Demo mode.' })
+      setDone(true)
+      return
+    }
     if (!wallet.publicKey || !billFile || !receiptFile) return
     setError('')
     setResult(null)
@@ -174,8 +186,8 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
 
           <button
             onClick={handleSubmit}
-            style={btn(step >= 0 || !billFile || !receiptFile)}
-            disabled={step >= 0 || !billFile || !receiptFile}
+            style={btn(step >= 0 || (!wallet.isGuest && (!billFile || !receiptFile)))}
+            disabled={step >= 0 || (!wallet.isGuest && (!billFile || !receiptFile))}
           >
             {step >= 0 ? 'Hinihintay...' : 'I-verify ang Bayad'}
           </button>
