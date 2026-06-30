@@ -4,6 +4,7 @@ import { ArrowLeft, Download, Shield, CheckCircle, Star, User } from 'lucide-rea
 import { scoreTier, scorePercent, SCORE_TIERS } from '../lib/stellar'
 import { getScoreCache, computeLocalScore, getLoans } from '../lib/loanStore'
 import { getUser, type User as BorrowerUser } from '../lib/supabase'
+import { DEMO_SCORE_RECORD, DEMO_LOANS, DEMO_WALLET, DEMO_USER } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -24,32 +25,41 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
   const [score, setScore] = useState(300)
   const [profile, setProfile] = useState<BorrowerUser | null>(null)
 
-  const loans = getLoans().filter(l => l.wallet === (wallet.publicKey ?? ''))
+  const demoLoansTyped = DEMO_LOANS as { status: string; wallet: string }[]
+  const liveLoans = wallet.isGuest ? [] : getLoans().filter(l => l.wallet === (wallet.publicKey ?? ''))
+  const loans = wallet.isGuest ? demoLoansTyped : liveLoans
   const repaid    = loans.filter(l => l.status === 'Repaid')
   const defaulted = loans.filter(l => l.status === 'Defaulted')
   const total     = loans.filter(l => ['Repaid','Defaulted','Disbursed'].includes(l.status))
-  const cache     = getScoreCache(wallet.publicKey ?? '')
+  const cache     = wallet.isGuest ? { repayment_score: DEMO_SCORE_RECORD.repayment_score } : getScoreCache(wallet.publicKey ?? '')
   const tier      = scoreTier(score)
   const pct       = scorePercent(score)
   const issuedAt  = new Date()
   const validUntil = new Date(issuedAt)
   validUntil.setFullYear(validUntil.getFullYear() + 1)
-  const id        = certId(wallet.publicKey ?? 'unknown')
+  const walletKey = wallet.isGuest ? DEMO_WALLET : (wallet.publicKey ?? 'unknown')
+  const id        = certId(walletKey)
   const repayRate = total.length > 0 ? Math.round((repaid.length / total.length) * 100) : 0
 
   useEffect(() => {
+    if (wallet.isGuest) {
+      setScore(DEMO_SCORE_RECORD.score)
+      setProfile(DEMO_USER as unknown as BorrowerUser)
+      setLoading(false)
+      return
+    }
     if (!wallet.publicKey) return
     const s = computeLocalScore(cache.repayment_score, 0, 0, 0)
     setScore(s)
     getUser(wallet.publicKey).then(u => setProfile(u)).catch(() => {})
     setLoading(false)
-  }, [wallet.publicKey])
+  }, [wallet.publicKey, wallet.isGuest])
 
   function handlePrint() {
     window.print()
   }
 
-  if (!wallet.publicKey) return null
+  if (!wallet.publicKey && !wallet.isGuest) return null
   if (loading) return (
     <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: 'var(--surface-2)' }}>
       <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid var(--border)', borderTopColor: 'var(--green)', animation: 'spin 0.8s linear infinite' }} />
@@ -146,7 +156,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
               <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>
                 {profile?.display_name ?? 'Bankero Borrower'}
               </p>
-              <p style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace', margin: '0 0 4px', wordBreak: 'break-all' }}>{wallet.publicKey}</p>
+              <p style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace', margin: '0 0 4px', wordBreak: 'break-all' }}>{walletKey}</p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {profile?.kyc_verified && (
                   <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#DCFCE7', color: '#15803D' }}>✓ KYC Verified</span>
@@ -167,7 +177,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
             {/* Left: wallet */}
             <div style={{ background: '#F9FAFB', borderRadius: 14, padding: '20px 22px', border: '1px solid #E5E7EB' }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', fontFamily: 'sans-serif', letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 6px' }}>Stellar Wallet (Verified On-Chain)</p>
-              <p style={{ fontSize: 11, color: '#111827', fontFamily: 'monospace', wordBreak: 'break-all', margin: '0 0 14px', lineHeight: 1.7 }}>{wallet.publicKey}</p>
+              <p style={{ fontSize: 11, color: '#111827', fontFamily: 'monospace', wordBreak: 'break-all', margin: '0 0 14px', lineHeight: 1.7 }}>{walletKey}</p>
 
               <div style={{ display: 'flex', gap: 16 }}>
                 <div>

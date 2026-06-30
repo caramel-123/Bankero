@@ -35,9 +35,16 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!wallet.publicKey) return
+    if (!wallet.publicKey && !wallet.isGuest) return
     setError('')
     setLoading(true)
+    // Guest: simulate registration
+    if (wallet.isGuest) {
+      await new Promise(r => setTimeout(r, 600))
+      setDone(true)
+      setLoading(false)
+      return
+    }
     try {
       const { data: user } = await supabase
         .from('users')

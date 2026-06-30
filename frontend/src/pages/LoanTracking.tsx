@@ -10,6 +10,7 @@ import {
   computeLocalScore, getScoreCache, daysUntil, formatDate,
   type LocalLoan, type LoanStatus
 } from '../lib/loanStore'
+import { DEMO_LOANS, DEMO_SCORE_RECORD } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -137,24 +138,19 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [defaultedInfo, setDefaultedInfo] = useState<{ count: number } | null>(null)
 
   async function refresh() {
+    if (wallet.isGuest) {
+      setLoans(DEMO_LOANS as unknown as LocalLoan[])
+      setLoading(false)
+      return
+    }
     if (!wallet.publicKey) return
     setLoading(true)
     const all = await fetchLoans(wallet.publicKey)
-
-    // Auto-default overdue loans — each loan handled independently so one failure doesn't block others
     let defaultCount = 0
     for (const l of all) {
       if (l.status === 'Disbursed' && l.dueAt && new Date(l.dueAt) < new Date()) {
-        try {
-          await updateLoanStatus(l.id, 'Defaulted')
-        } catch (err) {
-          console.error('[Bankero] Failed to mark loan defaulted in Supabase:', err)
-        }
-        try {
-          await updateScoreOnDefault(l.wallet)
-        } catch (err) {
-          console.error('[Bankero] Failed to update default score:', err)
-        }
+        try { await updateLoanStatus(l.id, 'Defaulted') } catch (err) { console.error(err) }
+        try { await updateScoreOnDefault(l.wallet) } catch (err) { console.error(err) }
         l.status = 'Defaulted'
         defaultCount++
       }
@@ -164,7 +160,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
     setLoading(false)
   }
 
-  useEffect(() => { refresh() }, [wallet.publicKey])
+  useEffect(() => { refresh() }, [wallet.publicKey, wallet.isGuest])
 
   // Auto-switch to first tab that has loans
   useEffect(() => {
@@ -176,6 +172,13 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
 
   async function handleRepayConfirm() {
     if (!repayingLoan) return
+    if (wallet.isGuest) {
+      // Demo: simulate repayment success using demo score data
+      setRepayingLoan(null)
+      setActiveTab('Repaid')
+      setSuccessInfo({ newScore: DEMO_SCORE_RECORD.score + 8, diff: 8 })
+      return
+    }
     const w = wallet.publicKey ?? repayingLoan.wallet
     const cacheBefore = getScoreCache(w)
     const scoreBefore = computeLocalScore(cacheBefore.repayment_score, 0, 0, 0)
