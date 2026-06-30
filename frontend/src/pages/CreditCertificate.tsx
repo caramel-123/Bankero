@@ -2,8 +2,9 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Download, Shield, CheckCircle, Star, User } from 'lucide-react'
 import { scoreTier, scorePercent, SCORE_TIERS } from '../lib/stellar'
-import { getScoreCache, computeLocalScore, getLoans } from '../lib/loanStore'
+import { fetchLoans, type LocalLoan } from '../lib/loanStore'
 import { getUser, type User as BorrowerUser } from '../lib/supabase'
+import { useScore } from '../hooks/useScore'
 import { DEMO_SCORE_RECORD, DEMO_LOANS, DEMO_WALLET, DEMO_USER } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -21,17 +22,20 @@ function formatLongDate(d: Date) {
 export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
   const nav = useNavigate()
   const printRef = useRef<HTMLDivElement>(null)
-  const [loading, setLoading] = useState(true)
-  const [score, setScore] = useState(300)
   const [profile, setProfile] = useState<BorrowerUser | null>(null)
+  const [loans, setLoans] = useState<LocalLoan[]>([])
+  const [loansLoading, setLoansLoading] = useState(true)
 
-  const demoLoansTyped = DEMO_LOANS as { status: string; wallet: string }[]
-  const liveLoans = wallet.isGuest ? [] : getLoans().filter(l => l.wallet === (wallet.publicKey ?? ''))
-  const loans = wallet.isGuest ? demoLoansTyped : liveLoans
+  // Live score from Supabase + on-chain (all 4 components)
+  const { record: liveRecord, isLoading: scoreLoading } = useScore(
+    wallet.isGuest ? null : wallet.publicKey
+  )
+  const record = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
+  const score  = record?.score ?? 300
+
   const repaid    = loans.filter(l => l.status === 'Repaid')
   const defaulted = loans.filter(l => l.status === 'Defaulted')
   const total     = loans.filter(l => ['Repaid','Defaulted','Disbursed'].includes(l.status))
-  const cache     = wallet.isGuest ? { repayment_score: DEMO_SCORE_RECORD.repayment_score } : getScoreCache(wallet.publicKey ?? '')
   const tier      = scoreTier(score)
   const pct       = scorePercent(score)
   const issuedAt  = new Date()
@@ -41,18 +45,23 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
   const id        = certId(walletKey)
   const repayRate = total.length > 0 ? Math.round((repaid.length / total.length) * 100) : 0
 
+  const loading = scoreLoading || loansLoading
+
   useEffect(() => {
     if (wallet.isGuest) {
-      setScore(DEMO_SCORE_RECORD.score)
+      setLoans(DEMO_LOANS as unknown as LocalLoan[])
       setProfile(DEMO_USER as unknown as BorrowerUser)
-      setLoading(false)
+      setLoansLoading(false)
       return
     }
     if (!wallet.publicKey) return
-    const s = computeLocalScore(cache.repayment_score, 0, 0, 0)
-    setScore(s)
+    // Fetch live loans from Supabase
+    fetchLoans(wallet.publicKey)
+      .then(l => setLoans(l))
+      .catch(() => setLoans([]))
+      .finally(() => setLoansLoading(false))
+    // Fetch live profile
     getUser(wallet.publicKey).then(u => setProfile(u)).catch(() => {})
-    setLoading(false)
   }, [wallet.publicKey, wallet.isGuest])
 
   function handlePrint() {
@@ -192,7 +201,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
             </div>
 
             {/* Right: score */}
-            <div style={{ background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)', borderRadius: 14, padding: '20px 24px', border: `2px solid ${tier.color}30`, textAlign: 'center', minWidth: 140 }}>
+            <div style={{ background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)', borderRadius: 14, padding: '20px 24px', border: `2px solid ${tier.color}30`, textAlign: 'center', minWidth: 160 }}>
               <p style={{ fontSize: 10, color: '#6B7280', fontFamily: 'sans-serif', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px' }}>Credit Score</p>
               <p style={{ fontSize: 52, fontWeight: 800, color: tier.color, fontFamily: 'var(--font-mono, monospace)', lineHeight: 1, margin: '0 0 6px' }}>{score}</p>
               <span style={{ display: 'inline-flex', padding: '4px 12px', borderRadius: 999, background: tier.color, color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: 'sans-serif' }}>{tier.label}</span>
@@ -202,6 +211,23 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#9CA3AF', fontFamily: 'sans-serif', marginTop: 3 }}>
                 <span>300</span><span>850</span>
+              </div>
+              {/* Score components */}
+              <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 5, textAlign: 'left' }}>
+                {[
+                  { label: 'Repayment',  value: record?.repayment_score ?? 0, color: '#15803D' },
+                  { label: 'Transactions', value: record?.tx_score ?? 0,      color: '#3B82F6' },
+                  { label: 'Community',  value: record?.vouch_score ?? 0,     color: '#D97706' },
+                  { label: 'Anchor',     value: record?.anchor_score ?? 0,    color: '#7C3AED' },
+                ].map(c => (
+                  <div key={c.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 9, color: '#9CA3AF', fontFamily: 'sans-serif', width: 70, flexShrink: 0 }}>{c.label}</span>
+                    <div style={{ flex: 1, height: 4, background: '#E5E7EB', borderRadius: 99 }}>
+                      <div style={{ height: '100%', width: `${c.value}%`, background: c.color, borderRadius: 99 }} />
+                    </div>
+                    <span style={{ fontSize: 9, color: c.color, fontFamily: 'monospace', fontWeight: 700, width: 24, textAlign: 'right' }}>{c.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
