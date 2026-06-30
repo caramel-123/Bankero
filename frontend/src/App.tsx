@@ -18,6 +18,7 @@ import PaluwaganCreate from './pages/PaluwaganCreate'
 import PaluwaganDetail from './pages/PaluwaganDetail'
 import PaluwaganContribute from './pages/PaluwaganContribute'
 import MyAccount from './pages/MyAccount'
+import Onboarding from './pages/Onboarding'
 
 function ProtectedRoute({ children, publicKey }: { children: React.ReactNode; publicKey: string | null }) {
   if (!publicKey) return <Navigate to="/login" replace />
@@ -108,6 +109,7 @@ export default function App() {
             <MyAccount wallet={wallet} />
           </ProtectedRoute>
         } />
+        <Route path="/onboarding" element={<Onboarding wallet={wallet} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
