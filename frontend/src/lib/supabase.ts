@@ -10,6 +10,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export interface User {
   id: string
   wallet_address: string
+  first_name: string | null
+  last_name: string | null
+  email: string | null
   display_name: string | null
   phone_hash: string | null
   kyc_verified: boolean

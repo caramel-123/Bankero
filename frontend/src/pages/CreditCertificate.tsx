@@ -158,7 +158,9 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>
-                {profile?.display_name ?? 'Bankero Borrower'}
+                {profile?.first_name && profile?.last_name
+                  ? `${profile.first_name} ${profile.last_name}`
+                  : (profile?.display_name ?? 'Bankero Borrower')}
               </p>
               <p style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace', margin: '0 0 4px', wordBreak: 'break-all' }}>{walletKey}</p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

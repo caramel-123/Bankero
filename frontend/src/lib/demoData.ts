@@ -55,6 +55,9 @@ export const DEMO_LOANS = [
 export const DEMO_USER = {
   id: 'demo-user-id',
   wallet_address: DEMO_WALLET,
+  first_name: 'Demo',
+  last_name: 'Borrower',
+  email: null,
   display_name: 'Demo Borrower',
   kyc_verified: false,
   anchor_linked: false,
