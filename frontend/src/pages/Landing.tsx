@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useState, useRef } from 'react'
 import {
   Wallet, TrendingUp, Users, ShieldCheck, ArrowRight,
   Zap, BarChart2, ChevronRight, Star, MessageSquare,
@@ -8,9 +7,7 @@ import {
 import { supabase } from '../lib/supabase'
 import { formatWallet } from '../lib/stellar'
 
-const EASE_OUT = [0.23, 1, 0.32, 1] as const
-const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }
-const stagger = { show: { transition: { staggerChildren: 0.08, delayChildren: 0.04 } } }
+const HERO_VIDEO = 'https://res.cloudinary.com/dfonotyfb/video/upload/v1775585556/dds3_1_rqhg7x.mp4'
 
 /* ── Score preview card (isolated so stagger class works) ── */
 function ScoreCard() {
@@ -184,33 +181,56 @@ function TestimonialsSection() {
 
 export default function Landing({ connectAsGuest }: { connectAsGuest: () => void }) {
   const nav = useNavigate()
+  const [scrolled, setScrolled] = useState(false)
+  const heroRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    function onScroll() { setScrolled(window.scrollY > 60) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--surface)', fontFamily: 'var(--font)' }}>
 
-      {/* ── NAV ─────────────────────────────────────────────── */}
+      <style>{`
+        @keyframes heroBlurUp {
+          from { opacity: 0; filter: blur(18px); transform: translateY(32px); }
+          to   { opacity: 1; filter: blur(0);    transform: translateY(0); }
+        }
+        .hero-blur-up {
+          animation: heroBlurUp 0.9s cubic-bezier(0.23,1,0.32,1) both;
+          opacity: 0;
+        }
+        @keyframes scrollFade {
+          0%, 100% { opacity: 0.4; }
+          50%       { opacity: 0.9; }
+        }
+      `}</style>
+
+      {/* ── NAV — dark glass over video, fades to white on scroll ── */}
       <nav className="landing-nav" style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 'var(--z-sticky)' as any,
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', alignItems: 'center',
         padding: '0 40px', height: 64,
-        background: 'rgba(255,255,255,.82)',
+        background: scrolled ? 'rgba(255,255,255,.92)' : 'rgba(0,0,0,.15)',
         backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid var(--border-2)',
-        transition: 'border-color 200ms var(--ease-out)',
+        borderBottom: scrolled ? '1px solid var(--border-2)' : '1px solid rgba(255,255,255,.08)',
+        transition: 'background 400ms ease, border-color 400ms ease',
       }}>
         <button
           onClick={() => nav('/')}
           style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
           <img src="/bankero-logo.png" alt="Bankero" style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'contain' }} />
-          <span className="heading" style={{ fontSize: 18 }}>
-            Bank<span style={{ color: 'var(--green)' }}>e</span>ro
+          <span className="heading" style={{ fontSize: 18, color: scrolled ? 'var(--ink)' : '#fff', transition: 'color 400ms ease' }}>
+            Bank<span style={{ color: scrolled ? 'var(--green)' : 'var(--green-soft)' }}>e</span>ro
           </span>
         </button>
 
         <div className="landing-nav-links" style={{ display: 'flex', gap: 2, marginLeft: 'auto', marginRight: 20 }}>
           {['How it works', 'For Lenders'].map(l => (
-            <button key={l} className="btn btn-sm" style={{ background: 'none', border: 'none', color: 'var(--ink-3)', fontWeight: 500, borderRadius: 'var(--r-full)', padding: '7px 14px', fontSize: 14 }}>
+            <button key={l} className="btn btn-sm" style={{ background: 'none', border: 'none', color: scrolled ? 'var(--ink-3)' : 'rgba(255,255,255,.7)', fontWeight: 500, borderRadius: 'var(--r-full)', padding: '7px 14px', fontSize: 14, transition: 'color 400ms ease' }}>
               {l}
             </button>
           ))}
@@ -221,103 +241,103 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
         </button>
       </nav>
 
-      {/* ── HERO ────────────────────────────────────────────── */}
-      <section className="landing-hero" style={{
-        maxWidth: 1160, margin: '0 auto',
-        padding: '136px 40px 100px',
-        display: 'flex', alignItems: 'center',
-        gap: 80,
-      }}>
-        {/* Left copy — motion stagger */}
-        <motion.div
-          style={{ flex: 1 }}
-          variants={stagger}
-          initial="hidden"
-          animate="show"
+      {/* ── HERO — full-screen Cloudinary cloud video ── */}
+      <section ref={heroRef} style={{ position: 'relative', minHeight: '100dvh', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+        {/* Video bg */}
+        <video
+          autoPlay loop muted playsInline
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
         >
-          <motion.div
-            variants={fadeUp}
-            transition={{ duration: 0.5, ease: EASE_OUT }}
-            style={{
+          <source src={HERO_VIDEO} type="video/mp4" />
+        </video>
+
+        {/* Cinematic vignette — darkens edges + bottom */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+          background: `
+            radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(0,0,0,.5) 100%),
+            linear-gradient(180deg, rgba(0,0,0,.3) 0%, rgba(0,0,0,.6) 60%, rgba(0,0,0,.88) 100%)
+          `,
+        }} />
+
+        {/* Hero content */}
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: 1160, width: '100%', margin: '0 auto', padding: '0 40px', display: 'flex', alignItems: 'center', gap: 80 }}>
+
+          {/* Left — white text, staggered blur-fade-up */}
+          <div style={{ flex: 1 }}>
+            <div className="hero-blur-up" style={{ animationDelay: '150ms',
               display: 'inline-flex', alignItems: 'center', gap: 7,
-              padding: '5px 12px', borderRadius: 'var(--r-full)',
-              background: 'var(--green-tint)', border: '1px solid var(--green-border)',
+              padding: '5px 14px', borderRadius: 'var(--r-full)',
+              background: 'rgba(34,197,94,.2)', border: '1px solid rgba(34,197,94,.4)',
               marginBottom: 28,
-            }}
-          >
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green-soft)', animation: 'pulse-dot 2s ease infinite' }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--green-hi)' }}>Live on Stellar Testnet</span>
-          </motion.div>
-
-          <motion.h1
-            variants={fadeUp}
-            transition={{ duration: 0.55, ease: EASE_OUT }}
-            className="display"
-            style={{ fontSize: 'clamp(42px, 5.5vw, 72px)', color: 'var(--ink)', marginBottom: 24 }}
-          >
-            Your financial<br />
-            reputation,<br />
-            <span style={{ color: 'var(--green)' }}>on-chain.</span>
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            transition={{ duration: 0.5, ease: EASE_OUT }}
-            style={{ fontSize: 17, lineHeight: 1.65, color: 'var(--ink-3)', maxWidth: '50ch', marginBottom: 36 }}
-          >
-            No bank account? No credit history? Bankero gives unbanked Filipinos a verifiable credit score — so you can access micro-loans and grow your financial life.
-          </motion.p>
-
-          <motion.div
-            variants={fadeUp}
-            transition={{ duration: 0.45, ease: EASE_OUT }}
-            style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}
-          >
-            <button onClick={() => nav('/login')} className="btn btn-primary" style={{ fontSize: 16, padding: '14px 32px' }}>
-              Build your score <ArrowRight size={16} strokeWidth={2.5} />
-            </button>
-            <button
-              onClick={() => { connectAsGuest(); nav('/dashboard') }}
-              className="btn btn-ghost"
-              style={{ fontSize: 16 }}
-            >
-              Try as Guest
-            </button>
-          </motion.div>
-
-          {/* Trust line */}
-          <motion.div
-            variants={fadeUp}
-            transition={{ duration: 0.45, ease: EASE_OUT }}
-            style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 40, flexWrap: 'wrap' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ShieldCheck size={15} strokeWidth={2} color="var(--green)" />
-              <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Soroban smart contracts</span>
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green-soft)', animation: 'pulse-dot 2s ease infinite' }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#4ADE80' }}>Live on Stellar Testnet</span>
             </div>
-            <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Star size={15} strokeWidth={2} color="var(--amber)" />
-              <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>300–850 score range</span>
-            </div>
-            <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Zap size={15} strokeWidth={2} color="#60A5FA" />
-              <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>₱500–₱10,000 loans</span>
-            </div>
-          </motion.div>
-        </motion.div>
 
-        {/* Score card — offset right */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.28, ease: EASE_OUT }}
-          className="landing-hero-card"
-          style={{ flexShrink: 0 }}
-        >
-          <ScoreCard />
-        </motion.div>
+            <h1 className="hero-blur-up display" style={{
+              animationDelay: '300ms',
+              fontSize: 'clamp(42px, 5.5vw, 72px)', color: '#fff', marginBottom: 24,
+              textShadow: '0 2px 40px rgba(0,0,0,.4)',
+            }}>
+              Your financial<br />
+              reputation,<br />
+              <span style={{ color: '#4ADE80' }}>on-chain.</span>
+            </h1>
+
+            <p className="hero-blur-up" style={{
+              animationDelay: '450ms',
+              fontSize: 17, lineHeight: 1.65, color: 'rgba(255,255,255,.72)', maxWidth: '50ch', marginBottom: 36,
+            }}>
+              No bank account? No credit history? Bankero gives unbanked Filipinos a verifiable credit score — so you can access micro-loans and grow your financial life.
+            </p>
+
+            <div className="hero-blur-up" style={{ animationDelay: '600ms', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button onClick={() => nav('/login')} className="btn btn-primary" style={{ fontSize: 16, padding: '14px 32px' }}>
+                Build your score <ArrowRight size={16} strokeWidth={2.5} />
+              </button>
+              <button
+                onClick={() => { connectAsGuest(); nav('/dashboard') }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  padding: '14px 28px', borderRadius: 'var(--r-full)',
+                  background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.2)',
+                  backdropFilter: 'blur(8px)', color: '#fff', fontSize: 16, fontWeight: 600, cursor: 'pointer',
+                  transition: 'background 200ms ease',
+                }}
+              >
+                Try as Guest
+              </button>
+            </div>
+
+            {/* Trust pills */}
+            <div className="hero-blur-up" style={{ animationDelay: '750ms', display: 'flex', alignItems: 'center', gap: 20, marginTop: 40, flexWrap: 'wrap' }}>
+              {[
+                { icon: <ShieldCheck size={14} strokeWidth={2} />, text: 'Soroban smart contracts' },
+                { icon: <Star size={14} strokeWidth={2} />, text: '300–850 score range' },
+                { icon: <Zap size={14} strokeWidth={2} />, text: '₱500–₱10,000 loans' },
+              ].map(({ icon, text }, i) => (
+                <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'rgba(255,255,255,.6)' }}>
+                  <span style={{ color: 'rgba(255,255,255,.45)' }}>{icon}</span>
+                  {text}
+                  {i < 2 && <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,.2)', marginLeft: 12, display: 'inline-block' }} />}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Score card — right side, already dark-themed */}
+          <div className="hero-blur-up landing-hero-card" style={{ animationDelay: '400ms', flexShrink: 0 }}>
+            <ScoreCard />
+          </div>
+        </div>
+
+        {/* Scroll hint */}
+        <div className="hero-blur-up" style={{ animationDelay: '900ms', position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,.4)' }}>Scroll</span>
+          <div style={{ width: 1, height: 32, background: 'linear-gradient(180deg, rgba(255,255,255,.4), transparent)', animation: 'scrollFade 2s ease infinite' }} />
+        </div>
       </section>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────── */}

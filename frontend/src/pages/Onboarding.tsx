@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { User, Mail, ArrowRight, CheckCircle, Chrome } from 'lucide-react'
+import { User, Mail, ArrowRight, CheckCircle, Globe } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -124,7 +124,7 @@ export default function Onboarding({ wallet }: Props) {
                 {googleLoading ? (
                   <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #D1D5DB', borderTopColor: '#374151', animation: 'spin 0.8s linear infinite' }} />
                 ) : (
-                  <Chrome size={18} strokeWidth={2} color="#4285F4" />
+                  <Globe size={18} strokeWidth={2} color="#4285F4" />
                 )}
                 Continue with Google
               </button>
