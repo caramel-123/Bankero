@@ -160,7 +160,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
                 value={groupName}
                 onChange={e => setGroupName(e.target.value)}
                 placeholder='e.g. "Friends Paluwagan"'
-                style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--panel)', color: 'var(--ink)', fontSize: 15, boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--ink)', fontSize: 15, boxSizing: 'border-box' }}
               />
             </div>
 
@@ -172,7 +172,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
                 type="number" min={10} step={5}
                 value={contributionXlm}
                 onChange={e => setContributionXlm(Number(e.target.value))}
-                style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--panel)', color: 'var(--ink)', fontSize: 15, boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--ink)', fontSize: 15, boxSizing: 'border-box' }}
               />
               <p style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 6 }}>Minimum: 10 XLM per member</p>
             </div>
@@ -186,9 +186,9 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
                     onClick={() => setFrequency(f)}
                     style={{
                       flex: 1, padding: '12px 0', borderRadius: 'var(--r-md)', fontWeight: 600, fontSize: 14, cursor: 'pointer',
-                      background: frequency === f ? 'var(--green)' : 'var(--panel)',
+                      background: frequency === f ? '#16A34A' : '#F8FAFC',
                       color: frequency === f ? '#fff' : 'var(--ink-3)',
-                      border: `1px solid ${frequency === f ? 'var(--green)' : 'var(--border)'}`,
+                      border: `1.5px solid ${frequency === f ? '#16A34A' : '#D4DCE0'}`,
                     }}
                   >
                     {f === 'weekly' ? <><RefreshCw size={13} strokeWidth={2} /> Weekly</> : <><Clock size={13} strokeWidth={2} /> Monthly</>}
@@ -233,7 +233,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
                     value={m.display_name}
                     onChange={e => updateMember(i, 'display_name', e.target.value)}
                     placeholder="Name (optional)"
-                    style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--panel)', color: 'var(--ink)', fontSize: 13, boxSizing: 'border-box', width: '100%' }}
+                    style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--ink)', fontSize: 13, boxSizing: 'border-box', width: '100%' }}
                   />
                   <input
                     value={m.stellar_address}
@@ -268,7 +268,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
         {/* ── Step 2: Review ── */}
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ background: 'var(--panel)', borderRadius: 'var(--r-lg)', padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Name</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{groupName}</span>
@@ -299,7 +299,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
               <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Rotation Order</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {allMembers.map((m, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--panel)', borderRadius: 10 }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#F8FAFC', border: '1.5px solid #E9EEF0', borderRadius: 10 }}>
                     <div style={{ width: 28, height: 28, borderRadius: '50%', background: i === allMembers.length - 1 ? 'rgba(22,163,74,.15)' : 'var(--surface-3)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: i === allMembers.length - 1 ? 'var(--green)' : 'var(--ink-3)' }}>#{i + 1}</span>
                     </div>

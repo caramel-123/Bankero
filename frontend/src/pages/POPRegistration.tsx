@@ -9,20 +9,13 @@ type WalletHook = ReturnType<typeof useWallet>
 
 const BILLERS: BillerName[] = ['Meralco', 'Maynilad', 'Manila Water', 'PLDT', 'Globe']
 
-const panel = { background: 'var(--panel)', borderRadius: 'var(--r-lg)', padding: 24 }
-const label = { fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.5)', marginBottom: 6, display: 'block' as const }
-const input = {
+const fieldLabel = { fontSize: 13, fontWeight: 700, color: 'var(--ink-3)', marginBottom: 6, display: 'block' as const }
+const fieldInput = {
   width: '100%', padding: '12px 14px', borderRadius: 10,
-  background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)',
-  color: '#fff', fontSize: 15, outline: 'none', boxSizing: 'border-box' as const,
+  background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+  color: 'var(--ink)', fontSize: 15, outline: 'none', boxSizing: 'border-box' as const,
+  fontFamily: 'inherit',
 }
-const btn = (disabled: boolean) => ({
-  width: '100%', padding: '14px 0', borderRadius: 12,
-  background: disabled ? 'rgba(22,163,74,.35)' : '#16A34A',
-  color: '#fff', fontWeight: 700, fontSize: 15, border: 'none',
-  cursor: disabled ? 'not-allowed' : 'pointer', transition: 'background 150ms',
-  minHeight: 48,
-})
 
 export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
   const nav = useNavigate()
@@ -70,14 +63,16 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
 
   if (done) return (
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ ...panel, textAlign: 'center', maxWidth: 420, width: '100%' }}>
-        <CheckCircle size={48} color="#16A34A" style={{ marginBottom: 16 }} />
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Successfully Registered!</h2>
-        <p style={{ color: 'rgba(255,255,255,.5)', marginBottom: 24 }}>
+      <div className="card" style={{ textAlign: 'center', maxWidth: 420, width: '100%', padding: 32 }}>
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#DCFCE7', display: 'grid', placeItems: 'center', margin: '0 auto 16px' }}>
+          <CheckCircle size={36} color="#16A34A" strokeWidth={1.5} />
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>Successfully Registered!</h2>
+        <p style={{ color: 'var(--ink-3)', marginBottom: 24, lineHeight: 1.6 }}>
           Your {biller} account has been registered. You can now submit your bill and receipt.
         </p>
-        <button onClick={() => nav('/pop/submit')} style={btn(false)}>Submit Bill</button>
-        <button onClick={() => nav('/dashboard')} style={{ ...btn(false), background: 'rgba(255,255,255,.07)', marginTop: 10 }}>Back to Dashboard</button>
+        <button onClick={() => nav('/pop/submit')} className="btn btn-primary" style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Submit Bill</button>
+        <button onClick={() => nav('/dashboard')} className="btn btn-ghost" style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 15 }}>Back to Dashboard</button>
       </div>
     </div>
   )
@@ -85,57 +80,57 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '24px 16px' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
-        <button onClick={() => nav(-1)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', marginBottom: 20, fontSize: 14 }}>
-          <ArrowLeft size={16} /> Back
+        <button onClick={() => nav(-1)} className="btn btn-ghost btn-sm" style={{ marginBottom: 20 }}>
+          <ArrowLeft size={15} /> Back
         </button>
 
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Register Bill Account</h1>
-        <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 14, marginBottom: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', marginBottom: 4 }}>Register Bill Account</h1>
+        <p style={{ color: 'var(--ink-3)', fontSize: 14, marginBottom: 24, lineHeight: 1.5 }}>
           Register your electricity, water, or internet bill to verify regular payments.
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={panel}>
-            <div style={{ marginBottom: 16 }}>
-              <label style={label}>Bill Type</label>
+          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <label style={fieldLabel}>Bill Type</label>
               <select
                 value={biller}
                 onChange={e => setBiller(e.target.value as BillerName)}
-                style={{ ...input, appearance: 'none' }}
+                style={{ ...fieldInput, appearance: 'none' }}
                 required
               >
                 {BILLERS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
 
-            <div style={{ marginBottom: 16 }}>
-              <label style={label}>Bill Account Number</label>
+            <div>
+              <label style={fieldLabel}>Bill Account Number</label>
               <input
-                style={input}
+                style={fieldInput}
                 value={accountNumber}
                 onChange={e => setAccountNumber(e.target.value)}
-                placeholder="hal. 123-456-789-000"
+                placeholder="e.g. 123-456-789-000"
                 required
               />
             </div>
 
-            <div style={{ marginBottom: 16 }}>
-              <label style={label}>Service Address (optional)</label>
+            <div>
+              <label style={fieldLabel}>Service Address <span style={{ fontWeight: 400, color: 'var(--ink-4)' }}>(optional)</span></label>
               <input
-                style={input}
+                style={fieldInput}
                 value={serviceAddress}
                 onChange={e => setServiceAddress(e.target.value)}
-                placeholder="hal. 123 Rizal St., Maynila"
+                placeholder="e.g. 123 Rizal St., Manila"
               />
             </div>
 
             <div>
-              <label style={label}>GCash / Maya Number</label>
+              <label style={fieldLabel}>GCash / Maya Number</label>
               <input
-                style={input}
+                style={fieldInput}
                 value={gcashNumber}
                 onChange={e => setGcashNumber(e.target.value)}
-                placeholder="hal. 09171234567"
+                placeholder="e.g. 09171234567"
                 type="tel"
                 required
               />
@@ -143,13 +138,18 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
           </div>
 
           {error && (
-            <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.25)', color: '#fca5a5', fontSize: 14 }}>
+            <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', color: '#DC2626', fontSize: 14 }}>
               {error}
             </div>
           )}
 
           {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
-          <button type="submit" style={btn(loading || !accountNumber || !gcashNumber)} disabled={loading || !accountNumber || !gcashNumber}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, opacity: loading || !accountNumber || !gcashNumber ? 0.5 : 1 }}
+            disabled={loading || !accountNumber || !gcashNumber}
+          >
             {loading ? 'Saving...' : 'Register Account'}
           </button>
         </form>
