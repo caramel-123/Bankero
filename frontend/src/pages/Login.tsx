@@ -165,15 +165,17 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {wallet.error && (
                 <div style={{ display: 'flex', gap: 10, padding: '12px 16px', borderRadius: 'var(--r-lg)', background: 'var(--red-tint)', border: '1px solid #FECACA', color: 'var(--red)', fontSize: 14 }}>
-                  <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
                   <div>
-                    {wallet.error}
-                    {wallet.error.includes('not installed') && (
-                      <a href="https://freighter.app" target="_blank" rel="noreferrer"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontWeight: 700, color: 'var(--red)' }}>
-                        Download Freighter <ExternalLink size={11} strokeWidth={2} />
-                      </a>
-                    )}
+                    {wallet.error.includes('not installed') ? (
+                      <>
+                        <div style={{ fontWeight: 600, marginBottom: 6 }}>Freighter wallet is not installed.</div>
+                        <a href="https://freighter.app" target="_blank" rel="noreferrer"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700, color: 'var(--red)', textDecoration: 'underline' }}>
+                          Download at freighter.app <ExternalLink size={11} strokeWidth={2} />
+                        </a>
+                      </>
+                    ) : wallet.error}
                   </div>
                 </div>
               )}
