@@ -42,7 +42,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
   const path    = window.location.pathname
 
   return (
-    <div className="app-layout" style={{ display: 'flex', minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)' }}>
+    <div className="app-layout" style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: 'var(--surface-2)', fontFamily: 'var(--font)' }}>
       {showFeedback && <FeedbackModal walletAddress={wallet.publicKey} isGuest={wallet.isGuest} onClose={() => setShowFeedback(false)} />}
 
       {/* ── SIDEBAR ─────────────────────────────────────────── */}
@@ -82,41 +82,61 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
 
         {/* Wallet pill at bottom */}
         <div style={{ marginTop: 'auto', padding: 12, borderRadius: 'var(--r-lg)', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.06)' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: 5 }}>
-            Connected wallet
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {wallet.publicKey ? formatWallet(wallet.publicKey) : '—'}
-            </p>
-            {wallet.publicKey && (
-              <a
-                href={stellarExplorerUrl(wallet.publicKey)}
-                target="_blank" rel="noreferrer"
-                title="View on Stellar Explorer"
-                style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', display: 'grid', placeItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,.5)', textDecoration: 'none', transition: 'background 150ms, color 150ms' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,197,94,.2)'; (e.currentTarget as HTMLElement).style.color = '#4ADE80' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.08)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.5)' }}
+          {wallet.isGuest ? (
+            <>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: 5 }}>
+                Demo Mode
+              </p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 10, lineHeight: 1.5 }}>
+                Viewing as guest. Connect a wallet to use real features.
+              </p>
+              <button
+                onClick={() => wallet.disconnect()}
+                className="btn btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', width: '100%' }}
               >
-                <Globe size={11} strokeWidth={2} />
-              </a>
-            )}
-          </div>
-          <button
-            onClick={copyAddress}
-            className="btn btn-sm"
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 700, color: copied ? 'var(--green-soft)' : 'rgba(255,255,255,.45)', background: copied ? 'rgba(34,197,94,.12)' : 'rgba(255,255,255,.06)', border: 'none', width: '100%', marginBottom: 6, transition: 'color 200ms, background 200ms' }}
-          >
-            {copied ? <Check size={12} strokeWidth={2.5} /> : <Copy size={12} strokeWidth={2} />}
-            {copied ? 'Copied!' : 'Copy address'}
-          </button>
-          <button
-            onClick={wallet.disconnect}
-            className="btn btn-sm"
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.45)', background: 'rgba(255,255,255,.06)', border: 'none', width: '100%' }}
-          >
-            <LogOut size={12} strokeWidth={2} /> Disconnect
-          </button>
+                <LogOut size={12} strokeWidth={2} /> Connect Real Wallet
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: 5 }}>
+                Connected wallet
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {wallet.publicKey ? formatWallet(wallet.publicKey) : '—'}
+                </p>
+                {wallet.publicKey && (
+                  <a
+                    href={stellarExplorerUrl(wallet.publicKey)}
+                    target="_blank" rel="noreferrer"
+                    title="View on Stellar Explorer"
+                    style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', display: 'grid', placeItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,.5)', textDecoration: 'none', transition: 'background 150ms, color 150ms' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,197,94,.2)'; (e.currentTarget as HTMLElement).style.color = '#4ADE80' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.08)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.5)' }}
+                  >
+                    <Globe size={11} strokeWidth={2} />
+                  </a>
+                )}
+              </div>
+              <button
+                onClick={copyAddress}
+                className="btn btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 700, color: copied ? 'var(--green-soft)' : 'rgba(255,255,255,.45)', background: copied ? 'rgba(34,197,94,.12)' : 'rgba(255,255,255,.06)', border: 'none', width: '100%', marginBottom: 6, transition: 'color 200ms, background 200ms' }}
+              >
+                {copied ? <Check size={12} strokeWidth={2.5} /> : <Copy size={12} strokeWidth={2} />}
+                {copied ? 'Copied!' : 'Copy address'}
+              </button>
+              <button
+                onClick={wallet.disconnect}
+                className="btn btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.45)', background: 'rgba(255,255,255,.06)', border: 'none', width: '100%' }}
+              >
+                <LogOut size={12} strokeWidth={2} /> Disconnect
+              </button>
+            </>
+          )}
         </div>
       </aside>
 
