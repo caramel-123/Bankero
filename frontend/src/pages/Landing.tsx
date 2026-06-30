@@ -202,11 +202,11 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
       {/* ── GALAXY — fixed full-page background ── */}
       <div style={{ position: 'fixed', inset: 0, zIndex: -1, overflow: 'hidden' }}>
-        <video autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.6)', transformOrigin: '50% 90%' }}>
+        <video autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(2.2)', transformOrigin: '50% 50%' }}>
           <source src={GALAXY_VIDEO} type="video/mp4" />
         </video>
         {/* Dark overlay for readability */}
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
       </div>
 
       <style>{`
@@ -334,23 +334,12 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       </nav>
 
       {/* ── HERO — full-screen Cloudinary cloud video ── */}
-      <section ref={heroRef} style={{ position: 'relative', minHeight: '100dvh', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <section ref={heroRef} style={{ position: 'relative', minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 
-        {/* Video bg */}
-        <video
-          autoPlay loop muted playsInline
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
-        >
-          <source src={HERO_VIDEO} type="video/mp4" />
-        </video>
-
-        {/* Cinematic vignette — darkens edges + bottom */}
+        {/* Subtle vignette for text readability — galaxy shows through */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-          background: `
-            radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(0,0,0,.5) 100%),
-            linear-gradient(180deg, rgba(0,0,0,.3) 0%, rgba(0,0,0,.6) 60%, rgba(0,0,0,.88) 100%)
-          `,
+          background: `linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.4) 100%)`,
         }} />
 
         {/* Hero content */}
