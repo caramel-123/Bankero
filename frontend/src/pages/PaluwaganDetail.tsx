@@ -122,7 +122,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
         </button>
 
         {/* Header */}
-        <div style={{ background: 'var(--panel)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16 }}>
+        <div className="card" style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', margin: '0 0 4px' }}>{group.group_name}</h1>
@@ -134,14 +134,14 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
               background: group.status === 'active' ? 'rgba(22,163,74,.15)' : group.status === 'completed' ? 'rgba(245,158,11,.15)' : 'rgba(220,38,38,.15)',
               color: group.status === 'active' ? '#16A34A' : group.status === 'completed' ? '#F59E0B' : '#DC2626',
             }}>
-              {group.status === 'active' ? 'Aktibo' : group.status === 'completed' ? 'Tapos Na' : 'Defaulted'}
+              {group.status === 'active' ? 'Active' : group.status === 'completed' ? 'Completed' : 'Defaulted'}
             </span>
           </div>
 
           {/* Cycle progress */}
           <div style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Cycle {group.current_cycle} ng {group.total_cycles}</span>
+              <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Cycle {group.current_cycle} of {group.total_cycles}</span>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#F59E0B' }}>Pot: {potPerCycle} XLM</span>
             </div>
             <div style={{ height: 8, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
@@ -155,7 +155,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
 
           {group.status === 'active' && (
             <>
-              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-4)', marginBottom: 8 }}>SUSUNOD NA DEADLINE</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-4)', marginBottom: 8 }}>NEXT DEADLINE</p>
               <CountdownBox deadline={group.next_deadline} />
             </>
           )}
@@ -164,29 +164,29 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
         {/* My status card */}
         {myMembership && group.status === 'active' && (
           <div style={{
-            background: iAmRecipientThisCycle ? 'rgba(245,158,11,.1)' : 'var(--panel)',
-            border: `1px solid ${iAmRecipientThisCycle ? 'rgba(245,158,11,.3)' : 'var(--border)'}`,
+            background: iAmRecipientThisCycle ? 'rgba(245,158,11,.08)' : 'var(--card, #fff)',
+            border: `1px solid ${iAmRecipientThisCycle ? 'rgba(245,158,11,.3)' : 'var(--border-2)'}`,
             borderRadius: 'var(--r-lg)', padding: 20, marginBottom: 16,
           }}>
             {iAmRecipientThisCycle ? (
               <div style={{ display: 'flex', gap: 12 }}>
                 <Trophy size={24} color="#F59E0B" style={{ flexShrink: 0 }} />
                 <div>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#F59E0B', marginBottom: 4 }}>Ikaw ang makakatanggap ngayong cycle!</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#F59E0B', marginBottom: 4 }}>You are the recipient this cycle!</p>
                   <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
-                    Makatatanggap ka ng {potPerCycle} XLM kapag nag-contribute na ang lahat ng miyembro.
+                    You will receive {potPerCycle} XLM once all members have contributed.
                   </p>
                 </div>
               </div>
             ) : (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '0 0 4px' }}>Ang iyong turn na tumanggap</p>
+                  <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '0 0 4px' }}>Your turn to receive</p>
                   <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>Cycle #{myRotationOrder}</p>
                 </div>
                 {iHaveContributed ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--green)', fontWeight: 600, fontSize: 14 }}>
-                    <CheckCircle size={18} strokeWidth={2} /> Na-contribute na
+                    <CheckCircle size={18} strokeWidth={2} /> Contributed
                   </div>
                 ) : (
                   <button
@@ -194,7 +194,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
                     className="btn btn-primary"
                     style={{ borderRadius: 'var(--r-lg)', padding: '10px 20px', fontSize: 14 }}
                   >
-                    Mag-ambag
+                    Contribute
                   </button>
                 )}
               </div>
@@ -210,12 +210,12 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
               onClick={() => setActiveTab(tab)}
               style={{
                 flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
-                background: activeTab === tab ? 'var(--panel)' : 'transparent',
+                background: activeTab === tab ? 'var(--card, #fff)' : 'transparent',
                 color: activeTab === tab ? 'var(--ink)' : 'var(--ink-4)',
                 boxShadow: activeTab === tab ? '0 1px 4px rgba(0,0,0,.1)' : 'none',
               }}
             >
-              {tab === 'current' ? 'Kasalukuyang Cycle' : 'Kasaysayan'}
+              {tab === 'current' ? 'Current Cycle' : 'History'}
             </button>
           ))}
         </div>
@@ -229,8 +229,8 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
               return (
                 <div key={m.id} style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
-                  background: 'var(--panel)', borderRadius: 12,
-                  border: `1px solid ${isRecipient ? 'rgba(245,158,11,.3)' : 'var(--border)'}`,
+                  background: 'var(--card, #fff)', borderRadius: 12,
+                  border: `1px solid ${isRecipient ? 'rgba(245,158,11,.3)' : 'var(--border-2)'}`,
                 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: contributed ? 'rgba(22,163,74,.15)' : 'var(--surface-3)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     {contributed
@@ -242,7 +242,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', margin: '0 0 2px' }}>
-                      {m.display_name || `Miyembro #${m.rotation_order}`}
+                      {m.display_name || `Member #${m.rotation_order}`}
                       {isRecipient && <span style={{ marginLeft: 8, fontSize: 11, color: '#F59E0B', fontWeight: 700 }}>Recipient</span>}
                     </p>
                     <p style={{ fontSize: 11, color: 'var(--ink-4)', margin: 0, fontFamily: 'monospace' }}>
@@ -251,7 +251,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <p style={{ fontSize: 12, color: contributed ? 'var(--green)' : m.is_active ? 'var(--ink-4)' : '#DC2626', fontWeight: 600, margin: 0 }}>
-                      {contributed ? 'Na-ambag' : m.is_active ? 'Naghihintay' : 'Inalis'}
+                      {contributed ? 'Contributed' : m.is_active ? 'Waiting' : 'Removed'}
                     </p>
                     <p style={{ fontSize: 11, color: 'var(--ink-4)', margin: 0 }}>Turn: Cycle #{m.rotation_order}</p>
                   </div>
@@ -265,22 +265,22 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
         {activeTab === 'history' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {releases.length === 0 && contributions.length === 0 ? (
-              <p style={{ color: 'var(--ink-4)', textAlign: 'center', padding: 32 }}>Wala pang nakaraang cycles.</p>
+              <p style={{ color: 'var(--ink-4)', textAlign: 'center', padding: 32 }}>No past cycles yet.</p>
             ) : (
               releases.map(r => {
                 const cycleContribs = contributions.filter(c => c.cycle_number === r.cycle_number)
                 return (
-                  <div key={r.id} style={{ background: 'var(--panel)', borderRadius: 12, padding: 16 }}>
+                  <div key={r.id} style={{ background: 'var(--card, #fff)', border: '1px solid var(--border-2)', borderRadius: 12, padding: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>Cycle {r.cycle_number}</span>
                       <span style={{ fontSize: 14, fontWeight: 700, color: '#F59E0B' }}>{r.total_amount_xlm} XLM</span>
                     </div>
                     <p style={{ fontSize: 12, color: 'var(--ink-4)', margin: '0 0 8px' }}>
-                      {cycleContribs.length}/{members.length} miyembro nag-ambag · {new Date(r.released_at).toLocaleDateString('en-PH')}
+                      {cycleContribs.length}/{members.length} member{members.length !== 1 ? 's' : ''} contributed · {new Date(r.released_at).toLocaleDateString('en-PH')}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Trophy size={13} color="#F59E0B" />
-                      <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>Natanggap ng Miyembro #{members.find(m => m.user_id === r.recipient_user_id)?.rotation_order ?? '?'}</span>
+                      <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>Received by Member #{members.find(m => m.user_id === r.recipient_user_id)?.rotation_order ?? '?'}</span>
                     </div>
                   </div>
                 )
@@ -295,7 +295,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
             className="btn btn-primary"
             style={{ width: '100%', marginTop: 24, borderRadius: 'var(--r-lg)', padding: '16px 0', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
           >
-            Mag-ambag ngayon <ChevronRight size={16} />
+            Contribute Now <ChevronRight size={16} />
           </button>
         )}
       </div>
