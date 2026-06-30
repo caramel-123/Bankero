@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import GuestActionModal from '../components/GuestActionModal'
 import type { BillerName } from '../types/pop'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -32,10 +33,12 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [showGuestModal, setShowGuestModal] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!wallet.publicKey || wallet.isGuest) return
+    if (wallet.isGuest) { setShowGuestModal(true); return }
+    if (!wallet.publicKey) return
     setError('')
     setLoading(true)
     try {
@@ -145,6 +148,7 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
             </div>
           )}
 
+          {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
           <button type="submit" style={btn(loading || !accountNumber || !gcashNumber)} disabled={loading || !accountNumber || !gcashNumber}>
             {loading ? 'Sine-save...' : 'I-register ang Account'}
           </button>

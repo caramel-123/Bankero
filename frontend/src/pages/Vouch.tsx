@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { scoreTier, scorePercent, formatWallet, stellarExplorerUrl } from '../lib/stellar'
 import { DEMO_SCORE_RECORD, DEMO_WALLET } from '../lib/demoData'
+import GuestActionModal from '../components/GuestActionModal'
 import { getScoreCacheFromSupabase } from '../lib/supabase'
 import { computeLocalScore } from '../lib/loanStore'
 import type { useWallet } from '../hooks/useWallet'
@@ -46,6 +47,7 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
     totalLoans: number; loansRepaid: number; loansDefaulted: number
   } | null>(null)
   const [lookupError, setLookupError] = useState<string | null>(null)
+  const [showGuestModal, setShowGuestModal] = useState(false)
 
   // Is the searched address the same as the logged-in wallet?
   const isSelfVouch = !wallet.isGuest && search.trim().length > 10 && wallet.publicKey
@@ -81,7 +83,8 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
   }, [search, doLookup])
 
   function handleVouch() {
-    if (!canVouch || wallet.isGuest) return
+    if (wallet.isGuest) { setShowGuestModal(true); return }
+    if (!canVouch) return
     setVouched(true)
   }
 
@@ -247,13 +250,14 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
             </div>
 
             {/* Submit */}
+            {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
             <button
               onClick={handleVouch}
-              disabled={!canVouch || wallet.isGuest}
+              disabled={!canVouch && !wallet.isGuest}
               className="btn btn-primary"
-              style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: (canVouch && !wallet.isGuest) ? 1 : 0.45, cursor: (canVouch && !wallet.isGuest) ? 'pointer' : 'not-allowed' }}
+              style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: canVouch || wallet.isGuest ? 1 : 0.45, cursor: canVouch || wallet.isGuest ? 'pointer' : 'not-allowed' }}
             >
-              {wallet.isGuest ? '🔒 Connect Wallet to Vouch' : <><Users size={16} strokeWidth={2} /> Stake &amp; Vouch for {borrower ? formatWallet(borrower.wallet) : 'Borrower'}</>}
+              <Users size={16} strokeWidth={2} /> Stake &amp; Vouch for {borrower ? formatWallet(borrower.wallet) : 'Borrower'}
             </button>
           </div>
         )}

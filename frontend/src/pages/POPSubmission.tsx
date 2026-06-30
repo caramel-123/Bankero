@@ -10,6 +10,7 @@ import {
   recordVerifiedPayment,
 } from '../services/popVerification'
 import type { UtilityAccount, ValidationResult } from '../types/pop'
+import GuestActionModal from '../components/GuestActionModal'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -64,10 +65,12 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
   const [result, setResult] = useState<ValidationResult | null>(null)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [showGuestModal, setShowGuestModal] = useState(false)
 
   async function handleSubmit() {
+    if (wallet.isGuest) { setShowGuestModal(true); return }
     if (wallet.isGuest) {
-      // Demo: simulate full POP verification flow
+      // Demo: simulate full POP verification flow (unreachable but kept for safety)
       setError('')
       setResult(null)
       for (let i = 0; i < STEPS.length; i++) {
@@ -184,10 +187,11 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
             </div>
           )}
 
+          {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
           <button
             onClick={handleSubmit}
-            style={btn(step >= 0 || (!wallet.isGuest && (!billFile || !receiptFile)))}
-            disabled={step >= 0 || (!wallet.isGuest && (!billFile || !receiptFile))}
+            style={btn(step >= 0 || (!billFile || !receiptFile))}
+            disabled={step >= 0 || (!billFile || !receiptFile)}
           >
             {step >= 0 ? 'Hinihintay...' : 'I-verify ang Bayad'}
           </button>

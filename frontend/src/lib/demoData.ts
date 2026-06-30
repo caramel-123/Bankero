@@ -5,13 +5,13 @@ export const DEMO_WALLET = 'GDEMO7BANKERO5UNBANKED3FILIPINO2CREDIT1SCORE8STELLAR
 
 export const DEMO_SCORE_RECORD = {
   wallet_address: DEMO_WALLET,
-  score: 725,
-  tx_score: 68,
-  repayment_score: 85,
-  vouch_score: 60,
-  anchor_score: 45,
-  total_loans: 3,
-  loans_repaid: 2,
+  score: 300,
+  tx_score: 0,
+  repayment_score: 0,
+  vouch_score: 0,
+  anchor_score: 0,
+  total_loans: 0,
+  loans_repaid: 0,
   loans_defaulted: 0,
   last_updated: new Date().toISOString(),
 }

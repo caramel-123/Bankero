@@ -8,6 +8,7 @@ import { scoreTier, SCORE_TIERS, nextScoreTier, formatPeso } from '../lib/stella
 import { saveLoan, fetchLoans, type LocalLoan } from '../lib/loanStore'
 import { useScore } from '../hooks/useScore'
 import { DEMO_SCORE_RECORD, DEMO_LOANS } from '../lib/demoData'
+import GuestActionModal from '../components/GuestActionModal'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -31,6 +32,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [showLadder, setShowLadder] = useState(false)
+  const [showGuestModal, setShowGuestModal] = useState(false)
 
   useEffect(() => {
     if (wallet.isGuest) {
@@ -54,6 +56,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const total    = safeAmount + interest
 
   async function handleSubmit() {
+    if (wallet.isGuest) { setShowGuestModal(true); return }
     if (activeLoan || submitting) return
     setSubmitting(true)
     if (wallet.publicKey) {
@@ -292,12 +295,8 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
             </span>
           </div>
 
-          {wallet.isGuest && (
-            <div style={{ padding: '14px 18px', borderRadius: 'var(--r-lg)', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)', marginBottom: 12, fontSize: 13, color: '#92400E', textAlign: 'center', fontWeight: 600 }}>
-              🔒 Connect a wallet to submit a real loan application
-            </div>
-          )}
-          <button onClick={handleSubmit} disabled={submitting || wallet.isGuest} className="btn btn-primary" style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: (submitting || wallet.isGuest) ? 0.5 : 1 }}>
+          {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
+          <button onClick={handleSubmit} disabled={submitting} className="btn btn-primary" style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: submitting ? 0.65 : 1 }}>
             {submitting
               ? <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Submitting…</>
               : <>Submit Loan Application</>

@@ -11,6 +11,7 @@ import {
   type LocalLoan, type LoanStatus
 } from '../lib/loanStore'
 import { DEMO_LOANS } from '../lib/demoData'
+import GuestActionModal from '../components/GuestActionModal'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -136,6 +137,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [repayingLoan, setRepayingLoan] = useState<LocalLoan | null>(null)
   const [successInfo, setSuccessInfo] = useState<{ newScore: number; diff: number } | null>(null)
   const [defaultedInfo, setDefaultedInfo] = useState<{ count: number } | null>(null)
+  const [showGuestModal, setShowGuestModal] = useState(false)
 
   async function refresh() {
     if (wallet.isGuest) {
@@ -192,6 +194,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)', padding: 32 }}>
 
+      {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
       {repayingLoan && wallet.publicKey && (
         <RepayModal loan={repayingLoan} wallet={wallet.publicKey} onConfirm={handleRepayConfirm} onClose={() => setRepayingLoan(null)} />
       )}
@@ -364,7 +367,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                     <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
 
                       {isActive && (
-                        <button onClick={() => setRepayingLoan(loan)}
+                        <button onClick={() => wallet.isGuest ? setShowGuestModal(true) : setRepayingLoan(loan)}
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 11, fontSize: 14, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', cursor: 'pointer', boxShadow: '0 3px 12px rgba(22,163,74,.28)' }}>
                           <CheckCircle size={16} strokeWidth={2} /> Repay Loan — {formatPeso(loan.total)}
                         </button>

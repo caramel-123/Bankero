@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, CheckCircle, Users, Calendar, Coins } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import GuestActionModal from '../components/GuestActionModal'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -47,6 +48,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [showGuestModal, setShowGuestModal] = useState(false)
 
   function addMember() {
     if (members.length >= 9) return  // max 10 including organizer
@@ -74,14 +76,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
   const totalMembers = allMembers.length // organizer included
 
   async function handleSubmit() {
-    if (wallet.isGuest) {
-      setSubmitting(true)
-      await new Promise(r => setTimeout(r, 1000))
-      setDone(true)
-      setSubmitting(false)
-      return
-    }
-
+    if (wallet.isGuest) { setShowGuestModal(true); return }
     setSubmitting(true)
     setError('')
     try {
@@ -368,6 +363,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
               </div>
             )}
 
+            {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
             <button
               onClick={handleSubmit}
               disabled={submitting}

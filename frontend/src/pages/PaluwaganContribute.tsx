@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, Coins, TrendingUp, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { DEMO_PALUWAGAN_GROUPS, DEMO_PALUWAGAN_MEMBERS } from '../lib/demoData'
+import GuestActionModal from '../components/GuestActionModal'
 import { applyContributionBonus } from '../services/paluwagaScoring'
 import type { PaluwagaGroup, PaluwagaMember } from '../types/paluwagan'
 import type { useWallet } from '../hooks/useWallet'
@@ -20,6 +21,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
   const [stage, setStage] = useState<Stage>('confirm')
   const [scoreBonus, setScoreBonus] = useState(0)
   const [error, setError] = useState('')
+  const [showGuestModal, setShowGuestModal] = useState(false)
 
   useEffect(() => {
     if (wallet.isGuest) {
@@ -51,16 +53,12 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
   }, [id, wallet.publicKey, wallet.isGuest])
 
   async function handleContribute() {
+    if (wallet.isGuest) { setShowGuestModal(true); return }
     if (!group || !myMembership) return
     setStage('signing')
     setError('')
 
     try {
-      if (wallet.isGuest) {
-        setError('Connect a real wallet to contribute to Paluwagan.')
-        setStage('error')
-        return
-      }
       // For now, record in Supabase as a local loan store (contract call pending)
       const { data: user } = await supabase.from('users').select('id').eq('wallet_address', wallet.publicKey!).maybeSingle()
       if (!user) throw new Error('Hindi mahanap ang account.')
@@ -201,6 +199,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
           </div>
         )}
 
+        {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
         <button
           onClick={stage === 'error' ? () => setStage('confirm') : handleContribute}
           disabled={stage === 'signing'}
