@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Star, X, Send, CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { formatWallet } from '../lib/stellar'
 
 interface Props {
   walletAddress: string | null
