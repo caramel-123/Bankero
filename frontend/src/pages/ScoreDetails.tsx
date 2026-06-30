@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { scoreTier, scorePercent, formatWallet, stellarExplorerUrl } from '../lib/stellar'
 import { useScore } from '../hooks/useScore'
+import { DEMO_SCORE_RECORD, DEMO_WALLET } from '../lib/demoData'
 import {
   PROVIDERS, getLinkedAccounts, linkAccount, unlinkAccount, syncTransactions,
   type PaymentProvider,
@@ -130,7 +131,8 @@ function LinkModal({
 /* ── Main page ────────────────────────────────────────────── */
 export default function ScoreDetails({ wallet }: { wallet: WalletHook }) {
   const nav = useNavigate()
-  const { record, isLoading, refresh } = useScore(wallet.publicKey)
+  const { record: liveRecord, isLoading, refresh } = useScore(wallet.isGuest ? null : wallet.publicKey)
+  const record = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
   const score = record?.score ?? 300
   const tier  = scoreTier(score)
   const pct   = scorePercent(score)
@@ -140,7 +142,7 @@ export default function ScoreDetails({ wallet }: { wallet: WalletHook }) {
   const [syncing, setSyncing] = useState<string | null>(null)
   const [syncResult, setSyncResult] = useState<{ id: string; count: number } | null>(null)
   const [copied, setCopied] = useState(false)
-  const linked = wallet.publicKey ? getLinkedAccounts(wallet.publicKey) : []
+  const linked = wallet.isGuest ? [] : (wallet.publicKey ? getLinkedAccounts(wallet.publicKey) : [])
 
   function handleUnlink(providerId: string) {
     if (!wallet.publicKey) return
@@ -194,7 +196,7 @@ export default function ScoreDetails({ wallet }: { wallet: WalletHook }) {
             <h1 className="heading" style={{ fontSize: 26, color: 'var(--ink)' }}>Your Credit Score</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 5 }}>
               <p style={{ fontSize: 13, color: 'var(--ink-4)' }}>
-                {wallet.publicKey ? `${formatWallet(wallet.publicKey)} · Live from Stellar testnet` : '—'}
+                {wallet.isGuest ? `${formatWallet(DEMO_WALLET)} · Demo Mode` : (wallet.publicKey ? `${formatWallet(wallet.publicKey)} · Live from Stellar testnet` : '—')}
               </p>
               {wallet.publicKey && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

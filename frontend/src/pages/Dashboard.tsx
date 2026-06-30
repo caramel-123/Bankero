@@ -9,6 +9,7 @@ import { scoreTier, scorePercent, formatWallet, formatPeso } from '../lib/stella
 import { useScore } from '../hooks/useScore'
 import GuestBanner from '../components/GuestBanner'
 import FeedbackModal from '../components/FeedbackModal'
+import { DEMO_SCORE_RECORD } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -23,12 +24,13 @@ const NAV = [
 
 export default function Dashboard({ wallet }: { wallet: WalletHook }) {
   const nav = useNavigate()
-  const { record, isLoading } = useScore(wallet.publicKey)
+  const { record: liveRecord, isLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
+  const record = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
   const [copied, setCopied] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
 
   function copyAddress() {
-    if (!wallet.publicKey) return
+    if (!wallet.publicKey || wallet.isGuest) return
     navigator.clipboard.writeText(wallet.publicKey).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)

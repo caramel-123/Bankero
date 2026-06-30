@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, Clock, XCircle, Trophy, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { DEMO_PALUWAGAN_GROUPS, DEMO_PALUWAGAN_MEMBERS, DEMO_PALUWAGAN_CONTRIBUTIONS } from '../lib/demoData'
 import type { PaluwagaGroup, PaluwagaMember, PaluwagaContribution, PaluwagaPotRelease } from '../types/paluwagan'
 import { checkAndEnforceDeadlines } from '../services/paluwagaScoring'
 import type { useWallet } from '../hooks/useWallet'
@@ -52,6 +53,15 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current')
 
   useEffect(() => {
+    if (wallet.isGuest) {
+      const g = (DEMO_PALUWAGAN_GROUPS as any[]).find(g => g.id === id) ?? DEMO_PALUWAGAN_GROUPS[0]
+      setGroup(g as unknown as PaluwagaGroup)
+      setMembers(DEMO_PALUWAGAN_MEMBERS as unknown as PaluwagaMember[])
+      setContributions(DEMO_PALUWAGAN_CONTRIBUTIONS as unknown as PaluwagaContribution[])
+      setMyMembership(DEMO_PALUWAGAN_MEMBERS[2] as unknown as PaluwagaMember)
+      setLoading(false)
+      return
+    }
     if (!id) return
 
     async function load() {

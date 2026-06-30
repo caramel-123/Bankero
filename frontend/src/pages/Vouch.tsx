@@ -5,6 +5,7 @@ import {
   Search, TrendingUp, ExternalLink, XCircle,
 } from 'lucide-react'
 import { scoreTier, scorePercent, formatWallet, stellarExplorerUrl } from '../lib/stellar'
+import { DEMO_SCORE_RECORD, DEMO_WALLET } from '../lib/demoData'
 import { getScoreCacheFromSupabase } from '../lib/supabase'
 import { computeLocalScore } from '../lib/loanStore'
 import type { useWallet } from '../hooks/useWallet'
@@ -36,7 +37,7 @@ async function lookupBorrowerScore(wallet: string): Promise<{
 
 export default function Vouch({ wallet }: { wallet: WalletHook }) {
   const nav = useNavigate()
-  const [search, setSearch]   = useState('')
+  const [search, setSearch]   = useState(wallet.isGuest ? DEMO_WALLET : '')
   const [stake, setStake]     = useState(50)
   const [vouched, setVouched] = useState(false)
   const [looking, setLooking] = useState(false)
@@ -54,8 +55,12 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
   // Debounced lookup when address reaches minimum Stellar address length (56 chars)
   const doLookup = useCallback(async (addr: string) => {
     if (addr.length < 56) { setBorrower(null); setLookupError(null); return }
-    if (wallet.publicKey && addr.toLowerCase() === wallet.publicKey.toLowerCase()) {
+    if (!wallet.isGuest && wallet.publicKey && addr.toLowerCase() === wallet.publicKey.toLowerCase()) {
       setBorrower(null); setLookupError(null); return
+    }
+    if (wallet.isGuest && addr === DEMO_WALLET) {
+      setBorrower({ wallet: DEMO_WALLET, score: DEMO_SCORE_RECORD.score, repayment: DEMO_SCORE_RECORD.repayment_score, tx: DEMO_SCORE_RECORD.tx_score, vouch: DEMO_SCORE_RECORD.vouch_score, anchor: DEMO_SCORE_RECORD.anchor_score, totalLoans: DEMO_SCORE_RECORD.total_loans, loansRepaid: DEMO_SCORE_RECORD.loans_repaid, loansDefaulted: DEMO_SCORE_RECORD.loans_defaulted })
+      return
     }
     setLooking(true)
     setLookupError(null)
@@ -76,12 +81,7 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
   }, [search, doLookup])
 
   function handleVouch() {
-    if (!canVouch) return
-    // Guest: simulate vouch with a short delay
-    if (wallet.isGuest) {
-      setTimeout(() => setVouched(true), 600)
-      return
-    }
+    if (!canVouch || wallet.isGuest) return
     setVouched(true)
   }
 
@@ -249,11 +249,11 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
             {/* Submit */}
             <button
               onClick={handleVouch}
-              disabled={!canVouch}
+              disabled={!canVouch || wallet.isGuest}
               className="btn btn-primary"
-              style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: canVouch ? 1 : 0.45, cursor: canVouch ? 'pointer' : 'not-allowed' }}
+              style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: (canVouch && !wallet.isGuest) ? 1 : 0.45, cursor: (canVouch && !wallet.isGuest) ? 'pointer' : 'not-allowed' }}
             >
-              <Users size={16} strokeWidth={2} /> Stake &amp; Vouch for {borrower ? formatWallet(borrower.wallet) : 'Borrower'}
+              {wallet.isGuest ? '🔒 Connect Wallet to Vouch' : <><Users size={16} strokeWidth={2} /> Stake &amp; Vouch for {borrower ? formatWallet(borrower.wallet) : 'Borrower'}</>}
             </button>
           </div>
         )}

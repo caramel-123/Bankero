@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Users, Clock, ChevronRight, Trophy, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { DEMO_PALUWAGAN_GROUPS } from '../lib/demoData'
 import type { PaluwagaGroupView } from '../types/paluwagan'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -111,6 +112,11 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (wallet.isGuest) {
+      setGroups(DEMO_PALUWAGAN_GROUPS as unknown as PaluwagaGroupView[])
+      setLoading(false)
+      return
+    }
     if (!wallet.publicKey) return
 
     async function load() {

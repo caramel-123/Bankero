@@ -10,6 +10,7 @@ import {
   computeLocalScore, getScoreCache, daysUntil, formatDate,
   type LocalLoan, type LoanStatus
 } from '../lib/loanStore'
+import { DEMO_LOANS } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -137,6 +138,11 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [defaultedInfo, setDefaultedInfo] = useState<{ count: number } | null>(null)
 
   async function refresh() {
+    if (wallet.isGuest) {
+      setLoans(DEMO_LOANS as unknown as LocalLoan[])
+      setLoading(false)
+      return
+    }
     if (!wallet.publicKey) return
     setLoading(true)
     const all = await fetchLoans(wallet.publicKey)
@@ -154,7 +160,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
     setLoading(false)
   }
 
-  useEffect(() => { refresh() }, [wallet.publicKey])
+  useEffect(() => { refresh() }, [wallet.publicKey, wallet.isGuest])
 
   // Auto-switch to first tab that has loans
   useEffect(() => {
