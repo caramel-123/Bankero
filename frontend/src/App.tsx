@@ -13,6 +13,10 @@ import POPRegistration from './pages/POPRegistration'
 import POPSubmission from './pages/POPSubmission'
 import POPHistory from './pages/POPHistory'
 import SavingsTrackerPage from './pages/SavingsTracker'
+import PaluwaganList from './pages/PaluwaganList'
+import PaluwaganCreate from './pages/PaluwaganCreate'
+import PaluwaganDetail from './pages/PaluwaganDetail'
+import PaluwaganContribute from './pages/PaluwaganContribute'
 
 function ProtectedRoute({ children, publicKey }: { children: React.ReactNode; publicKey: string | null }) {
   if (!publicKey) return <Navigate to="/login" replace />
@@ -76,6 +80,26 @@ export default function App() {
         <Route path="/savings" element={
           <ProtectedRoute publicKey={wallet.publicKey}>
             <SavingsTrackerPage wallet={wallet} />
+          </ProtectedRoute>
+        } />
+        <Route path="/paluwagan" element={
+          <ProtectedRoute publicKey={wallet.publicKey}>
+            <PaluwaganList wallet={wallet} />
+          </ProtectedRoute>
+        } />
+        <Route path="/paluwagan/create" element={
+          <ProtectedRoute publicKey={wallet.publicKey}>
+            <PaluwaganCreate wallet={wallet} />
+          </ProtectedRoute>
+        } />
+        <Route path="/paluwagan/:id" element={
+          <ProtectedRoute publicKey={wallet.publicKey}>
+            <PaluwaganDetail wallet={wallet} />
+          </ProtectedRoute>
+        } />
+        <Route path="/paluwagan/:id/contribute" element={
+          <ProtectedRoute publicKey={wallet.publicKey}>
+            <PaluwaganContribute wallet={wallet} />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />

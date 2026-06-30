@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home, BarChart2, CreditCard, FileText, Users, LogOut,
-  ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, Award,
+  ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, Award, TrendingUp, MessageSquare,
 } from 'lucide-react'
 import { stellarExplorerUrl } from '../lib/stellar'
 import { scoreTier, scorePercent, formatWallet, formatPeso } from '../lib/stellar'
 import { useScore } from '../hooks/useScore'
+import GuestBanner from '../components/GuestBanner'
+import FeedbackModal from '../components/FeedbackModal'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -21,8 +23,9 @@ const NAV = [
 
 export default function Dashboard({ wallet }: { wallet: WalletHook }) {
   const nav = useNavigate()
-  const { record, isLoading } = useScore(wallet.publicKey)
+  const { record, isLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
   const [copied, setCopied] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
 
   function copyAddress() {
     if (!wallet.publicKey) return
@@ -31,13 +34,14 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
       setTimeout(() => setCopied(false), 2000)
     })
   }
-  const score   = record?.score ?? 300
+  const score   = wallet.isGuest ? 725 : (record?.score ?? 300)
   const tier    = scoreTier(score)
   const pct     = scorePercent(score)
   const path    = window.location.pathname
 
   return (
     <div className="app-layout" style={{ display: 'flex', minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)' }}>
+      {showFeedback && <FeedbackModal walletAddress={wallet.publicKey} isGuest={wallet.isGuest} onClose={() => setShowFeedback(false)} />}
 
       {/* ── SIDEBAR ─────────────────────────────────────────── */}
       <aside className="app-sidebar" style={{
@@ -115,15 +119,19 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
       </aside>
 
       {/* ── MAIN ────────────────────────────────────────────── */}
-      <main className="app-main" style={{ flex: 1, padding: '36px 32px', overflowY: 'auto' }}>
+      <main className="app-main" style={{ flex: 1, overflowY: 'auto' }}>
+        {wallet.isGuest && <GuestBanner />}
 
+        <div style={{ padding: '36px 32px' }}>
         {/* Page header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32 }}>
           <div>
             <h1 className="heading" style={{ fontSize: 26, color: 'var(--ink)', marginBottom: 4 }}>
-              Welcome back
+              {wallet.isGuest ? '👀 Demo Mode' : 'Welcome back'}
             </h1>
-            <p style={{ color: 'var(--ink-3)', fontSize: 15 }}>Your financial reputation at a glance.</p>
+            <p style={{ color: 'var(--ink-3)', fontSize: 15 }}>
+              {wallet.isGuest ? 'Ito ang magiging dashboard mo kapag nag-connect ng wallet.' : 'Your financial reputation at a glance.'}
+            </p>
           </div>
           {isLoading && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--ink-4)', marginTop: 4 }}>
@@ -251,6 +259,9 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
             { Icon: Users,      title: 'Vouch for Someone',   desc: 'Stake XLM to help a friend build their credit score',  action: () => nav('/vouch'),       accent: '#D97706',      tint: 'var(--amber-tint)' },
             { Icon: FileText,   title: 'Track My Loans',      desc: 'View repayment schedule and full loan history',         action: () => nav('/loans'),       accent: '#3B82F6',      tint: '#EFF6FF' },
             { Icon: Award,      title: 'Credit Certificate',  desc: 'Download proof of good credit to show lenders & banks', action: () => nav('/certificate'), accent: '#7C3AED',      tint: '#F5F3FF' },
+            { Icon: FileText,   title: 'Bill Payment Proof',  desc: 'I-verify ang bayad sa kuryente, tubig, o internet',     action: () => nav('/pop/history'),  accent: '#16A34A',      tint: 'rgba(22,163,74,.12)' },
+            { Icon: TrendingUp, title: 'XLM Savings Streak',  desc: 'Mag-deposit ng 1 XLM/linggo para sa bonus score',      action: () => nav('/savings'),      accent: '#F59E0B',      tint: 'rgba(245,158,11,.12)' },
+            { Icon: Users,      title: 'Community Paluwagan', desc: 'Sumali sa rotating savings group at palakasin ang score', action: () => nav('/paluwagan'),   accent: '#7C3AED',      tint: 'rgba(124,58,237,.1)' },
           ].map((c, i) => {
             const Icon = c.Icon
             return (
@@ -262,7 +273,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
                   display: 'flex', alignItems: 'center', gap: 18,
                   width: '100%', padding: '18px 24px', border: 'none',
                   background: 'transparent', textAlign: 'left', cursor: 'pointer',
-                  borderBottom: i < 2 ? '1px solid var(--border-2)' : 'none',
+                  borderBottom: i < 5 ? '1px solid var(--border-2)' : 'none',
                   borderRadius: 0,
                   transition: 'background 150ms var(--ease-out)',
                 }}
@@ -284,6 +295,24 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
               </button>
             )
           })}
+        </div>
+
+        {/* Feedback floating button */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+          <button
+            onClick={() => setShowFeedback(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              padding: '10px 18px', borderRadius: 999,
+              background: 'var(--panel)', border: '1px solid rgba(255,255,255,.1)',
+              color: 'rgba(255,255,255,.6)', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600,
+              boxShadow: '0 4px 16px rgba(0,0,0,.2)',
+            }}
+          >
+            <MessageSquare size={14} /> Mag-iwan ng Feedback
+          </button>
+        </div>
         </div>
       </main>
 

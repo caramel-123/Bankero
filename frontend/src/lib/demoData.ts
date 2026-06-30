@@ -148,3 +148,45 @@ export const DEMO_POP_STREAK = {
   bonus_points_earned: 5,
   updated_at: new Date().toISOString(),
 }
+
+// ── Paluwagan demo data ────────────────────────────────────────────────────
+
+export const DEMO_PALUWAGAN_GROUPS = [
+  {
+    id: 'demo-paluwagan-001',
+    group_id_onchain: 42,
+    organizer_id: 'demo-user-id',
+    group_name: 'Paluwagan ng Magkakaibigan',
+    contribution_amount_xlm: 20,
+    cycle_frequency: 'monthly',
+    total_cycles: 4,
+    current_cycle: 2,
+    status: 'active',
+    stellar_contract_id: null,
+    created_at: new Date(Date.now() - 35 * 86400000).toISOString(),
+    next_deadline: new Date(Date.now() + 12 * 86400000).toISOString(),
+    my_rotation_order: 3,
+    my_total_contributions: 1,
+    my_consecutive_misses: 0,
+    my_is_active: true,
+    pot_per_cycle: 80,
+    days_until_deadline: 12,
+    members: [],
+  },
+]
+
+export const DEMO_PALUWAGAN_MEMBERS = [
+  { id: 'dm-001', group_id: 'demo-paluwagan-001', user_id: 'demo-user-001', stellar_address: 'GMEMBER1DEMO2BANKERO3STELLAR4TESTNET5MEMBER6ONE7ADDRESS89', rotation_order: 1, is_active: true, consecutive_misses: 0, total_contributions: 2, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'Maria Santos' },
+  { id: 'dm-002', group_id: 'demo-paluwagan-001', user_id: 'demo-user-002', stellar_address: 'GMEMBER2DEMO2BANKERO3STELLAR4TESTNET5MEMBER6TWO7ADDRESS89', rotation_order: 2, is_active: true, consecutive_misses: 0, total_contributions: 2, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'Juan dela Cruz' },
+  { id: 'dm-003', group_id: 'demo-paluwagan-001', user_id: 'demo-user-id', stellar_address: DEMO_WALLET, rotation_order: 3, is_active: true, consecutive_misses: 0, total_contributions: 1, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'Demo Borrower (Ikaw)' },
+  { id: 'dm-004', group_id: 'demo-paluwagan-001', user_id: 'demo-user-004', stellar_address: 'GMEMBER4DEMO2BANKERO3STELLAR4TESTNET5MEMBER6FOUR7ADDRESS8', rotation_order: 4, is_active: true, consecutive_misses: 0, total_contributions: 2, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'Ana Reyes' },
+]
+
+export const DEMO_PALUWAGAN_CONTRIBUTIONS = [
+  { id: 'dc-001', group_id: 'demo-paluwagan-001', user_id: 'demo-user-001', cycle_number: 1, amount_xlm: 20, tx_hash: 'PALUWAGANCTX001', contributed_at: new Date(Date.now() - 33 * 86400000).toISOString(), was_on_time: true, score_bonus_applied: 3 },
+  { id: 'dc-002', group_id: 'demo-paluwagan-001', user_id: 'demo-user-002', cycle_number: 1, amount_xlm: 20, tx_hash: 'PALUWAGANCTX002', contributed_at: new Date(Date.now() - 33 * 86400000).toISOString(), was_on_time: true, score_bonus_applied: 3 },
+  { id: 'dc-003', group_id: 'demo-paluwagan-001', user_id: 'demo-user-id', cycle_number: 1, amount_xlm: 20, tx_hash: 'PALUWAGANCTX003', contributed_at: new Date(Date.now() - 32 * 86400000).toISOString(), was_on_time: true, score_bonus_applied: 3 },
+  { id: 'dc-004', group_id: 'demo-paluwagan-001', user_id: 'demo-user-004', cycle_number: 1, amount_xlm: 20, tx_hash: 'PALUWAGANCTX004', contributed_at: new Date(Date.now() - 31 * 86400000).toISOString(), was_on_time: true, score_bonus_applied: 3 },
+  { id: 'dc-005', group_id: 'demo-paluwagan-001', user_id: 'demo-user-001', cycle_number: 2, amount_xlm: 20, tx_hash: 'PALUWAGANCTX005', contributed_at: new Date(Date.now() - 2 * 86400000).toISOString(), was_on_time: true, score_bonus_applied: 3 },
+  { id: 'dc-006', group_id: 'demo-paluwagan-001', user_id: 'demo-user-002', cycle_number: 2, amount_xlm: 20, tx_hash: 'PALUWAGANCTX006', contributed_at: new Date(Date.now() - 1 * 86400000).toISOString(), was_on_time: true, score_bonus_applied: 3 },
+]
