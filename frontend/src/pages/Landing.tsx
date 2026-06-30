@@ -208,17 +208,21 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
     type Particle = { x: number; y: number; vy: number; vx: number; alpha: number; char: string; size: number }
     const particles: Particle[] = []
-    let mx = -999, my = -999
+    let mx = -999, my = -999, moving = false, stopTimer: ReturnType<typeof setTimeout>
 
-    const onMove = (e: MouseEvent) => { mx = e.clientX; my = e.clientY }
+    const onMove = (e: MouseEvent) => {
+      mx = e.clientX; my = e.clientY; moving = true
+      clearTimeout(stopTimer)
+      stopTimer = setTimeout(() => { moving = false }, 80)
+    }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight })
 
     let frame: number
     const loop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      // spawn 2-3 chars per frame near cursor
-      for (let i = 0; i < 3; i++) {
+      // spawn chars only while moving
+      if (moving) for (let i = 0; i < 3; i++) {
         particles.push({
           x: mx + (Math.random() - 0.5) * 24,
           y: my + (Math.random() - 0.5) * 24,
@@ -242,7 +246,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       frame = requestAnimationFrame(loop)
     }
     loop()
-    return () => { cancelAnimationFrame(frame); window.removeEventListener('mousemove', onMove); canvas.remove() }
+    return () => { cancelAnimationFrame(frame); clearTimeout(stopTimer); window.removeEventListener('mousemove', onMove); canvas.remove() }
   }, [])
 
   return (
