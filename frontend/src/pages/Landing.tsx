@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { formatWallet } from '../lib/stellar'
 
 const HERO_VIDEO = 'https://res.cloudinary.com/dfonotyfb/video/upload/v1775585556/dds3_1_rqhg7x.mp4'
+const GALAXY_VIDEO = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260217_030345_246c0224-10a4-422c-b324-070b7c0eceda.mp4'
 
 /* ── Score preview card (isolated so stagger class works) ── */
 function ScoreCard() {
@@ -197,7 +198,16 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
   }, [])
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#15171C', fontFamily: 'var(--font)', color: '#fff' }}>
+    <div style={{ minHeight: '100dvh', background: 'transparent', fontFamily: 'var(--font)', color: '#fff', position: 'relative' }}>
+
+      {/* ── GALAXY — fixed full-page background ── */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: -1, overflow: 'hidden' }}>
+        <video autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }}>
+          <source src={GALAXY_VIDEO} type="video/mp4" />
+        </video>
+        {/* Dark overlay for readability */}
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
+      </div>
 
       <style>{`
         @keyframes heroBlurUp {
