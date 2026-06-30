@@ -190,6 +190,15 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in') }),
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    )
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
+    return () => obs.disconnect()
+  }, [])
+
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--surface)', fontFamily: 'var(--font)' }}>
 
@@ -205,6 +214,19 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
         @keyframes scrollFade {
           0%, 100% { opacity: 0.4; }
           50%       { opacity: 0.9; }
+        }
+        .reveal {
+          opacity: 0;
+          filter: blur(14px);
+          transform: translateY(28px);
+          transition: opacity 0.72s cubic-bezier(0.23,1,0.32,1),
+                      filter  0.72s cubic-bezier(0.23,1,0.32,1),
+                      transform 0.72s cubic-bezier(0.23,1,0.32,1);
+        }
+        .reveal.in {
+          opacity: 1;
+          filter: blur(0);
+          transform: translateY(0);
         }
       `}</style>
 
@@ -363,7 +385,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       }}>
         <div className="landing-steps" style={{ maxWidth: 1160, margin: '0 auto', padding: '80px 40px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 80, alignItems: 'start' }}>
           {/* Left label */}
-          <div>
+          <div className="reveal">
             <h2 className="heading" style={{ fontSize: 'clamp(32px, 3.5vw, 46px)', color: 'var(--ink)', marginBottom: 16 }}>
               From zero to creditworthy.
             </h2>
@@ -379,7 +401,8 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               { num: '02', icon: <TrendingUp size={20} strokeWidth={2} />, title: 'Build your score', desc: 'Your 300–850 score grows with every on-time repayment, community vouch, wallet transaction, and remittance record.' },
               { num: '03', icon: <Zap size={20} strokeWidth={2} />, title: 'Access micro-loans', desc: 'Higher score = higher limit. Borrow up to ₱10,000 at a flat 5% rate with 7, 14, or 30-day terms.' },
             ].map((s, i) => (
-              <div key={s.num} style={{
+              <div key={s.num} className="reveal" style={{
+                transitionDelay: `${i * 100}ms`,
                 display: 'flex', gap: 24, paddingBottom: i < 2 ? 36 : 0,
                 borderBottom: i < 2 ? '1px solid var(--border-2)' : 'none',
                 paddingTop: i > 0 ? 36 : 0,
@@ -408,7 +431,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '96px 40px' }}>
         <div className="landing-features" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
           {/* Large feature left */}
-          <div className="card hover-lift" style={{ padding: 36, display: 'flex', flexDirection: 'column', gap: 20, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
+          <div className="card hover-lift reveal" style={{ padding: 36, display: 'flex', flexDirection: 'column', gap: 20, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
             <div style={{ width: 52, height: 52, borderRadius: 'var(--r-xl)', background: 'var(--green-tint)', display: 'grid', placeItems: 'center', color: 'var(--green)' }}>
               <ShieldCheck size={24} strokeWidth={2} />
             </div>
@@ -425,7 +448,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
           {/* Right column — 2 stacked smaller */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div className="card hover-lift" style={{ padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
+            <div className="card hover-lift reveal" style={{ transitionDelay: '100ms', padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
               <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: 'var(--amber-tint)', display: 'grid', placeItems: 'center', color: 'var(--amber)', flexShrink: 0 }}>
                 <Users size={20} strokeWidth={2} />
               </div>
@@ -435,7 +458,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               </div>
             </div>
 
-            <div className="card hover-lift" style={{ padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
+            <div className="card hover-lift reveal" style={{ transitionDelay: '200ms', padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
               <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: 'var(--green-tint)', display: 'grid', placeItems: 'center', color: 'var(--green)', flexShrink: 0 }}>
                 <BarChart2 size={20} strokeWidth={2} />
               </div>
@@ -445,7 +468,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               </div>
             </div>
 
-            <div className="card hover-lift" style={{ padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
+            <div className="card hover-lift reveal" style={{ transitionDelay: '300ms', padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
               <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: '#EFF6FF', display: 'grid', placeItems: 'center', color: '#3B82F6', flexShrink: 0 }}>
                 <Zap size={20} strokeWidth={2} />
               </div>
@@ -463,7 +486,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
       {/* ── CTA BANNER ───────────────────────────────────────── */}
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 96px' }}>
-        <div className="panel-card landing-cta" style={{ padding: '60px 64px', display: 'flex', alignItems: 'center', gap: 56 }}>
+        <div className="panel-card landing-cta reveal" style={{ padding: '60px 64px', display: 'flex', alignItems: 'center', gap: 56 }}>
           {/* bg glow */}
           <div style={{
             position: 'absolute', top: -80, right: -60,
