@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Flame, TrendingUp, Zap, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Flame, TrendingUp, Zap, RefreshCw, CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { DEMO_SAVINGS_STREAK, DEMO_WEEKLY_DEPOSITS } from '../lib/demoData'
 import {
@@ -22,7 +22,7 @@ function WeekGrid({ deposits }: { deposits: WeeklyDeposit[] }) {
   })
 
   return (
-    <div style={{ display: 'flex', gap: 6 }}>
+    <div style={{ display: 'flex', gap: 8 }}>
       {weeks.map(w => {
         const isCurrent = w === currentWeek
         const hasDeposit = depositedWeeks.has(w)
@@ -31,12 +31,15 @@ function WeekGrid({ deposits }: { deposits: WeeklyDeposit[] }) {
             key={w}
             title={w}
             style={{
-              flex: 1, height: 32, borderRadius: 6,
-              background: hasDeposit ? '#16A34A' : isCurrent ? 'rgba(245,158,11,.15)' : 'var(--surface-3)',
-              border: isCurrent ? '1px solid rgba(245,158,11,.35)' : '1px solid var(--border-2)',
+              flex: 1, height: 36, borderRadius: 8,
+              background: hasDeposit ? '#16A34A' : isCurrent ? 'rgba(245,158,11,.12)' : '#E9EEF0',
+              border: `1.5px solid ${hasDeposit ? '#16A34A' : isCurrent ? 'rgba(245,158,11,.4)' : '#D4DCE0'}`,
               transition: 'background 200ms',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
-          />
+          >
+            {hasDeposit && <CheckCircle size={14} color="#fff" strokeWidth={2.5} />}
+          </div>
         )
       })}
     </div>
@@ -96,91 +99,103 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
   const canEarnMoreBonus = totalBonus < 30
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '32px 16px' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '28px 20px' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
-        <button onClick={() => nav(-1)} className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>
+
+        <button onClick={() => nav(-1)} className="btn btn-ghost btn-sm" style={{ marginBottom: 20 }}>
           <ArrowLeft size={15} /> Back
         </button>
 
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>XLM Savings Streak</h1>
-        <p style={{ color: 'var(--ink-3)', fontSize: 14, marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink)', marginBottom: 4 }}>XLM Savings Streak</h1>
+        <p style={{ color: 'var(--ink-3)', fontSize: 14, marginBottom: 24, lineHeight: 1.5 }}>
           Deposit at least 1 XLM every week to grow your credit score.
         </p>
 
         {loading ? (
-          <div className="card" style={{ textAlign: 'center', color: 'var(--ink-3)' }}>Loading...</div>
+          <div className="card" style={{ textAlign: 'center', color: 'var(--ink-3)', padding: 32 }}>Loading...</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
             {/* Main streak card */}
-            <div className="card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-                <div style={{
-                  width: 80, height: 80, borderRadius: 20,
-                  background: current > 0 ? 'rgba(245,158,11,.1)' : 'var(--surface-3)',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  border: current > 0 ? '2px solid rgba(245,158,11,.25)' : '2px solid var(--border-2)',
-                }}>
-                  <Flame size={28} color={current > 0 ? '#F59E0B' : 'var(--ink-4)'} />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: current > 0 ? '#F59E0B' : 'var(--ink-4)', marginTop: 2 }}>streak</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: 48, fontWeight: 800, color: 'var(--ink)', lineHeight: 1 }}>{current}</div>
-                  <div style={{ fontSize: 14, color: 'var(--ink-3)', marginTop: 2 }}>
-                    consecutive week{current !== 1 ? 's' : ''}
+            <div className="card" style={{ padding: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 14,
+                    background: current > 0 ? 'rgba(245,158,11,.1)' : '#F1F5F9',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `1.5px solid ${current > 0 ? 'rgba(245,158,11,.3)' : '#E2E8F0'}`,
+                  }}>
+                    <Flame size={22} color={current > 0 ? '#F59E0B' : '#94A3B8'} strokeWidth={2} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', marginBottom: 2 }}>Current Streak</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                      <span style={{ fontSize: 40, fontWeight: 800, color: 'var(--ink)', lineHeight: 1 }}>{current}</span>
+                      <span style={{ fontSize: 14, color: 'var(--ink-3)' }}>week{current !== 1 ? 's' : ''}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {canEarnMoreBonus && (
                 <>
-                  <div style={{ height: 6, borderRadius: 999, background: 'var(--surface-3)', marginBottom: 8, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 999, background: '#F59E0B', width: `${((4 - weeksToNextBonus) / 4) * 100}%`, transition: 'width 600ms' }} />
+                  <div style={{ height: 8, borderRadius: 999, background: '#E9EEF0', marginBottom: 8, overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', borderRadius: 999, background: '#F59E0B',
+                      width: `${((4 - weeksToNextBonus) / 4) * 100}%`, transition: 'width 600ms',
+                    }} />
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>
                     {weeksToNextBonus === 4 && current === 0
                       ? 'Deposit 1 XLM to start your streak'
-                      : <>{weeksToNextBonus} more week{weeksToNextBonus !== 1 ? 's' : ''} for <span style={{ color: '#F59E0B', fontWeight: 700 }}>+10 tx_score bonus</span></>
+                      : <>{weeksToNextBonus} more week{weeksToNextBonus !== 1 ? 's' : ''} to earn <span style={{ color: '#F59E0B', fontWeight: 700 }}>+10 tx_score bonus</span></>
                     }
                   </div>
                 </>
               )}
               {!canEarnMoreBonus && (
-                <div style={{ fontSize: 13, color: '#16A34A', fontWeight: 600 }}>Maximum bonus earned! +30 tx_score</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircle size={16} color="#16A34A" strokeWidth={2} />
+                  <span style={{ fontSize: 13, color: '#16A34A', fontWeight: 600 }}>Maximum bonus earned — +30 tx_score</span>
+                </div>
               )}
             </div>
 
             {/* Stats row */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="card" style={{ padding: 16 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 6 }}>Longest Streak</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <TrendingUp size={18} color="#16A34A" />
-                  <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink)' }}>{longest}</span>
-                  <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>weeks</span>
+              <div className="card" style={{ padding: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Longest Streak</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <TrendingUp size={20} color="#16A34A" strokeWidth={2} />
+                  <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--ink)' }}>{longest}</span>
+                  <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>wks</span>
                 </div>
               </div>
-              <div className="card" style={{ padding: 16 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 6 }}>Score Bonus</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Zap size={18} color="#F59E0B" />
-                  <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink)' }}>+{totalBonus}</span>
-                  <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>/ 30</span>
+              <div className="card" style={{ padding: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}>Score Bonus</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Zap size={20} color="#F59E0B" strokeWidth={2} />
+                  <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--ink)' }}>+{totalBonus}</span>
+                  <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>/ 30</span>
                 </div>
               </div>
             </div>
 
             {/* Week grid */}
-            <div className="card">
-              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}>Last 8 Weeks</div>
-              <WeekGrid deposits={deposits} />
-              <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
-                <span style={{ fontSize: 11, color: 'var(--ink-3)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: 3, background: '#16A34A', display: 'inline-block' }} /> Deposited
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--ink-3)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(245,158,11,.15)', border: '1px solid rgba(245,158,11,.35)', display: 'inline-block' }} /> Current week
-                </span>
+            <div className="card" style={{ padding: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Last 8 Weeks</div>
+                <div style={{ display: 'flex', gap: 14 }}>
+                  <span style={{ fontSize: 11, color: 'var(--ink-4)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: '#16A34A', display: 'inline-block' }} /> Deposited
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--ink-4)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(245,158,11,.12)', border: '1.5px solid rgba(245,158,11,.4)', display: 'inline-block' }} /> This week
+                  </span>
+                </div>
               </div>
+              <WeekGrid deposits={deposits} />
             </div>
 
             {/* CTA */}
@@ -189,14 +204,15 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
               disabled={refreshing}
               className="btn btn-primary"
               style={{
-                width: '100%', padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, minHeight: 48,
+                width: '100%', padding: '15px 0', borderRadius: 14, fontSize: 15, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                opacity: refreshing ? 0.6 : 1,
+                opacity: refreshing ? 0.65 : 1,
               }}
             >
-              {refreshing ? <><RefreshCw size={14} strokeWidth={2} style={{ animation: 'spin 0.8s linear infinite' }} /> Checking...</> : <><RefreshCw size={14} strokeWidth={2} /> Check My Deposit</>}
+              <RefreshCw size={15} strokeWidth={2} style={refreshing ? { animation: 'spin 0.8s linear infinite' } : {}} />
+              {refreshing ? 'Checking...' : 'Check My Deposit'}
             </button>
-            <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-3)', marginTop: -4 }}>
+            <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-4)', marginTop: 8 }}>
               Minimum deposit is 1 XLM per week.
             </p>
           </div>

@@ -34,12 +34,12 @@ function StreakCalendar({ submissions }: { submissions: POPSubmission[] }) {
         const ok = verified.has(m)
         return (
           <div key={m} style={{
-            flex: 1, minWidth: 44, padding: '8px 4px', borderRadius: 8, textAlign: 'center',
-            background: ok ? 'rgba(22,163,74,.1)' : 'var(--surface-3)',
-            border: `1px solid ${ok ? 'rgba(22,163,74,.25)' : 'var(--border-2)'}`,
+            flex: 1, minWidth: 44, padding: '10px 4px', borderRadius: 10, textAlign: 'center',
+            background: ok ? '#DCFCE7' : '#E9EEF0',
+            border: `1.5px solid ${ok ? '#86EFAC' : '#D4DCE0'}`,
           }}>
-            <div style={{ fontSize: 11, color: ok ? '#16A34A' : 'var(--ink-4)', fontWeight: 600 }}>{m.slice(0,2)}/{m.slice(5,7)}</div>
-            <div style={{ marginTop: 2, display: 'flex', justifyContent: 'center' }}>{ok ? <Check size={13} color="#16A34A" strokeWidth={2.5} /> : <Minus size={13} color="var(--ink-4)" strokeWidth={2} />}</div>
+            <div style={{ fontSize: 11, color: ok ? '#15803D' : '#94A3B8', fontWeight: 700 }}>{m.slice(0,2)}/{m.slice(5,7)}</div>
+            <div style={{ marginTop: 4, display: 'flex', justifyContent: 'center' }}>{ok ? <Check size={13} color="#16A34A" strokeWidth={2.5} /> : <Minus size={13} color="#CBD5E1" strokeWidth={2} />}</div>
           </div>
         )
       })}
@@ -108,7 +108,7 @@ export default function POPHistory({ wallet }: { wallet: WalletHook }) {
 
           {nextMilestone && (
             <>
-              <div style={{ height: 6, borderRadius: 999, background: 'var(--surface-3)', marginBottom: 8, overflow: 'hidden' }}>
+              <div style={{ height: 8, borderRadius: 999, background: '#E9EEF0', marginBottom: 8, overflow: 'hidden' }}>
                 <div style={{ height: '100%', borderRadius: 999, background: '#16A34A', width: `${(consecutive / nextMilestone) * 100}%`, transition: 'width 600ms ease' }} />
               </div>
               <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>
