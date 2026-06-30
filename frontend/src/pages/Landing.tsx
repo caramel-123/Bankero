@@ -294,7 +294,21 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
             </p>
 
             <div className="hero-blur-up" style={{ animationDelay: '600ms', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button onClick={() => nav('/login')} className="btn btn-primary" style={{ fontSize: 16, padding: '14px 32px' }}>
+              <button
+                onClick={() => nav('/login')}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 10,
+                  padding: '14px 32px', borderRadius: 'var(--r-full)',
+                  background: 'rgba(34,197,94,.22)',
+                  border: '1.5px solid rgba(74,222,128,.55)',
+                  backdropFilter: 'blur(14px) saturate(1.6)',
+                  WebkitBackdropFilter: 'blur(14px) saturate(1.6)',
+                  boxShadow: '0 4px 28px rgba(34,197,94,.25), inset 0 1px 0 rgba(255,255,255,.18)',
+                  color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
+                  textShadow: '0 1px 8px rgba(0,0,0,.35)',
+                  transition: 'background 200ms ease, box-shadow 200ms ease',
+                }}
+              >
                 Build your score <ArrowRight size={16} strokeWidth={2.5} />
               </button>
               <button
@@ -302,8 +316,9 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                   padding: '14px 28px', borderRadius: 'var(--r-full)',
-                  background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.2)',
-                  backdropFilter: 'blur(8px)', color: '#fff', fontSize: 16, fontWeight: 600, cursor: 'pointer',
+                  background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.18)',
+                  backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                  color: 'rgba(255,255,255,.8)', fontSize: 16, fontWeight: 600, cursor: 'pointer',
                   transition: 'background 200ms ease',
                 }}
               >
