@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, Coins, TrendingUp, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Coins, TrendingUp, AlertTriangle, AlertOctagon } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { DEMO_PALUWAGAN_GROUPS, DEMO_PALUWAGAN_MEMBERS } from '../lib/demoData'
 import GuestActionModal from '../components/GuestActionModal'
@@ -164,7 +164,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
           </div>
           {daysUntil !== null && (
             <p style={{ fontSize: 13, color: daysUntil <= 2 ? '#F59E0B' : 'var(--ink-4)', margin: 0, fontWeight: daysUntil <= 2 ? 700 : 400 }}>
-              {daysUntil === 0 ? '⚠️ Deadline today!' : `Deadline in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`}
+              {daysUntil === 0 ? <><AlertOctagon size={13} strokeWidth={2} style={{ display: 'inline', marginRight: 4 }} />Deadline today!</> : `Deadline in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`}
             </p>
           )}
         </div>

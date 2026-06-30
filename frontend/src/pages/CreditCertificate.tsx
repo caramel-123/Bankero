@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Download, Shield, CheckCircle, Star, User } from 'lucide-react'
+import { ArrowLeft, Download, Shield, CheckCircle, Star, User, Check } from 'lucide-react'
 import { scoreTier, scorePercent, SCORE_TIERS } from '../lib/stellar'
 import { fetchLoans, type LocalLoan } from '../lib/loanStore'
 import { getUser, type User as BorrowerUser } from '../lib/supabase'
@@ -163,10 +163,10 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
               <p style={{ fontSize: 11, color: '#6B7280', fontFamily: 'monospace', margin: '0 0 4px', wordBreak: 'break-all' }}>{walletKey}</p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {profile?.kyc_verified && (
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#DCFCE7', color: '#15803D' }}>✓ KYC Verified</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#DCFCE7', color: '#15803D', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Check size={10} strokeWidth={3} /> KYC Verified</span>
                 )}
                 {profile?.anchor_linked && (
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#EFF6FF', color: '#3B82F6' }}>✓ GCash/Maya Linked</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#EFF6FF', color: '#3B82F6', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Check size={10} strokeWidth={3} /> GCash/Maya Linked</span>
                 )}
                 <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#F3F4F6', color: '#6B7280' }}>
                   Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-PH', { month: 'short', year: 'numeric' }) : formatLongDate(issuedAt)}

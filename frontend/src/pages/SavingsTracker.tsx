@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Flame, TrendingUp, Zap } from 'lucide-react'
+import { ArrowLeft, Flame, TrendingUp, Zap, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { DEMO_SAVINGS_STREAK, DEMO_WEEKLY_DEPOSITS } from '../lib/demoData'
 import {
@@ -195,7 +195,7 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
                 color: '#fff', fontWeight: 700, fontSize: 15, minHeight: 48,
               }}
             >
-              {refreshing ? 'Sinisigurado...' : '🔄 I-check ang Deposit Ko'}
+              {refreshing ? <><RefreshCw size={14} strokeWidth={2} style={{ animation: 'spin 0.8s linear infinite' }} /> Checking...</> : <><RefreshCw size={14} strokeWidth={2} /> Check My Deposit</>}
             </button>
             <p style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,.3)', marginTop: -4 }}>
               Kahit 1 XLM lang ang minimum deposit bawat linggo.

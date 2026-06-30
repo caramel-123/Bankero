@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, CheckCircle, Users, Calendar, Coins } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, CheckCircle, Users, Calendar, Coins, RefreshCw, Clock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import GuestActionModal from '../components/GuestActionModal'
 import type { useWallet } from '../hooks/useWallet'
@@ -144,10 +144,10 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
         <button onClick={() => step === 0 ? nav('/paluwagan') : setStep(s => s - 1)} className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>
-          <ArrowLeft size={15} /> {step === 0 ? 'Bumalik' : 'Nakaraan'}
+          <ArrowLeft size={15} /> {step === 0 ? 'Back' : 'Previous'}
         </button>
 
-        <h1 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 24 }}>Gumawa ng Paluwagan</h1>
+        <h1 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 24 }}>Create Paluwagan</h1>
 
         <StepIndicator current={step} />
 
@@ -155,18 +155,18 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
         {step === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', display: 'block', marginBottom: 8 }}>Pangalan ng Grupo</label>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', display: 'block', marginBottom: 8 }}>Group Name</label>
               <input
                 value={groupName}
                 onChange={e => setGroupName(e.target.value)}
-                placeholder='Hal. "Paluwagan ng Kaibigan"'
+                placeholder='e.g. "Friends Paluwagan"'
                 style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--panel)', color: 'var(--ink)', fontSize: 15, boxSizing: 'border-box' }}
               />
             </div>
 
             <div>
               <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', display: 'block', marginBottom: 8 }}>
-                Kontribusyon bawat Cycle (XLM)
+                Contribution per Cycle (XLM)
               </label>
               <input
                 type="number" min={10} step={5}
@@ -174,7 +174,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
                 onChange={e => setContributionXlm(Number(e.target.value))}
                 style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--panel)', color: 'var(--ink)', fontSize: 15, boxSizing: 'border-box' }}
               />
-              <p style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 6 }}>Minimum: 10 XLM bawat miyembro</p>
+              <p style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 6 }}>Minimum: 10 XLM per member</p>
             </div>
 
             <div>
@@ -191,7 +191,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
                       border: `1px solid ${frequency === f ? 'var(--green)' : 'var(--border)'}`,
                     }}
                   >
-                    {f === 'weekly' ? '📅 Lingguhán' : '🗓️ Buwanán'}
+                    {f === 'weekly' ? <><RefreshCw size={13} strokeWidth={2} /> Weekly</> : <><Clock size={13} strokeWidth={2} /> Monthly</>}
                   </button>
                 ))}
               </div>
@@ -203,7 +203,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
               className="btn btn-primary"
               style={{ borderRadius: 'var(--r-lg)', padding: '14px 0', fontSize: 15, marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: step0Valid ? 1 : 0.4 }}
             >
-              Susunod <ArrowRight size={15} />
+              Next <ArrowRight size={15} />
             </button>
           </div>
         )}
@@ -212,13 +212,13 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <p style={{ fontSize: 14, color: 'var(--ink-3)', margin: 0 }}>
-              Idagdag ang mga miyembro (minimum 2, maximum 9 bukod sa iyo). Ang order ay siyang rotation ng pagkuha ng pot.
+              Add members (minimum 2, maximum 9 besides yourself). The order determines who receives the pot each cycle.
             </p>
 
             {/* Organizer note */}
             <div style={{ padding: '12px 16px', background: 'rgba(22,163,74,.08)', border: '1px solid rgba(22,163,74,.2)', borderRadius: 'var(--r-md)' }}>
               <p style={{ fontSize: 13, color: 'var(--green)', margin: 0 }}>
-                Ikaw bilang organizer ay <strong>hindi</strong> maaaring maging unang tatanggap ng pot. Awtomatiko kang ilalagay sa huling posisyon.
+                As organizer, you <strong>cannot</strong> be the first to receive the pot. You are automatically placed in the last position.
               </p>
             </div>
 
@@ -232,7 +232,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
                   <input
                     value={m.display_name}
                     onChange={e => updateMember(i, 'display_name', e.target.value)}
-                    placeholder="Pangalan (optional)"
+                    placeholder="Name (optional)"
                     style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--panel)', color: 'var(--ink)', fontSize: 13, boxSizing: 'border-box', width: '100%' }}
                   />
                   <input
@@ -250,7 +250,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
 
             {members.length < 9 && (
               <button onClick={addMember} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: '1px dashed var(--border)', borderRadius: 'var(--r-md)', padding: '10px 16px', color: 'var(--ink-3)', cursor: 'pointer', fontSize: 14 }}>
-                <Plus size={14} /> Dagdag na Miyembro
+                <Plus size={14} /> Add Member
               </button>
             )}
 
@@ -260,7 +260,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
               className="btn btn-primary"
               style={{ borderRadius: 'var(--r-lg)', padding: '14px 0', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: step1Valid ? 1 : 0.4 }}
             >
-              I-review <ArrowRight size={15} />
+              Review <ArrowRight size={15} />
             </button>
           </div>
         )}
@@ -270,27 +270,27 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ background: 'var(--panel)', borderRadius: 'var(--r-lg)', padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Pangalan</span>
+                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Name</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{groupName}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Kontribusyon</span>
+                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Contribution</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{contributionXlm} XLM / cycle</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Frequency</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{frequency === 'weekly' ? 'Lingguhán' : 'Buwanán'}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{frequency === 'weekly' ? 'Weekly' : 'Monthly'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Bilang ng Miyembro</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{totalMembers} (kasama ikaw)</span>
+                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Member Count</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{totalMembers} (including you)</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Pot bawat Cycle</span>
+                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Pot per Cycle</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#F59E0B' }}>{potPerCycle} XLM</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Bilang ng Cycles</span>
+                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Number of Cycles</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{totalMembers} cycles total</span>
               </div>
             </div>
@@ -304,7 +304,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
                       <span style={{ fontSize: 12, fontWeight: 700, color: i === allMembers.length - 1 ? 'var(--green)' : 'var(--ink-3)' }}>#{i + 1}</span>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', margin: 0 }}>{m.display_name || `Miyembro ${i + 1}`}</p>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', margin: 0 }}>{m.display_name || `Member ${i + 1}`}</p>
                       <p style={{ fontSize: 11, color: 'var(--ink-4)', margin: 0, fontFamily: 'monospace' }}>{m.stellar_address.slice(0, 12)}…</p>
                     </div>
                     <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>Cycle {i + 1}</span>
@@ -318,7 +318,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
               className="btn btn-primary"
               style={{ borderRadius: 'var(--r-lg)', padding: '14px 0', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
-              Kumpirmahin <ArrowRight size={15} />
+              Confirm <ArrowRight size={15} />
             </button>
           </div>
         )}
@@ -330,23 +330,23 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
               <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
                 <Coins size={20} color="#F59E0B" style={{ flexShrink: 0, marginTop: 2 }} />
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>On-chain na transaksyon</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>On-chain transaction</p>
                   <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0, lineHeight: 1.6 }}>
-                    Kapag nag-sign ka sa Freighter, malilikha ang paluwagan group on the Stellar blockchain. Hindi na ito mababago.
+                    When you sign in Freighter, the paluwagan group will be created on the Stellar blockchain. This cannot be undone.
                   </p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 12 }}>
                 <Calendar size={20} color="#F59E0B" style={{ flexShrink: 0, marginTop: 2 }} />
                 <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0, lineHeight: 1.6 }}>
-                  Unang deadline: <strong>{frequency === 'weekly' ? '7 araw' : '30 araw'}</strong> mula ngayon. Palagi kang makakatanggap ng reminders bago mag-contribute.
+                  First deadline: <strong>{frequency === 'weekly' ? '7 days' : '30 days'}</strong> from now. You will always receive reminders before contributing.
                 </p>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 24, textAlign: 'center', padding: '16px 0' }}>
               {[
-                { icon: <Users size={20} color="var(--green)" />, label: `${totalMembers} Miyembro` },
+                { icon: <Users size={20} color="var(--green)" />, label: `${totalMembers} Member${totalMembers !== 1 ? 's' : ''}` },
                 { icon: <Coins size={20} color="#F59E0B" />, label: `${potPerCycle} XLM Pot` },
                 { icon: <Calendar size={20} color="var(--ink-3)" />, label: `${totalMembers} Cycles` },
               ].map((item, i) => (
@@ -373,7 +373,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
               {submitting ? 'Registering...' : 'Sign & Create'}
             </button>
             <p style={{ fontSize: 12, color: 'var(--ink-4)', textAlign: 'center', margin: 0 }}>
-              Gagamit ng Freighter Wallet para sa on-chain signing
+              Freighter Wallet will be used for on-chain signing
             </p>
           </div>
         )}

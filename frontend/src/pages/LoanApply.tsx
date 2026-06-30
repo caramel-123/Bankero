@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, CheckCircle, CreditCard, Calendar, Tag, FileText,
-  Info, AlertTriangle, ArrowRight, TrendingUp, ChevronRight,
+  Info, AlertTriangle, ArrowRight, TrendingUp, ChevronRight, Check,
 } from 'lucide-react'
 import { scoreTier, SCORE_TIERS, nextScoreTier, formatPeso } from '../lib/stellar'
 import { saveLoan, fetchLoans, type LocalLoan } from '../lib/loanStore'
@@ -176,7 +176,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
                       <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>{t.interest}% interest</div>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: isUnlocked ? 'var(--green)' : 'var(--ink-4)', width: 20, textAlign: 'center' }}>
-                      {isUnlocked ? '✓' : ''}
+                      {isUnlocked ? <Check size={13} color="var(--green)" strokeWidth={2.5} /> : null}
                     </div>
                   </div>
                 )

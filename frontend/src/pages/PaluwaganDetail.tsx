@@ -28,10 +28,10 @@ function useCountdown(deadline: string | null) {
 function CountdownBox({ deadline }: { deadline: string | null }) {
   const { d, h, m, s, expired } = useCountdown(deadline)
   if (!deadline) return null
-  if (expired) return <p style={{ fontSize: 14, color: '#DC2626', fontWeight: 700 }}>Deadline na nakaraan!</p>
+  if (expired) return <p style={{ fontSize: 14, color: '#DC2626', fontWeight: 700 }}>Deadline has passed!</p>
   return (
     <div style={{ display: 'flex', gap: 8 }}>
-      {[{ v: d, label: 'araw' }, { v: h, label: 'oras' }, { v: m, label: 'min' }, { v: s, label: 'seg' }].map(({ v, label }) => (
+      {[{ v: d, label: 'days' }, { v: h, label: 'hrs' }, { v: m, label: 'min' }, { v: s, label: 'sec' }].map(({ v, label }) => (
         <div key={label} style={{ flex: 1, textAlign: 'center', background: 'var(--surface-3)', borderRadius: 8, padding: '8px 4px' }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', fontFamily: 'monospace' }}>{String(v).padStart(2, '0')}</div>
           <div style={{ fontSize: 10, color: 'var(--ink-4)', textTransform: 'uppercase' }}>{label}</div>
@@ -102,7 +102,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
 
   if (!group) return (
     <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: 'var(--surface-2)' }}>
-      <p style={{ color: 'var(--ink-3)' }}>Hindi mahanap ang grupo.</p>
+      <p style={{ color: 'var(--ink-3)' }}>Group not found.</p>
     </div>
   )
 
@@ -118,7 +118,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
       <div style={{ maxWidth: 600, margin: '0 auto' }}>
 
         <button onClick={() => nav('/paluwagan')} className="btn btn-ghost btn-sm" style={{ marginBottom: 20 }}>
-          <ArrowLeft size={15} /> Bumalik
+          <ArrowLeft size={15} /> Back
         </button>
 
         {/* Header */}
@@ -127,7 +127,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', margin: '0 0 4px' }}>{group.group_name}</h1>
               <p style={{ fontSize: 14, color: 'var(--ink-3)', margin: 0 }}>
-                {group.contribution_amount_xlm} XLM · {group.cycle_frequency === 'weekly' ? 'Lingguhán' : 'Buwanán'}
+                {group.contribution_amount_xlm} XLM · {group.cycle_frequency === 'weekly' ? 'Weekly' : 'Monthly'}
               </p>
             </div>
             <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 999,

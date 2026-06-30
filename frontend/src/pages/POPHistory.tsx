@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, XCircle, Clock, Plus } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Clock, Plus, Check, Minus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { DEMO_POP_SUBMISSIONS, DEMO_POP_STREAK } from '../lib/demoData'
 import type { POPSubmission, POPStreak } from '../types/pop'
@@ -41,7 +41,7 @@ function StreakCalendar({ submissions }: { submissions: POPSubmission[] }) {
             border: `1px solid ${ok ? 'rgba(22,163,74,.3)' : 'rgba(255,255,255,.08)'}`,
           }}>
             <div style={{ fontSize: 11, color: ok ? '#4ade80' : 'rgba(255,255,255,.3)', fontWeight: 600 }}>{m.slice(0,2)}/{m.slice(5,7)}</div>
-            <div style={{ fontSize: 16, marginTop: 2, color: ok ? '#4ade80' : 'rgba(255,255,255,.2)', fontWeight: 700 }}>{ok ? '✓' : '·'}</div>
+            <div style={{ marginTop: 2, display: 'flex', justifyContent: 'center' }}>{ok ? <Check size={13} color="#4ade80" strokeWidth={2.5} /> : <Minus size={13} color="rgba(255,255,255,.2)" strokeWidth={2} />}</div>
           </div>
         )
       })}
@@ -153,7 +153,7 @@ export default function POPHistory({ wallet }: { wallet: WalletHook }) {
               {s.validation_errors && s.validation_errors.length > 0 && (
                 <div style={{ marginTop: 10 }}>
                   {(s.validation_errors as string[]).map((e, i) => (
-                    <div key={i} style={{ fontSize: 12, color: '#fca5a5', marginTop: 4 }}>• {e}</div>
+                    <div key={i} style={{ fontSize: 12, color: '#fca5a5', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}><XCircle size={11} strokeWidth={2} />{e}</div>
                   ))}
                 </div>
               )}
