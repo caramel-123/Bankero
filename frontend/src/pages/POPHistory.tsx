@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, XCircle, Clock, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { DEMO_POP_SUBMISSIONS, DEMO_POP_STREAK } from '../lib/demoData'
 import type { POPSubmission, POPStreak } from '../types/pop'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -55,6 +56,12 @@ export default function POPHistory({ wallet }: { wallet: WalletHook }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (wallet.isGuest) {
+      setSubmissions(DEMO_POP_SUBMISSIONS as unknown as POPSubmission[])
+      setStreak(DEMO_POP_STREAK as unknown as POPStreak)
+      setLoading(false)
+      return
+    }
     if (!wallet.publicKey) return
     async function load() {
       const { data: user } = await supabase.from('users').select('id').eq('wallet_address', wallet.publicKey!).maybeSingle()
@@ -68,7 +75,7 @@ export default function POPHistory({ wallet }: { wallet: WalletHook }) {
       setLoading(false)
     }
     load()
-  }, [wallet.publicKey])
+  }, [wallet.publicKey, wallet.isGuest])
 
   const consecutive = streak?.consecutive_months ?? 0
   const nextMilestone = consecutive < 3 ? 3 : consecutive < 6 ? 6 : consecutive < 12 ? 12 : null

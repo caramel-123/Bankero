@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Flame, TrendingUp, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { DEMO_SAVINGS_STREAK, DEMO_WEEKLY_DEPOSITS } from '../lib/demoData'
 import {
   getSavingsStreak, getWeeklyDeposits, updateSavingsStreak, getCurrentWeekIdentifier,
 } from '../services/savingsTracker'
@@ -53,6 +54,12 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
   const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
+    if (wallet.isGuest) {
+      setStreak(DEMO_SAVINGS_STREAK as unknown as SavingsStreak)
+      setDeposits(DEMO_WEEKLY_DEPOSITS as unknown as WeeklyDeposit[])
+      setLoading(false)
+      return
+    }
     if (!wallet.publicKey) return
     async function load() {
       const { data: user } = await supabase.from('users').select('id').eq('wallet_address', wallet.publicKey!).maybeSingle()
@@ -67,9 +74,10 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
       setLoading(false)
     }
     load()
-  }, [wallet.publicKey])
+  }, [wallet.publicKey, wallet.isGuest])
 
   async function checkDeposit() {
+    if (wallet.isGuest) return
     if (!userId || !wallet.publicKey) return
     setRefreshing(true)
     try {

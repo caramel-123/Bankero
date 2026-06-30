@@ -35,7 +35,7 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!wallet.publicKey) return
+    if (!wallet.publicKey || wallet.isGuest) return
     setError('')
     setLoading(true)
     try {

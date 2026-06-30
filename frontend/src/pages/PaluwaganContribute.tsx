@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, Coins, TrendingUp, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { DEMO_PALUWAGAN_GROUPS, DEMO_PALUWAGAN_MEMBERS } from '../lib/demoData'
 import { applyContributionBonus } from '../services/paluwagaScoring'
 import type { PaluwagaGroup, PaluwagaMember } from '../types/paluwagan'
 import type { useWallet } from '../hooks/useWallet'
@@ -21,6 +22,14 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (wallet.isGuest) {
+      const g = (DEMO_PALUWAGAN_GROUPS as any[]).find(g => g.id === id) ?? DEMO_PALUWAGAN_GROUPS[0]
+      setGroup(g as unknown as PaluwagaGroup)
+      setMyMembership(DEMO_PALUWAGAN_MEMBERS[2] as unknown as PaluwagaMember)
+      setRecipientMember(DEMO_PALUWAGAN_MEMBERS[0] as unknown as PaluwagaMember)
+      setLoading(false)
+      return
+    }
     if (!id || !wallet.publicKey) return
 
     async function load() {
@@ -39,7 +48,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
       setLoading(false)
     }
     load()
-  }, [id, wallet.publicKey])
+  }, [id, wallet.publicKey, wallet.isGuest])
 
   async function handleContribute() {
     if (!group || !myMembership) return
@@ -47,6 +56,11 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
     setError('')
 
     try {
+      if (wallet.isGuest) {
+        setError('Connect a real wallet to contribute to Paluwagan.')
+        setStage('error')
+        return
+      }
       // For now, record in Supabase as a local loan store (contract call pending)
       const { data: user } = await supabase.from('users').select('id').eq('wallet_address', wallet.publicKey!).maybeSingle()
       if (!user) throw new Error('Hindi mahanap ang account.')
