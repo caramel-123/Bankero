@@ -197,6 +197,54 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
     return () => obs.disconnect()
   }, [])
 
+  // Binary cursor trail
+  useEffect(() => {
+    const canvas = document.createElement('canvas')
+    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999'
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    document.body.appendChild(canvas)
+    const ctx = canvas.getContext('2d')!
+
+    type Particle = { x: number; y: number; vy: number; vx: number; alpha: number; char: string; size: number }
+    const particles: Particle[] = []
+    let mx = -999, my = -999
+
+    const onMove = (e: MouseEvent) => { mx = e.clientX; my = e.clientY }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight })
+
+    let frame: number
+    const loop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      // spawn 2-3 chars per frame near cursor
+      for (let i = 0; i < 3; i++) {
+        particles.push({
+          x: mx + (Math.random() - 0.5) * 24,
+          y: my + (Math.random() - 0.5) * 24,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: Math.random() * 1.4 + 0.4,
+          alpha: 1,
+          char: Math.random() > 0.5 ? '1' : '0',
+          size: Math.random() * 8 + 9,
+        })
+      }
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i]
+        p.x += p.vx; p.y += p.vy; p.alpha -= 0.022
+        if (p.alpha <= 0) { particles.splice(i, 1); continue }
+        ctx.globalAlpha = p.alpha
+        ctx.fillStyle = p.alpha > 0.6 ? '#4ADE80' : '#22C55E'
+        ctx.font = `bold ${p.size}px monospace`
+        ctx.fillText(p.char, p.x, p.y)
+      }
+      ctx.globalAlpha = 1
+      frame = requestAnimationFrame(loop)
+    }
+    loop()
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('mousemove', onMove); canvas.remove() }
+  }, [])
+
   return (
     <div style={{ minHeight: '100dvh', background: 'transparent', fontFamily: 'var(--font)', color: '#fff', position: 'relative' }}>
 
