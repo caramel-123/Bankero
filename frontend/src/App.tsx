@@ -17,6 +17,7 @@ import PaluwaganList from './pages/PaluwaganList'
 import PaluwaganCreate from './pages/PaluwaganCreate'
 import PaluwaganDetail from './pages/PaluwaganDetail'
 import PaluwaganContribute from './pages/PaluwaganContribute'
+import MyAccount from './pages/MyAccount'
 
 function ProtectedRoute({ children, publicKey }: { children: React.ReactNode; publicKey: string | null }) {
   if (!publicKey) return <Navigate to="/login" replace />
@@ -100,6 +101,11 @@ export default function App() {
         <Route path="/paluwagan/:id/contribute" element={
           <ProtectedRoute publicKey={wallet.publicKey}>
             <PaluwaganContribute wallet={wallet} />
+          </ProtectedRoute>
+        } />
+        <Route path="/account" element={
+          <ProtectedRoute publicKey={wallet.publicKey}>
+            <MyAccount wallet={wallet} />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Star, X, Send, CheckCircle } from 'lucide-react'
+import { Star, X, Send, CheckCircle, Lock, Wallet } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 interface Props {
@@ -22,8 +22,19 @@ export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props
     setLoading(true)
     setError('')
     try {
+      // Use saved display_name from users table if available, else wallet address
+      let resolvedName = isGuest ? 'Guest' : (walletAddress ?? 'Guest')
+      if (!isGuest && walletAddress) {
+        const { data: user } = await supabase
+          .from('users')
+          .select('display_name')
+          .eq('wallet_address', walletAddress)
+          .maybeSingle()
+        if (user?.display_name) resolvedName = user.display_name
+      }
+
       const { error: err } = await supabase.from('feedback').insert({
-        display_name: walletAddress && !isGuest ? walletAddress : 'Guest',
+        display_name: resolvedName,
         wallet_address: isGuest ? null : walletAddress,
         rating,
         message: message.trim(),
@@ -56,14 +67,31 @@ export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props
           border: '1px solid var(--border)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isGuest ? 16 : 20 }}>
           <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)' }}>Leave Feedback</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-4)', padding: 4 }}>
             <X size={18} />
           </button>
         </div>
 
-        {done ? (
+        {isGuest ? (
+          <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#F1F5F9', display: 'grid', placeItems: 'center', margin: '0 auto 16px' }}>
+              <Lock size={24} color="#94A3B8" strokeWidth={2} />
+            </div>
+            <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)', marginBottom: 8 }}>Connect a Wallet to Leave Feedback</p>
+            <p style={{ color: 'var(--ink-4)', fontSize: 13, lineHeight: 1.6, marginBottom: 20 }}>
+              Only verified borrowers and lenders can post reviews. Connect your Freighter wallet to continue.
+            </p>
+            <button
+              onClick={onClose}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 700, fontSize: 14 }}
+            >
+              <Wallet size={15} /> Connect Wallet
+            </button>
+          </div>
+        ) : done ? (
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
               <CheckCircle size={48} color="#16A34A" strokeWidth={1.5} />

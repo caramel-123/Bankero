@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Home, Users, CreditCard, BarChart2, Settings,
+  Home, Users, CreditCard, BarChart2, Settings, UserCircle,
   LogOut, Check, X, Banknote, TrendingUp, AlertCircle,
   Clock, Save, RefreshCw, Lock, Shield, ExternalLink,
 } from 'lucide-react'
@@ -393,6 +393,9 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
         ))}
 
         <div style={{ marginTop: 'auto' }}>
+          <button onClick={() => nav('/account')} className="sidenav-btn">
+            <UserCircle size={16} strokeWidth={2} /> My Account
+          </button>
           <button onClick={handleSignOut} className="sidenav-btn">
             <LogOut size={14} strokeWidth={2} /> Sign Out
           </button>

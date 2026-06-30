@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Home, BarChart2, CreditCard, FileText, Users, LogOut,
+  Home, BarChart2, CreditCard, FileText, Users, LogOut, UserCircle,
   ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, Award, TrendingUp, MessageSquare,
 } from 'lucide-react'
 import { stellarExplorerUrl } from '../lib/stellar'
@@ -14,12 +14,13 @@ import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
 const NAV = [
-  { icon: Home,       label: 'Dashboard',   path: '/dashboard' },
-  { icon: BarChart2,  label: 'My Score',    path: '/score' },
-  { icon: CreditCard, label: 'Apply Loan',  path: '/apply' },
-  { icon: FileText,   label: 'My Loans',    path: '/loans' },
-  { icon: Users,      label: 'Vouch',       path: '/vouch' },
-  { icon: Award,      label: 'Certificate', path: '/certificate' },
+  { icon: Home,        label: 'Dashboard',   path: '/dashboard' },
+  { icon: BarChart2,   label: 'My Score',    path: '/score' },
+  { icon: CreditCard,  label: 'Apply Loan',  path: '/apply' },
+  { icon: FileText,    label: 'My Loans',    path: '/loans' },
+  { icon: Users,       label: 'Vouch',       path: '/vouch' },
+  { icon: Award,       label: 'Certificate', path: '/certificate' },
+  { icon: UserCircle,  label: 'My Account',  path: '/account' },
 ]
 
 export default function Dashboard({ wallet }: { wallet: WalletHook }) {

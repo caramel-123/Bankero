@@ -32,9 +32,9 @@ function CountdownBox({ deadline }: { deadline: string | null }) {
   return (
     <div style={{ display: 'flex', gap: 8 }}>
       {[{ v: d, label: 'days' }, { v: h, label: 'hrs' }, { v: m, label: 'min' }, { v: s, label: 'sec' }].map(({ v, label }) => (
-        <div key={label} style={{ flex: 1, textAlign: 'center', background: 'var(--surface-3)', borderRadius: 8, padding: '8px 4px' }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', fontFamily: 'monospace' }}>{String(v).padStart(2, '0')}</div>
-          <div style={{ fontSize: 10, color: 'var(--ink-4)', textTransform: 'uppercase' }}>{label}</div>
+        <div key={label} style={{ flex: 1, textAlign: 'center', background: '#E9EEF0', borderRadius: 10, padding: '10px 4px', border: '1.5px solid #D4DCE0' }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', fontFamily: 'monospace' }}>{String(v).padStart(2, '0')}</div>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 2 }}>{label}</div>
         </div>
       ))}
     </div>

@@ -14,15 +14,6 @@ import GuestActionModal from '../components/GuestActionModal'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
-const panel = { background: 'var(--panel)', borderRadius: 'var(--r-lg)', padding: 24 }
-const btn = (disabled: boolean, color = '#16A34A') => ({
-  width: '100%', padding: '14px 0', borderRadius: 12,
-  background: disabled ? 'rgba(22,163,74,.3)' : color,
-  color: '#fff', fontWeight: 700, fontSize: 15, border: 'none',
-  cursor: disabled ? 'not-allowed' : 'pointer', minHeight: 48,
-  transition: 'background 150ms',
-})
-
 const STEPS = [
   'Uploading documents...',
   'Reading bill with AI...',
@@ -38,19 +29,19 @@ function UploadZone({ label, file, onFile }: { label: string; file: File | null;
       type="button"
       onClick={() => ref.current?.click()}
       style={{
-        width: '100%', padding: '24px 16px', borderRadius: 12,
-        border: `2px dashed ${file ? '#16A34A' : 'rgba(255,255,255,.15)'}`,
-        background: file ? 'rgba(22,163,74,.08)' : 'rgba(255,255,255,.03)',
-        color: file ? '#4ade80' : 'rgba(255,255,255,.4)',
+        width: '100%', padding: '28px 16px', borderRadius: 14,
+        border: `2px dashed ${file ? '#16A34A' : '#D4DCE0'}`,
+        background: file ? '#F0FDF4' : '#F8FAFC',
+        color: file ? '#16A34A' : '#94A3B8',
         cursor: 'pointer', textAlign: 'center', boxSizing: 'border-box',
         transition: 'all 150ms',
       }}
     >
-      <Upload size={24} style={{ margin: '0 auto 8px' }} />
-      <div style={{ fontSize: 14, fontWeight: 600 }}>{label}</div>
+      <Upload size={24} color={file ? '#16A34A' : '#94A3B8'} style={{ margin: '0 auto 10px', display: 'block' }} />
+      <div style={{ fontSize: 14, fontWeight: 700, color: file ? '#16A34A' : '#475569', marginBottom: 4 }}>{label}</div>
       {file
-        ? <div style={{ fontSize: 12, marginTop: 4, color: '#4ade80' }}>{file.name}</div>
-        : <div style={{ fontSize: 12, marginTop: 4 }}>Tap to choose an image</div>
+        ? <div style={{ fontSize: 12, color: '#16A34A', fontWeight: 600 }}>{file.name}</div>
+        : <div style={{ fontSize: 12, color: '#94A3B8' }}>Tap to choose an image</div>
       }
       <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && onFile(e.target.files[0])} />
     </button>
@@ -69,18 +60,6 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
 
   async function handleSubmit() {
     if (wallet.isGuest) { setShowGuestModal(true); return }
-    if (wallet.isGuest) {
-      // Demo: simulate full POP verification flow (unreachable but kept for safety)
-      setError('')
-      setResult(null)
-      for (let i = 0; i < STEPS.length; i++) {
-        setStep(i)
-        await new Promise(r => setTimeout(r, 700))
-      }
-      setResult({ passed: true, errors: [], billData: {} as any, receiptData: {} as any })
-      setDone(true)
-      return
-    }
     if (!wallet.publicKey || !billFile || !receiptFile) return
     setError('')
     setResult(null)
@@ -124,74 +103,91 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
   if (done && result) return (
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '24px 16px' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
-        <div style={{ ...panel, textAlign: 'center' }}>
-          {result.passed
-            ? <CheckCircle size={48} color="#16A34A" style={{ marginBottom: 12 }} />
-            : <XCircle size={48} color="#ef4444" style={{ marginBottom: 12 }} />
-          }
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+        <div className="card" style={{ textAlign: 'center', padding: 32 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: '50%', margin: '0 auto 20px',
+            background: result.passed ? '#F0FDF4' : '#FEF2F2',
+            display: 'grid', placeItems: 'center',
+          }}>
+            {result.passed
+              ? <CheckCircle size={36} color="#16A34A" strokeWidth={1.5} />
+              : <XCircle size={36} color="#DC2626" strokeWidth={1.5} />
+            }
+          </div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', marginBottom: 8 }}>
             {result.passed ? 'Payment Verified!' : 'Verification Failed'}
           </h2>
-          <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 14, marginBottom: 20 }}>
+          <p style={{ color: 'var(--ink-3)', fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>
             {result.passed
               ? 'Your payment has been verified and recorded.'
-              : 'There were issues with your documents. See the list below.'}
+              : 'There were issues with your documents. See details below.'}
           </p>
           {result.errors.length > 0 && (
             <div style={{ textAlign: 'left', marginBottom: 20 }}>
               {result.errors.map((e, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(239,68,68,.1)', marginBottom: 8 }}>
-                  <XCircle size={16} color="#f87171" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontSize: 13, color: '#fca5a5' }}>{e}</span>
+                <div key={i} style={{ display: 'flex', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', marginBottom: 8 }}>
+                  <XCircle size={15} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 13, color: '#DC2626' }}>{e}</span>
                 </div>
               ))}
             </div>
           )}
-          <button onClick={() => nav('/pop/history')} style={btn(false)}>View History</button>
-          <button onClick={() => nav('/dashboard')} style={{ ...btn(false), background: 'rgba(255,255,255,.07)', marginTop: 10 }}>Dashboard</button>
+          <button onClick={() => nav('/pop/history')} className="btn btn-primary" style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, marginBottom: 10 }}>View History</button>
+          <button onClick={() => nav('/dashboard')} className="btn btn-ghost" style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 15, fontWeight: 700 }}>Dashboard</button>
         </div>
       </div>
     </div>
   )
 
+  const canSubmit = step < 0 && !!billFile && !!receiptFile
+
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '24px 16px' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '28px 20px' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
-        <button onClick={() => nav(-1)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', marginBottom: 20, fontSize: 14 }}>
-          <ArrowLeft size={16} /> Back
+
+        <button onClick={() => nav(-1)} className="btn btn-ghost btn-sm" style={{ marginBottom: 20 }}>
+          <ArrowLeft size={15} /> Back
         </button>
 
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Submit Bill</h1>
-        <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 14, marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink)', marginBottom: 4 }}>Submit Bill</h1>
+        <p style={{ color: 'var(--ink-3)', fontSize: 14, marginBottom: 24, lineHeight: 1.5 }}>
           Upload a photo of your bill and GCash receipt to verify your payment.
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={panel}>
-            <div style={{ marginBottom: 14 }}>
-              <UploadZone label="Bill Photo" file={billFile} onFile={setBillFile} />
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Upload card */}
+          <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>Upload Documents</div>
+            <UploadZone label="Bill Photo" file={billFile} onFile={setBillFile} />
             <UploadZone label="GCash / Maya Receipt" file={receiptFile} onFile={setReceiptFile} />
           </div>
 
+          {/* Progress */}
           {step >= 0 && (
-            <div style={{ ...panel, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Loader size={20} color="#16A34A" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
-              <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 14 }}>{STEPS[step]}</span>
+            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px' }}>
+              <Loader size={18} color="#16A34A" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+              <span style={{ color: 'var(--ink-3)', fontSize: 14 }}>{STEPS[step]}</span>
             </div>
           )}
 
+          {/* Error */}
           {error && (
-            <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.25)', color: '#fca5a5', fontSize: 14 }}>
+            <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', color: '#DC2626', fontSize: 14 }}>
               {error}
             </div>
           )}
 
           {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
+
           <button
             onClick={handleSubmit}
-            style={btn(step >= 0 || (!billFile || !receiptFile))}
-            disabled={step >= 0 || (!billFile || !receiptFile)}
+            disabled={!canSubmit}
+            className="btn btn-primary"
+            style={{
+              width: '100%', padding: '15px 0', borderRadius: 14, fontSize: 15, fontWeight: 700,
+              opacity: canSubmit ? 1 : 0.5, cursor: canSubmit ? 'pointer' : 'not-allowed',
+            }}
           >
             {step >= 0 ? 'Processing...' : 'Verify Payment'}
           </button>
