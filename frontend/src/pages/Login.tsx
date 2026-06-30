@@ -131,7 +131,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
       </div>
 
       {/* ── RIGHT panel ───────────────────────────────────── */}
-      <div className="login-right" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', padding: 48 }}>
+      <div className="login-right" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', padding: 48, overflowY: 'auto' }}>
         <div style={{ width: '100%', maxWidth: 380 }}>
           <h2 className="heading" style={{ fontSize: 30, color: 'var(--ink)', marginBottom: 6 }}>
             Welcome to Bankero
@@ -189,12 +189,8 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
                   <><Wallet size={17} strokeWidth={2} /> Connect Freighter Wallet</>
                 )}
               </button>
-              <div style={{ display: 'flex', gap: 10, padding: '11px 14px', borderRadius: 'var(--r-md)', background: '#EFF6FF', border: '1px solid #BFDBFE', fontSize: 13, color: '#1D4ED8' }}>
-                <ExternalLink size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span>No Freighter? Install it at <a href="https://freighter.app" target="_blank" rel="noreferrer" style={{ color: '#1D4ED8', fontWeight: 700 }}>freighter.app</a></span>
-              </div>
 
-              {/* Guest mode divider */}
+              {/* Guest mode */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
                 <span style={{ fontSize: 12, color: '#94A3B8', whiteSpace: 'nowrap' }}>or</span>
@@ -211,6 +207,11 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
               >
                 👀 Browse as Guest — No wallet needed
               </button>
+
+              <div style={{ display: 'flex', gap: 10, padding: '11px 14px', borderRadius: 'var(--r-md)', background: '#EFF6FF', border: '1px solid #BFDBFE', fontSize: 13, color: '#1D4ED8' }}>
+                <ExternalLink size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>No Freighter? Install it at <a href="https://freighter.app" target="_blank" rel="noreferrer" style={{ color: '#1D4ED8', fontWeight: 700 }}>freighter.app</a></span>
+              </div>
             </div>
           )}
 
