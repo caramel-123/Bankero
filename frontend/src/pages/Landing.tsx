@@ -141,13 +141,9 @@ function TestimonialsSection() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
             {items.map(f => (
-              <div key={f.id} className="reveal" style={{
-                background: 'rgba(255,255,255,.06)',
+              <div key={f.id} className="lg reveal" style={{
                 borderRadius: 18, padding: '24px',
-                border: '1px solid rgba(255,255,255,.1)',
-                backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
                 display: 'flex', flexDirection: 'column', gap: 14,
-                boxShadow: '0 4px 24px rgba(0,0,0,.2)',
               }}>
                 <StarRow rating={f.rating} />
                 <p style={{ fontSize: 14, color: 'rgba(255,255,255,.7)', lineHeight: 1.75, flex: 1, fontStyle: 'italic' }}>
@@ -201,7 +197,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
   }, [])
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#060D08', fontFamily: 'var(--font)', color: '#fff' }}>
+    <div style={{ minHeight: '100dvh', background: '#15171C', fontFamily: 'var(--font)', color: '#fff' }}>
 
       <style>{`
         @keyframes heroBlurUp {
@@ -215,6 +211,65 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
         @keyframes scrollFade {
           0%, 100% { opacity: 0.4; }
           50%       { opacity: 0.9; }
+        }
+        /* ── Liquid-glass (from cinematic-cloud template) ── */
+        .lg {
+          background: rgba(255,255,255,0.06);
+          background-blend-mode: luminosity;
+          backdrop-filter: blur(20px) saturate(1.8);
+          -webkit-backdrop-filter: blur(20px) saturate(1.8);
+          box-shadow: inset 0 1px 1px rgba(255,255,255,0.18), 0 6px 32px rgba(0,0,0,0.35);
+          position: relative;
+          overflow: hidden;
+        }
+        .lg::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 1.4px;
+          background: linear-gradient(
+            180deg,
+            rgba(255,255,255,0.45) 0%,
+            rgba(255,255,255,0.15) 20%,
+            rgba(255,255,255,0)    40%,
+            rgba(255,255,255,0)    60%,
+            rgba(255,255,255,0.15) 80%,
+            rgba(255,255,255,0.45) 100%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          pointer-events: none;
+        }
+        .lg-green {
+          background: rgba(34,197,94,0.12);
+          background-blend-mode: luminosity;
+          backdrop-filter: blur(20px) saturate(1.8);
+          -webkit-backdrop-filter: blur(20px) saturate(1.8);
+          box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 6px 32px rgba(34,197,94,0.18);
+          position: relative;
+          overflow: hidden;
+        }
+        .lg-green::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 1.4px;
+          background: linear-gradient(
+            180deg,
+            rgba(74,222,128,0.6)  0%,
+            rgba(74,222,128,0.2)  20%,
+            rgba(74,222,128,0)    40%,
+            rgba(74,222,128,0)    60%,
+            rgba(74,222,128,0.2)  80%,
+            rgba(74,222,128,0.5)  100%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          pointer-events: none;
         }
         .reveal {
           opacity: 0;
@@ -259,7 +314,11 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
           ))}
         </div>
 
-        <button onClick={() => nav('/login')} className="btn btn-primary btn-sm">
+        <button onClick={() => nav('/login')} className="lg-green" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          padding: '9px 20px', borderRadius: 'var(--r-full)',
+          color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', border: 'none',
+        }}>
           <Wallet size={14} strokeWidth={2} /> Get Started
         </button>
       </nav>
@@ -289,10 +348,9 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
           {/* Left — white text, staggered blur-fade-up */}
           <div style={{ flex: 1 }}>
-            <div className="hero-blur-up" style={{ animationDelay: '150ms',
+            <div className="hero-blur-up lg-green" style={{ animationDelay: '150ms',
               display: 'inline-flex', alignItems: 'center', gap: 7,
               padding: '5px 14px', borderRadius: 'var(--r-full)',
-              background: 'rgba(34,197,94,.2)', border: '1px solid rgba(34,197,94,.4)',
               marginBottom: 28,
             }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green-soft)', animation: 'pulse-dot 2s ease infinite' }} />
@@ -317,34 +375,18 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
             </p>
 
             <div className="hero-blur-up" style={{ animationDelay: '600ms', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button
-                onClick={() => nav('/login')}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 10,
-                  padding: '14px 32px', borderRadius: 'var(--r-full)',
-                  background: 'rgba(34,197,94,.22)',
-                  border: '1.5px solid rgba(74,222,128,.55)',
-                  backdropFilter: 'blur(14px) saturate(1.6)',
-                  WebkitBackdropFilter: 'blur(14px) saturate(1.6)',
-                  boxShadow: '0 4px 28px rgba(34,197,94,.25), inset 0 1px 0 rgba(255,255,255,.18)',
-                  color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
-                  textShadow: '0 1px 8px rgba(0,0,0,.35)',
-                  transition: 'background 200ms ease, box-shadow 200ms ease',
-                }}
-              >
+              <button onClick={() => nav('/login')} className="lg-green" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                padding: '14px 32px', borderRadius: 'var(--r-full)',
+                color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', border: 'none',
+              }}>
                 Build your score <ArrowRight size={16} strokeWidth={2.5} />
               </button>
-              <button
-                onClick={() => { connectAsGuest(); nav('/dashboard') }}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  padding: '14px 28px', borderRadius: 'var(--r-full)',
-                  background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.18)',
-                  backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-                  color: 'rgba(255,255,255,.8)', fontSize: 16, fontWeight: 600, cursor: 'pointer',
-                  transition: 'background 200ms ease',
-                }}
-              >
+              <button onClick={() => { connectAsGuest(); nav('/dashboard') }} className="lg" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '14px 28px', borderRadius: 'var(--r-full)',
+                color: 'rgba(255,255,255,.85)', fontSize: 16, fontWeight: 600, cursor: 'pointer', border: 'none',
+              }}>
                 Try as Guest
               </button>
             </div>
@@ -396,17 +438,15 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               { num: '02', icon: <TrendingUp size={20} strokeWidth={2} />, title: 'Build your score', desc: 'Your 300–850 score grows with every on-time repayment, community vouch, wallet transaction, and remittance record.' },
               { num: '03', icon: <Zap size={20} strokeWidth={2} />, title: 'Access micro-loans', desc: 'Higher score = higher limit. Borrow up to ₱10,000 at a flat 5% rate with 7, 14, or 30-day terms.' },
             ].map((s, i) => (
-              <div key={s.num} className="reveal" style={{
-                transitionDelay: `${i * 100}ms`,
-                display: 'flex', gap: 24, paddingBottom: i < 2 ? 36 : 0,
-                borderBottom: i < 2 ? '1px solid rgba(255,255,255,.08)' : 'none',
-                paddingTop: i > 0 ? 36 : 0,
+              <div key={s.num} className="lg reveal" style={{
+                transitionDelay: `${i * 120}ms`,
+                display: 'flex', gap: 20, padding: '24px 28px',
+                borderRadius: 18, marginBottom: i < 2 ? 16 : 0,
               }}>
                 <div style={{ flexShrink: 0 }}>
-                  <div style={{
+                  <div className="lg-green" style={{
                     width: 44, height: 44, borderRadius: 'var(--r-xl)',
-                    background: 'rgba(34,197,94,.15)', border: '1px solid rgba(74,222,128,.25)',
-                    backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', color: '#4ADE80',
+                    display: 'grid', placeItems: 'center', color: '#4ADE80',
                   }}>
                     {s.icon}
                   </div>
@@ -426,12 +466,9 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '96px 40px' }}>
         <div className="landing-features" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
           {/* Large feature left */}
-          <div className="hover-lift reveal" style={{
+          <div className="lg hover-lift reveal" style={{
             padding: 36, display: 'flex', flexDirection: 'column', gap: 20,
-            background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)',
-            backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: 20, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)',
-            boxShadow: '0 4px 32px rgba(0,0,0,.25)',
+            borderRadius: 20, transition: 'transform 200ms var(--ease-out)',
           }}>
             <div style={{ width: 52, height: 52, borderRadius: 'var(--r-xl)', background: 'rgba(34,197,94,.18)', border: '1px solid rgba(74,222,128,.3)', display: 'grid', placeItems: 'center', color: '#4ADE80' }}>
               <ShieldCheck size={24} strokeWidth={2} />
@@ -442,12 +479,11 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
                 Your score lives on Stellar — immutable, transparent, and owned by you. No bank can close your account. No algorithm is hidden. Every factor is auditable by anyone.
               </p>
             </div>
-            <button onClick={() => nav('/login')} style={{
+            <button onClick={() => nav('/login')} className="lg-green" style={{
               alignSelf: 'flex-start', marginTop: 'auto',
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '9px 18px', borderRadius: 'var(--r-full)',
-              background: 'rgba(34,197,94,.15)', border: '1px solid rgba(74,222,128,.35)',
-              backdropFilter: 'blur(8px)', color: '#4ADE80', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              color: '#4ADE80', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
             }}>
               See how it works <ChevronRight size={13} strokeWidth={2.5} />
             </button>
@@ -460,12 +496,9 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               { icon: <BarChart2 size={20} strokeWidth={2} />, color: '#4ADE80', bg: 'rgba(34,197,94,.15)', border: 'rgba(74,222,128,.3)', title: '4-factor scoring', desc: 'Repayment history (40%), transactions (25%), community trust (20%), and remittance data (15%) — all weighted and transparent.', delay: '200ms' },
               { icon: <Zap size={20} strokeWidth={2} />, color: '#60A5FA', bg: 'rgba(96,165,250,.15)', border: 'rgba(96,165,250,.3)', title: 'Instant disbursement', desc: 'Approved loans go directly to your Stellar wallet in seconds — no queues, no bank visits.', delay: '300ms' },
             ].map(f => (
-              <div key={f.title} className="hover-lift reveal" style={{
+              <div key={f.title} className="lg hover-lift reveal" style={{
                 transitionDelay: f.delay, padding: 24, display: 'flex', gap: 18,
-                background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)',
-                backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-                borderRadius: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)',
-                boxShadow: '0 2px 20px rgba(0,0,0,.2)',
+                borderRadius: 18, transition: 'transform 200ms var(--ease-out)',
               }}>
                 <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: f.bg, border: `1px solid ${f.border}`, display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
                   {f.icon}
@@ -485,12 +518,8 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
       {/* ── CTA BANNER ───────────────────────────────────────── */}
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 96px' }}>
-        <div className="reveal" style={{
-          position: 'relative', overflow: 'hidden',
-          padding: '60px 64px', display: 'flex', alignItems: 'center', gap: 56,
-          background: 'rgba(34,197,94,.1)', border: '1px solid rgba(74,222,128,.25)',
-          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: 24, boxShadow: '0 8px 48px rgba(34,197,94,.12), inset 0 1px 0 rgba(255,255,255,.08)',
+        <div className="lg-green reveal" style={{
+          padding: '60px 64px', display: 'flex', alignItems: 'center', gap: 56, borderRadius: 24,
         }}>
           <div style={{
             position: 'absolute', top: -100, right: -80, width: 400, height: 400, borderRadius: '50%',
@@ -505,21 +534,17 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
             </p>
           </div>
           <div style={{ display: 'flex', gap: 12, flexShrink: 0, position: 'relative', flexWrap: 'wrap' }}>
-            <button onClick={() => nav('/login')} style={{
+            <button onClick={() => nav('/login')} className="lg-green" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '14px 28px', borderRadius: 'var(--r-full)',
-              background: 'rgba(34,197,94,.25)', border: '1.5px solid rgba(74,222,128,.55)',
-              backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-              boxShadow: '0 4px 24px rgba(34,197,94,.2), inset 0 1px 0 rgba(255,255,255,.15)',
-              color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none',
             }}>
               <Wallet size={16} strokeWidth={2} /> Connect Wallet
             </button>
-            <button onClick={() => nav('/login?role=lender')} style={{
+            <button onClick={() => nav('/login?role=lender')} className="lg" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '14px 28px', borderRadius: 'var(--r-full)',
-              background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.18)',
-              backdropFilter: 'blur(8px)', color: 'rgba(255,255,255,.8)', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+              color: 'rgba(255,255,255,.85)', fontSize: 15, fontWeight: 600, cursor: 'pointer', border: 'none',
             }}>
               Lender Sign In
             </button>
