@@ -301,9 +301,9 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', alignItems: 'center',
         padding: '0 40px', height: 64,
-        background: scrolled ? 'rgba(255,255,255,.92)' : 'rgba(0,0,0,.15)',
+        background: 'rgba(0,0,0,.35)',
         backdropFilter: 'blur(20px)',
-        borderBottom: scrolled ? '1px solid var(--border-2)' : '1px solid rgba(255,255,255,.08)',
+        borderBottom: '1px solid rgba(255,255,255,.08)',
         transition: 'background 400ms ease, border-color 400ms ease',
       }}>
         <button
@@ -311,14 +311,14 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
           style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
           <img src="/bankero-logo.png" alt="Bankero" style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'contain' }} />
-          <span className="heading" style={{ fontSize: 18, color: scrolled ? 'var(--ink)' : '#fff', transition: 'color 400ms ease' }}>
-            Bank<span style={{ color: scrolled ? 'var(--green)' : 'var(--green-soft)' }}>e</span>ro
+          <span className="heading" style={{ fontSize: 18, color: '#fff' }}>
+            Bank<span style={{ color: 'var(--green-soft)' }}>e</span>ro
           </span>
         </button>
 
         <div className="landing-nav-links" style={{ display: 'flex', gap: 2, marginLeft: 'auto', marginRight: 20 }}>
           {['How it works', 'For Lenders'].map(l => (
-            <button key={l} className="btn btn-sm" style={{ background: 'none', border: 'none', color: scrolled ? 'var(--ink-3)' : 'rgba(255,255,255,.7)', fontWeight: 500, borderRadius: 'var(--r-full)', padding: '7px 14px', fontSize: 14, transition: 'color 400ms ease' }}>
+            <button key={l} className="btn btn-sm" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.7)', fontWeight: 500, borderRadius: 'var(--r-full)', padding: '7px 14px', fontSize: 14 }}>
               {l}
             </button>
           ))}
