@@ -202,7 +202,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
       {/* ── GALAXY — fixed full-page background ── */}
       <div style={{ position: 'fixed', inset: 0, zIndex: -1, overflow: 'hidden' }}>
-        <video autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.6)', transformOrigin: '50% 40%' }}>
+        <video autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.6)', transformOrigin: '50% 65%' }}>
           <source src={GALAXY_VIDEO} type="video/mp4" />
         </video>
         {/* Dark overlay for readability */}
