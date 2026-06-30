@@ -243,7 +243,7 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', margin: '0 0 2px' }}>
                       {m.display_name || `Miyembro #${m.rotation_order}`}
-                      {isRecipient && <span style={{ marginLeft: 8, fontSize: 11, color: '#F59E0B', fontWeight: 700 }}>🏆 Tatanggap</span>}
+                      {isRecipient && <span style={{ marginLeft: 8, fontSize: 11, color: '#F59E0B', fontWeight: 700 }}>Recipient</span>}
                     </p>
                     <p style={{ fontSize: 11, color: 'var(--ink-4)', margin: 0, fontFamily: 'monospace' }}>
                       {m.stellar_address.slice(0, 16)}…

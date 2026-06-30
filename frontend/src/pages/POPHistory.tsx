@@ -11,8 +11,8 @@ const panel = { background: 'var(--panel)', borderRadius: 'var(--r-lg)', padding
 
 function StatusBadge({ status }: { status: string }) {
   const cfg = {
-    passed:  { bg: 'rgba(22,163,74,.15)',   color: '#4ade80', label: 'Pumasa',   Icon: CheckCircle },
-    failed:  { bg: 'rgba(239,68,68,.15)',   color: '#f87171', label: 'Hindi Pumasa', Icon: XCircle },
+    passed:  { bg: 'rgba(22,163,74,.15)',   color: '#4ade80', label: 'Passed',   Icon: CheckCircle },
+    failed:  { bg: 'rgba(239,68,68,.15)',   color: '#f87171', label: 'Failed', Icon: XCircle },
     pending: { bg: 'rgba(245,158,11,.15)',  color: '#fbbf24', label: 'Pending',  Icon: Clock },
   }[status] ?? { bg: 'rgba(255,255,255,.08)', color: '#fff', label: status, Icon: Clock }
   const { bg, color, label, Icon } = cfg
@@ -41,7 +41,7 @@ function StreakCalendar({ submissions }: { submissions: POPSubmission[] }) {
             border: `1px solid ${ok ? 'rgba(22,163,74,.3)' : 'rgba(255,255,255,.08)'}`,
           }}>
             <div style={{ fontSize: 11, color: ok ? '#4ade80' : 'rgba(255,255,255,.3)', fontWeight: 600 }}>{m.slice(0,2)}/{m.slice(5,7)}</div>
-            <div style={{ fontSize: 16, marginTop: 2 }}>{ok ? '✅' : '·'}</div>
+            <div style={{ fontSize: 16, marginTop: 2, color: ok ? '#4ade80' : 'rgba(255,255,255,.2)', fontWeight: 700 }}>{ok ? '✓' : '·'}</div>
           </div>
         )
       })}
@@ -85,13 +85,13 @@ export default function POPHistory({ wallet }: { wallet: WalletHook }) {
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '24px 16px' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
         <button onClick={() => nav(-1)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', marginBottom: 20, fontSize: 14 }}>
-          <ArrowLeft size={16} /> Bumalik
+          <ArrowLeft size={16} /> Back
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>Bill Payment History</h1>
           <button onClick={() => nav('/pop/submit')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 10, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-            <Plus size={14} /> Mag-submit
+            <Plus size={14} /> Submit
           </button>
         </div>
 
@@ -114,29 +114,29 @@ export default function POPHistory({ wallet }: { wallet: WalletHook }) {
                 <div style={{ height: '100%', borderRadius: 999, background: '#16A34A', width: `${(consecutive / nextMilestone) * 100}%`, transition: 'width 600ms ease' }} />
               </div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,.4)' }}>
-                {nextMilestone - consecutive} buwan pa para sa <span style={{ color: '#F59E0B', fontWeight: 700 }}>+{nextBonus} anchor score</span>
+                {nextMilestone - consecutive} more month{nextMilestone - consecutive !== 1 ? 's' : ''} for <span style={{ color: '#F59E0B', fontWeight: 700 }}>+{nextBonus} anchor score</span>
               </div>
             </>
           )}
-          {!nextMilestone && <div style={{ fontSize: 13, color: '#4ade80', fontWeight: 600 }}>Maximum streak na-reach! 🎉</div>}
+          {!nextMilestone && <div style={{ fontSize: 13, color: '#4ade80', fontWeight: 600 }}>Maximum streak reached!</div>}
         </div>
 
         {/* Calendar */}
         {submissions.length > 0 && (
           <div style={{ ...panel, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.5)', marginBottom: 12 }}>Nakaraang 6 Buwan</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.5)', marginBottom: 12 }}>Last 6 Months</div>
             <StreakCalendar submissions={submissions} />
           </div>
         )}
 
         {/* Submission list */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {loading && <div style={{ ...panel, color: 'rgba(255,255,255,.35)', textAlign: 'center' }}>Naglo-load...</div>}
+          {loading && <div style={{ ...panel, color: 'rgba(255,255,255,.35)', textAlign: 'center' }}>Loading...</div>}
           {!loading && submissions.length === 0 && (
             <div style={{ ...panel, textAlign: 'center' }}>
-              <p style={{ color: 'rgba(255,255,255,.4)', marginBottom: 16 }}>Wala ka pang submission.</p>
+              <p style={{ color: 'rgba(255,255,255,.4)', marginBottom: 16 }}>You have no submissions yet.</p>
               <button onClick={() => nav('/pop/submit')} style={{ padding: '12px 24px', borderRadius: 10, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                Mag-submit ng Bill
+                Submit Bill
               </button>
             </div>
           )}

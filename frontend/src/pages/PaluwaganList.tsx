@@ -15,8 +15,8 @@ function daysUntil(iso: string | null): number | null {
 
 function StatusBadge({ status }: { status: string }) {
   const cfg = {
-    active:    { label: 'Aktibo',      bg: 'rgba(22,163,74,.15)',  color: '#16A34A' },
-    completed: { label: 'Tapos Na',    bg: 'rgba(245,158,11,.15)', color: '#F59E0B' },
+    active:    { label: 'Active',      bg: 'rgba(22,163,74,.15)',  color: '#16A34A' },
+    completed: { label: 'Completed',    bg: 'rgba(245,158,11,.15)', color: '#F59E0B' },
     defaulted: { label: 'Defaulted',   bg: 'rgba(220,38,38,.15)',  color: '#DC2626' },
   }[status] ?? { label: status, bg: 'var(--surface-3)', color: 'var(--ink-3)' }
 
@@ -50,8 +50,8 @@ function GroupCard({ group, onClick }: { group: PaluwagaGroupView; onClick: () =
             <StatusBadge status={group.status} />
           </div>
           <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
-            {group.contribution_amount_xlm} XLM / {group.cycle_frequency === 'weekly' ? 'linggo' : 'buwan'}
-            {' · '}{group.members.length} miyembro
+            {group.contribution_amount_xlm} XLM / {group.cycle_frequency === 'weekly' ? 'week' : 'month'}
+            {' · '}{group.members.length} member{group.members.length !== 1 ? 's' : ''}
           </p>
         </div>
         <ChevronRight size={16} color="var(--ink-4)" />
@@ -65,7 +65,7 @@ function GroupCard({ group, onClick }: { group: PaluwagaGroupView; onClick: () =
           </span>
           {group.my_rotation_order === group.current_cycle && group.status === 'active' && (
             <span style={{ fontSize: 12, fontWeight: 700, color: '#F59E0B' }}>
-              🎉 Ikaw ang tatanggap ngayong cycle!
+              You are the recipient this cycle!
             </span>
           )}
         </div>
@@ -85,7 +85,7 @@ function GroupCard({ group, onClick }: { group: PaluwagaGroupView; onClick: () =
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             {urgent ? <AlertTriangle size={13} color="#F59E0B" /> : <Clock size={13} color="var(--ink-4)" />}
             <span style={{ fontSize: 12, color: urgent ? '#F59E0B' : 'var(--ink-4)', fontWeight: urgent ? 700 : 400 }}>
-              {days === 0 ? 'Ngayon na!' : `${days} araw na lang`}
+              {days === 0 ? 'Due today!' : `${days} day${days !== 1 ? 's' : ''} left`}
             </span>
           </div>
         )}
@@ -98,7 +98,7 @@ function GroupCard({ group, onClick }: { group: PaluwagaGroupView; onClick: () =
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <Users size={13} color="var(--ink-4)" />
           <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>
-            Ikaw: #{group.my_rotation_order}
+            You: #{group.my_rotation_order}
           </span>
         </div>
       </div>
@@ -171,7 +171,7 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
             <h1 className="heading" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 4 }}>
-              Aking Paluwagan
+              My Paluwagan
             </h1>
             <p style={{ fontSize: 14, color: 'var(--ink-3)', margin: 0 }}>
               Rotating savings groups sa Stellar blockchain
@@ -182,7 +182,7 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
             className="btn btn-primary"
             style={{ borderRadius: 'var(--r-lg)', padding: '10px 16px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}
           >
-            <Plus size={15} strokeWidth={2.5} /> Gumawa
+            <Plus size={15} strokeWidth={2.5} /> Create
           </button>
         </div>
 
@@ -196,10 +196,10 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-3)', display: 'grid', placeItems: 'center', margin: '0 auto 20px' }}>
               <Users size={28} color="var(--ink-4)" />
             </div>
-            <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>Wala ka pang paluwagan</p>
-            <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24 }}>Sumali o gumawa ng bagong grupo para magsimula.</p>
+            <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>You have no paluwagan groups yet</p>
+            <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24 }}>Join or create a new group to get started.</p>
             <button onClick={() => nav('/paluwagan/create')} className="btn btn-primary" style={{ borderRadius: 'var(--r-lg)', padding: '12px 24px' }}>
-              <Plus size={15} /> Gumawa ng Paluwagan
+              <Plus size={15} /> Create Paluwagan
             </button>
           </div>
         ) : (
@@ -207,7 +207,7 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
             {active.length > 0 && (
               <section style={{ marginBottom: 32 }}>
                 <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-4)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
-                  Aktibong Grupo ({active.length})
+                  Active Groups ({active.length})
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {active.map(g => (
@@ -220,7 +220,7 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
             {done.length > 0 && (
               <section>
                 <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-4)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
-                  Nakaraang Grupo ({done.length})
+                  Past Groups ({done.length})
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {done.map(g => (
@@ -234,8 +234,8 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
 
         <div style={{ marginTop: 28, padding: '16px 20px', background: 'rgba(22,163,74,.08)', border: '1px solid rgba(22,163,74,.2)', borderRadius: 'var(--r-lg)' }}>
           <p style={{ fontSize: 13, color: 'var(--green)', margin: 0, lineHeight: 1.6 }}>
-            <strong>Paano nakakatulong ang Paluwagan sa iyong score?</strong><br />
-            Bawat on-time na kontribusyon = +3 tx_score · Miss = −2 anchor_score · Tapos na cycle = +10 anchor_score
+            <strong>How does Paluwagan help your score?</strong><br />
+            Every on-time contribution = +3 tx_score · Miss = −2 anchor_score · Completed cycle = +10 anchor_score
           </p>
         </div>
 

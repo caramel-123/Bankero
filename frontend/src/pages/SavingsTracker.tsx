@@ -147,7 +147,7 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
                 </>
               )}
               {!canEarnMoreBonus && (
-                <div style={{ fontSize: 13, color: '#4ade80', fontWeight: 600 }}>Maximum bonus na-earn! +30 tx_score 🎉</div>
+                <div style={{ fontSize: 13, color: '#4ade80', fontWeight: 600 }}>Maximum bonus earned! +30 tx_score</div>
               )}
             </div>
 

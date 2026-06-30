@@ -205,7 +205,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}
               >
-                👀 Browse as Guest — No wallet needed
+                Browse as Guest — No wallet needed
               </button>
 
               <div style={{ display: 'flex', gap: 10, padding: '11px 14px', borderRadius: 'var(--r-md)', background: '#EFF6FF', border: '1px solid #BFDBFE', fontSize: 13, color: '#1D4ED8' }}>
