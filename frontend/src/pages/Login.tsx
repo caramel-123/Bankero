@@ -79,24 +79,32 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
       <div className="panel-card login-left" style={{
         width: 420, display: 'flex', flexDirection: 'column',
         padding: '40px 36px', flexShrink: 0, borderRadius: 0,
+        position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{
-          position: 'absolute', top: -80, right: -80,
-          width: 360, height: 360, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(34,197,94,.18) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
+        {/* Galaxy vortex background */}
+        <video autoPlay loop muted playsInline style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', transform: 'scale(2.2) translateY(10%)', transformOrigin: '50% 50%',
+          zIndex: 0,
+        }}>
+          <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260217_030345_246c0224-10a4-422c-b324-070b7c0eceda.mp4" type="video/mp4" />
+        </video>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(34,197,94,0.45)', mixBlendMode: 'color', zIndex: 1 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2 }} />
 
         {/* Logo */}
         <button
           onClick={() => nav('/')}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', marginBottom: 52, padding: 0, position: 'relative' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', marginBottom: 52, padding: 0 }}
         >
           <img src="/bankero-logo.png" alt="Bankero" style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'contain' }} />
           <span className="heading" style={{ fontSize: 18, color: '#fff' }}>
             Bank<span style={{ color: 'var(--green-soft)' }}>e</span>ro
           </span>
         </button>
+
+        {/* Content sits above video */}
+        <div style={{ position: 'relative', zIndex: 3, display: 'flex', flexDirection: 'column', flex: 1 }}>
 
         {/* Score tier ladder preview */}
         <div style={{ position: 'relative', flex: 1 }}>
@@ -138,9 +146,10 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
           </div>
         </div>
 
-        <p style={{ fontSize: 11, color: 'rgba(255,255,255,.2)', position: 'relative', marginTop: 24 }}>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,.2)', marginTop: 24 }}>
           Built on Stellar · Soroban Testnet
         </p>
+        </div>{/* end z-index wrapper */}
       </div>
 
       {/* ── RIGHT panel ───────────────────────────────────── */}
