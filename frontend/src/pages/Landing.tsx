@@ -206,7 +206,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
           <source src={GALAXY_VIDEO} type="video/mp4" />
         </video>
         {/* Green tint overlay */}
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(34,197,94,0.18)', mixBlendMode: 'color' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(34,197,94,0.55)', mixBlendMode: 'color' }} />
         {/* Dark overlay for readability */}
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.38)' }} />
       </div>
