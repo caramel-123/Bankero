@@ -205,8 +205,10 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
         <video autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(2.2) translateY(30%)', transformOrigin: '50% 50%' }}>
           <source src={GALAXY_VIDEO} type="video/mp4" />
         </video>
+        {/* Green tint overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(34,197,94,0.18)', mixBlendMode: 'color' }} />
         {/* Dark overlay for readability */}
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.38)' }} />
       </div>
 
       <style>{`
