@@ -4,7 +4,7 @@ import {
   Wallet, TrendingUp, Lock, Users, Banknote, ShieldCheck,
   AlertCircle, ExternalLink, Eye, EyeOff, UserPlus,
 } from 'lucide-react'
-import { signInLender, signUpLender } from '../lib/supabase'
+import { supabase, signInLender, signUpLender } from '../lib/supabase'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -26,9 +26,17 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
   // Clear stale wallet error on mount
   useEffect(() => { wallet.clearError() }, [])
 
-  // Redirect borrower on connect
+  // Redirect borrower on connect — go to onboarding if name not yet set
   useEffect(() => {
-    if (wallet.isConnected && tab === 'borrower') nav('/dashboard')
+    if (!wallet.isConnected || tab !== 'borrower') return
+    supabase
+      .from('users')
+      .select('first_name')
+      .eq('wallet_address', wallet.publicKey!)
+      .maybeSingle()
+      .then(({ data }) => {
+        nav(data?.first_name ? '/dashboard' : '/onboarding')
+      })
   }, [wallet.isConnected])
 
   async function handleLenderSignIn() {
@@ -37,7 +45,12 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
     setLenderError(null)
     try {
       await signInLender(email, password)
-      nav('/lender')
+      // Go to onboarding if lender hasn't set their name yet
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: lender } = user
+        ? await supabase.from('lenders').select('first_name').eq('auth_user_id', user.id).maybeSingle()
+        : { data: null }
+      nav(lender?.first_name ? '/lender' : '/onboarding?role=lender')
     } catch (e: any) {
       setLenderError(e.message ?? 'Sign in failed. Check your email and password.')
     } finally {
