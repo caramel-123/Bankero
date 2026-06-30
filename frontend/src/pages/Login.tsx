@@ -193,6 +193,24 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
                 <ExternalLink size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
                 <span>No Freighter? Install it at <a href="https://freighter.app" target="_blank" rel="noreferrer" style={{ color: '#1D4ED8', fontWeight: 700 }}>freighter.app</a></span>
               </div>
+
+              {/* Guest mode divider */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,.08)' }} />
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,.3)', whiteSpace: 'nowrap' }}>o kaya</span>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,.08)' }} />
+              </div>
+              <button
+                onClick={() => { wallet.connectAsGuest(); nav('/dashboard') }}
+                style={{
+                  width: '100%', padding: '13px 0', borderRadius: 'var(--r-lg)',
+                  background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)',
+                  color: 'rgba(255,255,255,.7)', fontSize: 15, fontWeight: 600,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
+                👀 Subukan bilang Guest
+              </button>
             </div>
           )}
 
