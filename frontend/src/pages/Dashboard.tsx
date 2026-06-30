@@ -149,7 +149,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32 }}>
           <div>
             <h1 className="heading" style={{ fontSize: 26, color: 'var(--ink)', marginBottom: 4 }}>
-              {wallet.isGuest ? '👀 Demo Mode' : 'Welcome back'}
+              {wallet.isGuest ? 'Demo Mode' : 'Welcome back'}
             </h1>
             <p style={{ color: 'var(--ink-3)', fontSize: 15 }}>
               {wallet.isGuest ? 'Ito ang magiging dashboard mo kapag nag-connect ng wallet.' : 'Your financial reputation at a glance.'}

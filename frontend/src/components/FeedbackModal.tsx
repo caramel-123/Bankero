@@ -65,8 +65,8 @@ export default function FeedbackModal({ walletAddress, isGuest, onClose }: Props
 
         {done ? (
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div>
-            <p style={{ color: '#4ade80', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Salamat sa iyong feedback!</p>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
+            <p style={{ color: '#4ade80', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Thank you for your feedback!</p>
             <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 14 }}>Makikita ito sa aming landing page.</p>
             <button onClick={onClose} style={{ marginTop: 20, padding: '10px 24px', borderRadius: 10, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
               Isara

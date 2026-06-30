@@ -47,7 +47,7 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
         .select('id')
         .eq('wallet_address', wallet.publicKey)
         .maybeSingle()
-      if (!user) throw new Error('Hindi mahanap ang iyong account. I-connect muli ang wallet.')
+      if (!user) throw new Error('Your account was not found. Please reconnect your wallet.')
 
       const { error: err } = await supabase.from('utility_accounts').insert({
         user_id: user.id,
@@ -57,12 +57,12 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
         gcash_number: gcashNumber.trim(),
       })
       if (err) {
-        if (err.code === '23505') throw new Error(`May registered ka nang ${biller} account.`)
+        if (err.code === '23505') throw new Error(`You already have a registered ${biller} account.`)
         throw new Error(err.message)
       }
       setDone(true)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'May error. Subukan muli.')
+      setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -72,12 +72,12 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ ...panel, textAlign: 'center', maxWidth: 420, width: '100%' }}>
         <CheckCircle size={48} color="#16A34A" style={{ marginBottom: 16 }} />
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Naka-register na!</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Successfully Registered!</h2>
         <p style={{ color: 'rgba(255,255,255,.5)', marginBottom: 24 }}>
-          Ang iyong {biller} account ay naka-register na. Pwede ka nang mag-submit ng bill at resibo.
+          Your {biller} account has been registered. You can now submit your bill and receipt.
         </p>
-        <button onClick={() => nav('/pop/submit')} style={btn(false)}>Mag-submit ng Bill</button>
-        <button onClick={() => nav('/dashboard')} style={{ ...btn(false), background: 'rgba(255,255,255,.07)', marginTop: 10 }}>Bumalik sa Dashboard</button>
+        <button onClick={() => nav('/pop/submit')} style={btn(false)}>Submit Bill</button>
+        <button onClick={() => nav('/dashboard')} style={{ ...btn(false), background: 'rgba(255,255,255,.07)', marginTop: 10 }}>Back to Dashboard</button>
       </div>
     </div>
   )
@@ -86,18 +86,18 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '24px 16px' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
         <button onClick={() => nav(-1)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', marginBottom: 20, fontSize: 14 }}>
-          <ArrowLeft size={16} /> Bumalik
+          <ArrowLeft size={16} /> Back
         </button>
 
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>I-register ang Bill Account</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Register Bill Account</h1>
         <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 14, marginBottom: 24 }}>
-          I-register ang iyong kuryente, tubig, o internet bill para mapatunayan ang regular na bayad.
+          Register your electricity, water, or internet bill to verify regular payments.
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={panel}>
             <div style={{ marginBottom: 16 }}>
-              <label style={label}>Uri ng Bill</label>
+              <label style={label}>Bill Type</label>
               <select
                 value={biller}
                 onChange={e => setBiller(e.target.value as BillerName)}
@@ -109,7 +109,7 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={label}>Account Number sa Bill</label>
+              <label style={label}>Bill Account Number</label>
               <input
                 style={input}
                 value={accountNumber}
@@ -120,7 +120,7 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={label}>Service Address (opsyonal)</label>
+              <label style={label}>Service Address (optional)</label>
               <input
                 style={input}
                 value={serviceAddress}
@@ -150,7 +150,7 @@ export default function POPRegistration({ wallet }: { wallet: WalletHook }) {
 
           {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
           <button type="submit" style={btn(loading || !accountNumber || !gcashNumber)} disabled={loading || !accountNumber || !gcashNumber}>
-            {loading ? 'Sine-save...' : 'I-register ang Account'}
+            {loading ? 'Saving...' : 'Register Account'}
           </button>
         </form>
       </div>

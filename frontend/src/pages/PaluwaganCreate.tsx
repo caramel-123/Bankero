@@ -6,7 +6,7 @@ import GuestActionModal from '../components/GuestActionModal'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
-const STEPS = ['Detalye ng Grupo', 'Mga Miyembro', 'Review', 'Kumpirma']
+const STEPS = ['Group Details', 'Members', 'Review', 'Confirm']
 
 function StepIndicator({ current }: { current: number }) {
   return (
@@ -67,7 +67,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
   // Rotation order: members in order, organizer auto-placed NOT first
   const allMembers: MemberEntry[] = [
     ...members,
-    { stellar_address: wallet.publicKey ?? 'GUEST_DEMO_MODE', display_name: 'Ikaw (Organizer)' },
+    { stellar_address: wallet.publicKey ?? 'GUEST_DEMO_MODE', display_name: 'You (Organizer)' },
   ]
   const potPerCycle = contributionXlm * allMembers.length
 
@@ -82,10 +82,10 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
     try {
       const { data: user } = await supabase
         .from('users').select('id').eq('wallet_address', wallet.publicKey!).maybeSingle()
-      if (!user) throw new Error('Hindi mahanap ang iyong account.')
+      if (!user) throw new Error('Your account was not found.')
 
       // Ensure organizer is not first in rotation — insert organizer at last position
-      const rotationMembers = [...members, { stellar_address: wallet.publicKey!, display_name: 'Ikaw' }]
+      const rotationMembers = [...members, { stellar_address: wallet.publicKey!, display_name: 'You' }]
 
       // Insert group
       const { data: group, error: gErr } = await supabase
@@ -115,7 +115,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
 
       setDone(true)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'May error. Subukan muli.')
+      setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -127,13 +127,13 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
         <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(22,163,74,.15)', border: '2px solid rgba(22,163,74,.3)', display: 'grid', placeItems: 'center', margin: '0 auto 24px' }}>
           <CheckCircle size={36} color="var(--green)" strokeWidth={1.5} />
         </div>
-        <h2 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 8 }}>Nagawa na ang Paluwagan!</h2>
+        <h2 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 8 }}>Paluwagan Created!</h2>
         <p style={{ color: 'var(--ink-3)', marginBottom: 8, lineHeight: 1.6 }}>
-          Ang <strong>{groupName}</strong> ay nakarehistro na on-chain. Ang bawat miyembro ay makakatanggap ng abiso sa unang cycle.
+          <strong>{groupName}</strong> is now registered on-chain. Each member will receive a notification on the first cycle.
         </p>
-        <p style={{ fontSize: 13, color: 'var(--green)', marginBottom: 28 }}>+5 anchor_score bilang organizer kapag natapos ang grupo!</p>
+        <p style={{ fontSize: 13, color: 'var(--green)', marginBottom: 28 }}>+5 anchor_score as organizer when the group completes!</p>
         <button onClick={() => nav('/paluwagan')} className="btn btn-primary" style={{ borderRadius: 'var(--r-lg)', padding: '12px 28px' }}>
-          Tingnan ang Aking Paluwagan
+          View My Paluwagan
         </button>
       </div>
     </div>
@@ -370,7 +370,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
               className="btn btn-primary"
               style={{ borderRadius: 'var(--r-lg)', padding: '16px 0', fontSize: 16, fontWeight: 700, opacity: submitting ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
-              {submitting ? 'Nagre-rehistro...' : '✍️ I-sign at Gumawa'}
+              {submitting ? 'Registering...' : 'Sign & Create'}
             </button>
             <p style={{ fontSize: 12, color: 'var(--ink-4)', textAlign: 'center', margin: 0 }}>
               Gagamit ng Freighter Wallet para sa on-chain signing

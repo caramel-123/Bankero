@@ -115,7 +115,7 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
       await recordVerifiedPayment(user.id, account.id, account.biller_name, billUrl, receiptUrl, validation)
       setDone(true)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'May error. Subukan muli.')
+      setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
     } finally {
       setStep(-1)
     }
@@ -130,12 +130,12 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
             : <XCircle size={48} color="#ef4444" style={{ marginBottom: 12 }} />
           }
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
-            {result.passed ? 'Napatunayan ang Bayad!' : 'Hindi Pumasa ang Verification'}
+            {result.passed ? 'Payment Verified!' : 'Verification Failed'}
           </h2>
           <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 14, marginBottom: 20 }}>
             {result.passed
-              ? 'Ang iyong bayad ay na-verify at nai-record na.'
-              : 'May mga problema sa iyong mga dokumento. Tingnan ang listahan sa ibaba.'}
+              ? 'Your payment has been verified and recorded.'
+              : 'There were issues with your documents. See the list below.'}
           </p>
           {result.errors.length > 0 && (
             <div style={{ textAlign: 'left', marginBottom: 20 }}>
@@ -147,7 +147,7 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
               ))}
             </div>
           )}
-          <button onClick={() => nav('/pop/history')} style={btn(false)}>Tingnan ang History</button>
+          <button onClick={() => nav('/pop/history')} style={btn(false)}>View History</button>
           <button onClick={() => nav('/dashboard')} style={{ ...btn(false), background: 'rgba(255,255,255,.07)', marginTop: 10 }}>Dashboard</button>
         </div>
       </div>
@@ -158,18 +158,18 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', padding: '24px 16px' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
         <button onClick={() => nav(-1)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', marginBottom: 20, fontSize: 14 }}>
-          <ArrowLeft size={16} /> Bumalik
+          <ArrowLeft size={16} /> Back
         </button>
 
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Mag-submit ng Bill</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Submit Bill</h1>
         <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 14, marginBottom: 24 }}>
-          Mag-upload ng larawan ng iyong bill at GCash receipt para ma-verify ang iyong bayad.
+          Upload a photo of your bill and GCash receipt to verify your payment.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={panel}>
             <div style={{ marginBottom: 14 }}>
-              <UploadZone label="Larawan ng Bill" file={billFile} onFile={setBillFile} />
+              <UploadZone label="Bill Photo" file={billFile} onFile={setBillFile} />
             </div>
             <UploadZone label="GCash / Maya Receipt" file={receiptFile} onFile={setReceiptFile} />
           </div>
@@ -193,7 +193,7 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
             style={btn(step >= 0 || (!billFile || !receiptFile))}
             disabled={step >= 0 || (!billFile || !receiptFile)}
           >
-            {step >= 0 ? 'Hinihintay...' : 'I-verify ang Bayad'}
+            {step >= 0 ? 'Processing...' : 'Verify Payment'}
           </button>
         </div>
       </div>

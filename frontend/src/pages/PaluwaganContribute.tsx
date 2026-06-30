@@ -61,7 +61,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
     try {
       // For now, record in Supabase as a local loan store (contract call pending)
       const { data: user } = await supabase.from('users').select('id').eq('wallet_address', wallet.publicKey!).maybeSingle()
-      if (!user) throw new Error('Hindi mahanap ang account.')
+      if (!user) throw new Error('Account not found.')
 
       const fakeTxHash = `PALUWAGAN-TX-${Date.now()}`
       const { error: cErr } = await supabase.from('paluwagan_contributions').insert({
@@ -73,7 +73,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
         was_on_time: true,
       })
       if (cErr) {
-        if (cErr.code === '23505') throw new Error('Naka-ambag ka na ngayong cycle.')
+        if (cErr.code === '23505') throw new Error('You have already contributed this cycle.')
         throw cErr
       }
 
@@ -88,7 +88,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
       setScoreBonus(newBonus)
       setStage('success')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'May error. Subukan muli.')
+      setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
       setStage('error')
     }
   }
@@ -102,7 +102,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
 
   if (!group) return (
     <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: 'var(--surface-2)' }}>
-      <p style={{ color: 'var(--ink-3)' }}>Hindi mahanap ang grupo.</p>
+      <p style={{ color: 'var(--ink-3)' }}>Group not found.</p>
     </div>
   )
 
@@ -113,9 +113,9 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
         <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(22,163,74,.15)', border: '2px solid rgba(22,163,74,.3)', display: 'grid', placeItems: 'center', margin: '0 auto 24px' }}>
           <CheckCircle size={36} color="var(--green)" strokeWidth={1.5} />
         </div>
-        <h2 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 8 }}>Na-ambag na!</h2>
+        <h2 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 8 }}>Contribution Sent!</h2>
         <p style={{ color: 'var(--ink-3)', marginBottom: 16, lineHeight: 1.6 }}>
-          Ang iyong kontribusyon na <strong>{group.contribution_amount_xlm} XLM</strong> para sa <strong>{group.group_name}</strong> ay naitala na on-chain.
+          Your contribution of <strong>{group.contribution_amount_xlm} XLM</strong> for <strong>{group.group_name}</strong> has been recorded on-chain.
         </p>
 
         {scoreBonus > 0 && (
@@ -127,7 +127,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => nav(`/paluwagan/${id}`)} className="btn btn-primary" style={{ flex: 1, borderRadius: 'var(--r-lg)', padding: '12px 0' }}>
-            Bumalik sa Grupo
+            Back to Group
           </button>
           <button onClick={() => nav('/dashboard')} className="btn btn-ghost" style={{ flex: 1, borderRadius: 'var(--r-lg)', padding: '12px 0' }}>
             Dashboard
@@ -146,15 +146,15 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
 
         <button onClick={() => nav(`/paluwagan/${id}`)} className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>
-          <ArrowLeft size={15} /> Bumalik
+          <ArrowLeft size={15} /> Back
         </button>
 
-        <h1 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 4 }}>Mag-ambag</h1>
+        <h1 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 4 }}>Contribute</h1>
         <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24 }}>{group.group_name} · Cycle {group.current_cycle}</p>
 
         {/* Amount card */}
         <div style={{ background: 'var(--panel)', borderRadius: 'var(--r-lg)', padding: 24, marginBottom: 16, textAlign: 'center' }}>
-          <p style={{ fontSize: 13, color: 'var(--ink-4)', marginBottom: 8 }}>Halaga ng Kontribusyon</p>
+          <p style={{ fontSize: 13, color: 'var(--ink-4)', marginBottom: 8 }}>Contribution Amount</p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 8 }}>
             <Coins size={28} color="#F59E0B" />
             <span style={{ fontSize: 40, fontWeight: 800, color: 'var(--ink)', lineHeight: 1 }}>
@@ -164,7 +164,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
           </div>
           {daysUntil !== null && (
             <p style={{ fontSize: 13, color: daysUntil <= 2 ? '#F59E0B' : 'var(--ink-4)', margin: 0, fontWeight: daysUntil <= 2 ? 700 : 400 }}>
-              {daysUntil === 0 ? '⚠️ Deadline ngayon!' : `Deadline sa loob ng ${daysUntil} araw`}
+              {daysUntil === 0 ? '⚠️ Deadline today!' : `Deadline in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`}
             </p>
           )}
         </div>
@@ -172,9 +172,9 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
         {/* Recipient info */}
         {recipientMember && (
           <div style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)', borderRadius: 'var(--r-lg)', padding: 16, marginBottom: 16 }}>
-            <p style={{ fontSize: 12, color: '#F59E0B', fontWeight: 700, marginBottom: 4 }}>MAKAKATANGGAP NG POT NGAYONG CYCLE</p>
+            <p style={{ fontSize: 12, color: '#F59E0B', fontWeight: 700, marginBottom: 4 }}>POT RECIPIENT THIS CYCLE</p>
             <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', margin: '0 0 2px' }}>
-              {recipientMember.display_name || `Miyembro #${recipientMember.rotation_order}`}
+              {recipientMember.display_name || `Member #${recipientMember.rotation_order}`}
             </p>
             <p style={{ fontSize: 12, color: 'var(--ink-4)', margin: 0, fontFamily: 'monospace' }}>
               {recipientMember.stellar_address.slice(0, 20)}…
@@ -206,11 +206,11 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
           className="btn btn-primary"
           style={{ width: '100%', borderRadius: 'var(--r-lg)', padding: '16px 0', fontSize: 16, fontWeight: 700, opacity: stage === 'signing' ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
         >
-          {stage === 'signing' ? 'Nagse-sign sa Freighter...' : stage === 'error' ? 'Subukan Muli' : `Mag-ambag ng ${group.contribution_amount_xlm} XLM`}
+          {stage === 'signing' ? 'Signing in Freighter...' : stage === 'error' ? 'Try Again' : `Contribute ${group.contribution_amount_xlm} XLM`}
         </button>
 
         <p style={{ fontSize: 12, color: 'var(--ink-4)', textAlign: 'center', marginTop: 12 }}>
-          Gagamit ng iyong Freighter wallet para mag-sign ng transaksyon
+          Your Freighter wallet will be used to sign the transaction
         </p>
       </div>
     </div>
