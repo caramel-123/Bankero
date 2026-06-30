@@ -108,7 +108,6 @@ export default function PaluwaganDetail({ wallet }: { wallet: WalletHook }) {
 
   const currentCycleContribs = contributions.filter(c => c.cycle_number === group.current_cycle)
   const contributedIds = new Set(currentCycleContribs.map(c => c.user_id))
-  const _recipientThisCycle = members.find(m => m.rotation_order === group.current_cycle)
   const myRotationOrder = myMembership?.rotation_order ?? null
   const iAmRecipientThisCycle = myRotationOrder === group.current_cycle
   const iHaveContributed = myMembership ? contributedIds.has(myMembership.user_id) : false
