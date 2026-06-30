@@ -24,11 +24,11 @@ const btn = (disabled: boolean, color = '#16A34A') => ({
 })
 
 const STEPS = [
-  'Ina-upload ang mga dokumento...',
-  'Binabasa ang bill gamit ang AI...',
-  'Binabasa ang resibo gamit ang AI...',
-  'Sinisigurado namin ang iyong bayad...',
-  'Sine-save ang resulta...',
+  'Uploading documents...',
+  'Reading bill with AI...',
+  'Reading receipt with AI...',
+  'Verifying your payment...',
+  'Saving results...',
 ]
 
 function UploadZone({ label, file, onFile }: { label: string; file: File | null; onFile: (f: File) => void }) {
@@ -50,7 +50,7 @@ function UploadZone({ label, file, onFile }: { label: string; file: File | null;
       <div style={{ fontSize: 14, fontWeight: 600 }}>{label}</div>
       {file
         ? <div style={{ fontSize: 12, marginTop: 4, color: '#4ade80' }}>{file.name}</div>
-        : <div style={{ fontSize: 12, marginTop: 4 }}>I-tap para pumili ng larawan</div>
+        : <div style={{ fontSize: 12, marginTop: 4 }}>Tap to choose an image</div>
       }
       <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && onFile(e.target.files[0])} />
     </button>
@@ -87,11 +87,11 @@ export default function POPSubmission({ wallet }: { wallet: WalletHook }) {
 
     try {
       const { data: user } = await supabase.from('users').select('id, display_name').eq('wallet_address', wallet.publicKey).maybeSingle()
-      if (!user) throw new Error('Hindi mahanap ang iyong account.')
+      if (!user) throw new Error('Your account was not found.')
 
       const { data: accounts } = await supabase.from('utility_accounts').select('*').eq('user_id', user.id)
       if (!accounts || accounts.length === 0) {
-        setError('Wala ka pang registered na utility account. Mag-register muna.')
+        setError('You have no registered utility account yet. Please register first.')
         return
       }
       const account = accounts[0] as UtilityAccount

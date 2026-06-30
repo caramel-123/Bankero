@@ -271,53 +271,72 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
           ))}
         </div>
 
-        {/* ── ACTION LIST (replaces 3-column identical CTA cards) */}
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '20px 24px 0', borderBottom: '1px solid var(--border-2)', marginBottom: 0 }}>
-            <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 16 }}>Quick actions</h3>
+        {/* ── ACTION GROUPS ── */}
+        {([
+          {
+            group: 'Borrowing',
+            color: '#16A34A',
+            items: [
+              { Icon: CreditCard, title: 'Apply for a Loan',   desc: `Borrow up to ${formatPeso(tier.max)} at a flat 5% rate`,  action: () => nav('/apply'),       accent: '#16A34A', tint: 'var(--green-tint)' },
+              { Icon: FileText,   title: 'Track My Loans',     desc: 'View repayment schedule and full loan history',            action: () => nav('/loans'),       accent: '#3B82F6', tint: '#EFF6FF' },
+              { Icon: Award,      title: 'Credit Certificate', desc: 'Download proof of good credit to show lenders & banks',   action: () => nav('/certificate'), accent: '#7C3AED', tint: '#F5F3FF' },
+            ],
+          },
+          {
+            group: 'Build Your Score',
+            color: '#F59E0B',
+            items: [
+              { Icon: FileText,   title: 'Bill Payment Proof', desc: 'Verify electricity, water, or internet bill payments',    action: () => nav('/pop/history'), accent: '#16A34A', tint: 'rgba(22,163,74,.1)' },
+              { Icon: TrendingUp, title: 'XLM Savings Streak', desc: 'Deposit 1 XLM/week to earn bonus score points',          action: () => nav('/savings'),     accent: '#F59E0B', tint: 'rgba(245,158,11,.1)' },
+            ],
+          },
+          {
+            group: 'Community',
+            color: '#7C3AED',
+            items: [
+              { Icon: Users, title: 'Vouch for Someone',    desc: 'Stake XLM to help a friend build their credit score',       action: () => nav('/vouch'),      accent: '#D97706', tint: 'var(--amber-tint)' },
+              { Icon: Users, title: 'Community Paluwagan',  desc: 'Join a rotating savings group to boost your score',         action: () => nav('/paluwagan'),  accent: '#7C3AED', tint: 'rgba(124,58,237,.1)' },
+            ],
+          },
+        ] as const).map(section => (
+          <div key={section.group} className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
+            {/* Section header */}
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: section.color }} />
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', margin: 0 }}>
+                {section.group}
+              </p>
+            </div>
+            {section.items.map((c, i) => {
+              const Icon = c.Icon
+              return (
+                <button
+                  key={c.title}
+                  onClick={c.action}
+                  className="btn"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    width: '100%', padding: '16px 20px', border: 'none',
+                    background: 'transparent', textAlign: 'left', cursor: 'pointer',
+                    borderBottom: i < section.items.length - 1 ? '1px solid var(--border-2)' : 'none',
+                    borderRadius: 0, transition: 'background 150ms',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <div style={{ width: 38, height: 38, borderRadius: 'var(--r-lg)', background: c.tint, display: 'grid', placeItems: 'center', color: c.accent, flexShrink: 0 }}>
+                    <Icon size={17} strokeWidth={2} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{c.title}</p>
+                    <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{c.desc}</p>
+                  </div>
+                  <ArrowRight size={15} strokeWidth={2} color="var(--ink-4)" />
+                </button>
+              )
+            })}
           </div>
-          {[
-            { Icon: CreditCard, title: 'Apply for a Loan',    desc: `Borrow up to ${formatPeso(tier.max)} at a flat 5% rate`, action: () => nav('/apply'),       accent: 'var(--green)', tint: 'var(--green-tint)' },
-            { Icon: Users,      title: 'Vouch for Someone',   desc: 'Stake XLM to help a friend build their credit score',  action: () => nav('/vouch'),       accent: '#D97706',      tint: 'var(--amber-tint)' },
-            { Icon: FileText,   title: 'Track My Loans',      desc: 'View repayment schedule and full loan history',         action: () => nav('/loans'),       accent: '#3B82F6',      tint: '#EFF6FF' },
-            { Icon: Award,      title: 'Credit Certificate',  desc: 'Download proof of good credit to show lenders & banks', action: () => nav('/certificate'), accent: '#7C3AED',      tint: '#F5F3FF' },
-            { Icon: FileText,   title: 'Bill Payment Proof',  desc: 'I-verify ang bayad sa kuryente, tubig, o internet',     action: () => nav('/pop/history'),  accent: '#16A34A',      tint: 'rgba(22,163,74,.12)' },
-            { Icon: TrendingUp, title: 'XLM Savings Streak',  desc: 'Mag-deposit ng 1 XLM/linggo para sa bonus score',      action: () => nav('/savings'),      accent: '#F59E0B',      tint: 'rgba(245,158,11,.12)' },
-            { Icon: Users,      title: 'Community Paluwagan', desc: 'Sumali sa rotating savings group at palakasin ang score', action: () => nav('/paluwagan'),   accent: '#7C3AED',      tint: 'rgba(124,58,237,.1)' },
-          ].map((c, i) => {
-            const Icon = c.Icon
-            return (
-              <button
-                key={c.title}
-                onClick={c.action}
-                className="btn"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 18,
-                  width: '100%', padding: '18px 24px', border: 'none',
-                  background: 'transparent', textAlign: 'left', cursor: 'pointer',
-                  borderBottom: i < 5 ? '1px solid var(--border-2)' : 'none',
-                  borderRadius: 0,
-                  transition: 'background 150ms var(--ease-out)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <div style={{
-                  width: 40, height: 40, borderRadius: 'var(--r-lg)',
-                  background: c.tint, display: 'grid', placeItems: 'center',
-                  color: c.accent, flexShrink: 0,
-                }}>
-                  <Icon size={18} strokeWidth={2} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{c.title}</p>
-                  <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{c.desc}</p>
-                </div>
-                <ArrowRight size={16} strokeWidth={2} color="var(--ink-4)" />
-              </button>
-            )
-          })}
-        </div>
+        ))}
 
         {/* Feedback floating button */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
