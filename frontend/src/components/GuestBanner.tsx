@@ -14,7 +14,7 @@ export default function GuestBanner() {
     }}>
       <Eye size={15} color="#fbbf24" />
       <span style={{ fontSize: 13, color: '#fde68a', fontWeight: 600, flex: 1 }}>
-        Demo Mode — Ikaw ay nasa guest view. Hindi maisasagawa ang mga aksyon.
+        Demo Mode — You are browsing as a guest. Financial actions are disabled.
       </span>
       <button
         onClick={() => nav('/login')}

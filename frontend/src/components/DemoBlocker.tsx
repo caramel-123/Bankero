@@ -6,7 +6,7 @@ interface Props {
   action?: string
 }
 
-export default function DemoBlocker({ onClose, action = 'gawin ito' }: Props) {
+export default function DemoBlocker({ onClose, action = 'this action' }: Props) {
   const nav = useNavigate()
   return (
     <div
@@ -38,7 +38,7 @@ export default function DemoBlocker({ onClose, action = 'gawin ito' }: Props) {
           Demo Mode
         </h3>
         <p style={{ fontSize: 14, color: 'rgba(255,255,255,.5)', lineHeight: 1.6, marginBottom: 24 }}>
-          Hindi mo maisasagawa ang "{action}" sa demo mode. I-connect ang iyong Freighter wallet para sa tunay na transaksyon.
+          You cannot perform "{action}" in demo mode. Connect your Freighter wallet for real transactions.
         </p>
         <button
           onClick={() => nav('/login')}
@@ -51,7 +51,7 @@ export default function DemoBlocker({ onClose, action = 'gawin ito' }: Props) {
             minHeight: 48,
           }}
         >
-          <Wallet size={16} /> I-connect ang Wallet
+          <Wallet size={16} /> Connect Wallet
         </button>
         <button
           onClick={onClose}
@@ -62,7 +62,7 @@ export default function DemoBlocker({ onClose, action = 'gawin ito' }: Props) {
             fontSize: 14, marginTop: 8,
           }}
         >
-          Magpatuloy sa Demo
+          Continue in Demo
         </button>
       </div>
     </div>

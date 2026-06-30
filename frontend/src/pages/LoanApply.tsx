@@ -12,7 +12,7 @@ import GuestActionModal from '../components/GuestActionModal'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
-const PURPOSES = ['Pang-negosyo', 'Gamot', 'Pang-aral', 'Bahay', 'Pagkain', 'Iba pa']
+const PURPOSES = ['Business', 'Medical', 'Education', 'Housing', 'Food', 'Other']
 const TERMS    = [7, 14, 30]
 
 export default function LoanApply({ wallet }: { wallet: WalletHook }) {
@@ -27,7 +27,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const [loansLoading, setLoansLoading] = useState(true)
   const [amount,    setAmount]    = useState(500)
   const [term,      setTerm]      = useState(7)
-  const [purpose,   setPurpose]   = useState('Pang-negosyo')
+  const [purpose,   setPurpose]   = useState('Business')
   const [notes,     setNotes]     = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
