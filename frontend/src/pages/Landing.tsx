@@ -85,7 +85,7 @@ function StarRow({ rating }: { rating: number }) {
   return (
     <div style={{ display: 'flex', gap: 2 }}>
       {[1,2,3,4,5].map(n => (
-        <Star key={n} size={13} fill={n <= rating ? '#F59E0B' : 'none'} color={n <= rating ? '#F59E0B' : 'rgba(255,255,255,.2)'} strokeWidth={1.5} />
+        <Star key={n} size={13} fill={n <= rating ? '#F59E0B' : 'rgba(255,255,255,.1)'} color={n <= rating ? '#F59E0B' : 'rgba(255,255,255,.2)'} strokeWidth={1.5} />
       ))}
     </div>
   )
@@ -112,60 +112,61 @@ function TestimonialsSection() {
   }
 
   return (
-    <section style={{ background: 'var(--surface-2)', padding: '80px 0' }}>
+    <section style={{ borderTop: '1px solid rgba(255,255,255,.07)', padding: '80px 0' }}>
       <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px' }}>
 
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(22,163,74,.1)', border: '1px solid rgba(22,163,74,.2)', marginBottom: 16 }}>
-            <MessageSquare size={14} color="var(--green)" />
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--green)' }}>User Reviews</span>
+        <div className="reveal" style={{ textAlign: 'center', marginBottom: 48 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(34,197,94,.12)', border: '1px solid rgba(74,222,128,.3)', marginBottom: 16 }}>
+            <MessageSquare size={14} color="#4ADE80" />
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#4ADE80' }}>User Reviews</span>
           </div>
-          <h2 className="heading" style={{ fontSize: 'clamp(24px, 3vw, 36px)', color: 'var(--ink)', marginBottom: 12 }}>
+          <h2 className="heading" style={{ fontSize: 'clamp(24px, 3vw, 36px)', color: '#fff', marginBottom: 12 }}>
             What Users Are Saying
           </h2>
-          <p style={{ fontSize: 16, color: 'var(--ink-3)', maxWidth: 480, margin: '0 auto' }}>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,.5)', maxWidth: 480, margin: '0 auto' }}>
             Real feedback from borrowers and community members using Bankero.
           </p>
         </div>
 
         {/* Cards */}
         {!loaded ? (
-          <div style={{ textAlign: 'center', color: 'var(--ink-4)', padding: '40px 0' }}>Loading reviews...</div>
+          <div style={{ textAlign: 'center', color: 'rgba(255,255,255,.4)', padding: '40px 0' }}>Loading reviews...</div>
         ) : items.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px 24px', borderRadius: 16, background: 'var(--surface)', border: '1.5px dashed var(--border)' }}>
-            <MessageSquare size={32} color="var(--ink-4)" style={{ marginBottom: 12 }} />
-            <p style={{ color: 'var(--ink-3)', fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No reviews yet</p>
-            <p style={{ color: 'var(--ink-4)', fontSize: 14 }}>Be the first to leave feedback after using Bankero.</p>
+          <div className="reveal" style={{ textAlign: 'center', padding: '48px 24px', borderRadius: 16, background: 'rgba(255,255,255,.05)', border: '1.5px dashed rgba(255,255,255,.15)' }}>
+            <MessageSquare size={32} color="rgba(255,255,255,.3)" style={{ marginBottom: 12 }} />
+            <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No reviews yet</p>
+            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: 14 }}>Be the first to leave feedback after using Bankero.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
             {items.map(f => (
-              <div key={f.id} style={{
-                background: 'var(--surface)',
-                borderRadius: 16,
-                padding: '24px',
-                border: '1.5px solid var(--border)',
+              <div key={f.id} className="reveal" style={{
+                background: 'rgba(255,255,255,.06)',
+                borderRadius: 18, padding: '24px',
+                border: '1px solid rgba(255,255,255,.1)',
+                backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
                 display: 'flex', flexDirection: 'column', gap: 14,
-                boxShadow: '0 2px 8px rgba(0,0,0,.04)',
+                boxShadow: '0 4px 24px rgba(0,0,0,.2)',
               }}>
                 <StarRow rating={f.rating} />
-                <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.75, flex: 1, fontStyle: 'italic' }}>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,.7)', lineHeight: 1.75, flex: 1, fontStyle: 'italic' }}>
                   "{f.message}"
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 12, borderTop: '1px solid var(--border-2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,.08)' }}>
                   <div style={{
                     width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                    background: f.is_guest ? 'var(--surface-3)' : '#DCFCE7',
+                    background: f.is_guest ? 'rgba(255,255,255,.08)' : 'rgba(34,197,94,.18)',
+                    border: `1px solid ${f.is_guest ? 'rgba(255,255,255,.12)' : 'rgba(74,222,128,.3)'}`,
                     display: 'grid', placeItems: 'center',
                   }}>
-                    <Wallet size={14} color={f.is_guest ? 'var(--ink-4)' : '#16A34A'} strokeWidth={2} />
+                    <Wallet size={14} color={f.is_guest ? 'rgba(255,255,255,.4)' : '#4ADE80'} strokeWidth={2} />
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: 'monospace' }}>
                       {displayName(f)}
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 1 }}>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 1 }}>
                       {f.is_guest ? 'Guest' : 'Verified Wallet'}
                     </div>
                   </div>
@@ -200,7 +201,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
   }, [])
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--surface)', fontFamily: 'var(--font)' }}>
+    <div style={{ minHeight: '100dvh', background: '#060D08', fontFamily: 'var(--font)', color: '#fff' }}>
 
       <style>{`
         @keyframes heroBlurUp {
@@ -378,23 +379,17 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       </section>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────── */}
-      <section style={{
-        background: 'var(--surface-2)',
-        borderTop: '1px solid var(--border-2)',
-        borderBottom: '1px solid var(--border-2)',
-      }}>
-        <div className="landing-steps" style={{ maxWidth: 1160, margin: '0 auto', padding: '80px 40px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 80, alignItems: 'start' }}>
-          {/* Left label */}
+      <section style={{ borderTop: '1px solid rgba(255,255,255,.07)', borderBottom: '1px solid rgba(255,255,255,.07)', padding: '80px 0' }}>
+        <div className="landing-steps" style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 80, alignItems: 'start' }}>
           <div className="reveal">
-            <h2 className="heading" style={{ fontSize: 'clamp(32px, 3.5vw, 46px)', color: 'var(--ink)', marginBottom: 16 }}>
+            <h2 className="heading" style={{ fontSize: 'clamp(32px, 3.5vw, 46px)', color: '#fff', marginBottom: 16 }}>
               From zero to creditworthy.
             </h2>
-            <p style={{ fontSize: 15, color: 'var(--ink-3)', lineHeight: 1.6, maxWidth: '36ch' }}>
+            <p style={{ fontSize: 15, color: 'rgba(255,255,255,.5)', lineHeight: 1.6, maxWidth: '36ch' }}>
               Three actions are all it takes to start building a financial reputation that's owned by you.
             </p>
           </div>
 
-          {/* Steps — NOT 3 identical cards. Stacked list with connectors */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {[
               { num: '01', icon: <Wallet size={20} strokeWidth={2} />, title: 'Connect your Stellar wallet', desc: 'Link Freighter in seconds. Your wallet address is your financial identity — no ID required, no paperwork.' },
@@ -404,22 +399,22 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               <div key={s.num} className="reveal" style={{
                 transitionDelay: `${i * 100}ms`,
                 display: 'flex', gap: 24, paddingBottom: i < 2 ? 36 : 0,
-                borderBottom: i < 2 ? '1px solid var(--border-2)' : 'none',
+                borderBottom: i < 2 ? '1px solid rgba(255,255,255,.08)' : 'none',
                 paddingTop: i > 0 ? 36 : 0,
               }}>
-                <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+                <div style={{ flexShrink: 0 }}>
                   <div style={{
                     width: 44, height: 44, borderRadius: 'var(--r-xl)',
-                    background: 'var(--panel)', display: 'grid', placeItems: 'center',
-                    color: 'var(--panel-hi)',
+                    background: 'rgba(34,197,94,.15)', border: '1px solid rgba(74,222,128,.25)',
+                    backdropFilter: 'blur(8px)', display: 'grid', placeItems: 'center', color: '#4ADE80',
                   }}>
                     {s.icon}
                   </div>
                 </div>
                 <div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--green)', letterSpacing: '.06em' }}>{s.num}</span>
-                  <h3 className="heading" style={{ fontSize: 18, color: 'var(--ink)', margin: '4px 0 8px' }}>{s.title}</h3>
-                  <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.6 }}>{s.desc}</p>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#4ADE80', letterSpacing: '.06em' }}>{s.num}</span>
+                  <h3 className="heading" style={{ fontSize: 18, color: '#fff', margin: '4px 0 8px' }}>{s.title}</h3>
+                  <p style={{ fontSize: 14, color: 'rgba(255,255,255,.5)', lineHeight: 1.6 }}>{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -429,54 +424,58 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
       {/* ── FEATURES — asymmetric 2-col ─────────────────────── */}
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '96px 40px' }}>
-        <div className="landing-features" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
+        <div className="landing-features" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
           {/* Large feature left */}
-          <div className="card hover-lift reveal" style={{ padding: 36, display: 'flex', flexDirection: 'column', gap: 20, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 'var(--r-xl)', background: 'var(--green-tint)', display: 'grid', placeItems: 'center', color: 'var(--green)' }}>
+          <div className="hover-lift reveal" style={{
+            padding: 36, display: 'flex', flexDirection: 'column', gap: 20,
+            background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)',
+            backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: 20, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)',
+            boxShadow: '0 4px 32px rgba(0,0,0,.25)',
+          }}>
+            <div style={{ width: 52, height: 52, borderRadius: 'var(--r-xl)', background: 'rgba(34,197,94,.18)', border: '1px solid rgba(74,222,128,.3)', display: 'grid', placeItems: 'center', color: '#4ADE80' }}>
               <ShieldCheck size={24} strokeWidth={2} />
             </div>
             <div>
-              <h3 className="heading" style={{ fontSize: 22, color: 'var(--ink)', marginBottom: 10 }}>On-chain & verifiable</h3>
-              <p style={{ fontSize: 15, color: 'var(--ink-3)', lineHeight: 1.65 }}>
+              <h3 className="heading" style={{ fontSize: 22, color: '#fff', marginBottom: 10 }}>On-chain & verifiable</h3>
+              <p style={{ fontSize: 15, color: 'rgba(255,255,255,.55)', lineHeight: 1.65 }}>
                 Your score lives on Stellar — immutable, transparent, and owned by you. No bank can close your account. No algorithm is hidden. Every factor is auditable by anyone.
               </p>
             </div>
-            <button onClick={() => nav('/login')} className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start', marginTop: 'auto' }}>
+            <button onClick={() => nav('/login')} style={{
+              alignSelf: 'flex-start', marginTop: 'auto',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '9px 18px', borderRadius: 'var(--r-full)',
+              background: 'rgba(34,197,94,.15)', border: '1px solid rgba(74,222,128,.35)',
+              backdropFilter: 'blur(8px)', color: '#4ADE80', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}>
               See how it works <ChevronRight size={13} strokeWidth={2.5} />
             </button>
           </div>
 
-          {/* Right column — 2 stacked smaller */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div className="card hover-lift reveal" style={{ transitionDelay: '100ms', padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: 'var(--amber-tint)', display: 'grid', placeItems: 'center', color: 'var(--amber)', flexShrink: 0 }}>
-                <Users size={20} strokeWidth={2} />
+          {/* Right column — 3 stacked smaller */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {[
+              { icon: <Users size={20} strokeWidth={2} />, color: '#F59E0B', bg: 'rgba(245,158,11,.15)', border: 'rgba(245,158,11,.3)', title: 'Community vouching', desc: 'Stake XLM to vouch for trusted borrowers. Your social trust translates directly to their credit score.', delay: '100ms' },
+              { icon: <BarChart2 size={20} strokeWidth={2} />, color: '#4ADE80', bg: 'rgba(34,197,94,.15)', border: 'rgba(74,222,128,.3)', title: '4-factor scoring', desc: 'Repayment history (40%), transactions (25%), community trust (20%), and remittance data (15%) — all weighted and transparent.', delay: '200ms' },
+              { icon: <Zap size={20} strokeWidth={2} />, color: '#60A5FA', bg: 'rgba(96,165,250,.15)', border: 'rgba(96,165,250,.3)', title: 'Instant disbursement', desc: 'Approved loans go directly to your Stellar wallet in seconds — no queues, no bank visits.', delay: '300ms' },
+            ].map(f => (
+              <div key={f.title} className="hover-lift reveal" style={{
+                transitionDelay: f.delay, padding: 24, display: 'flex', gap: 18,
+                background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)',
+                backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+                borderRadius: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)',
+                boxShadow: '0 2px 20px rgba(0,0,0,.2)',
+              }}>
+                <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: f.bg, border: `1px solid ${f.border}`, display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
+                  {f.icon}
+                </div>
+                <div>
+                  <h3 className="heading" style={{ fontSize: 17, color: '#fff', marginBottom: 6 }}>{f.title}</h3>
+                  <p style={{ fontSize: 14, color: 'rgba(255,255,255,.5)', lineHeight: 1.55 }}>{f.desc}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="heading" style={{ fontSize: 17, color: 'var(--ink)', marginBottom: 6 }}>Community vouching</h3>
-                <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.55 }}>Stake XLM to vouch for trusted borrowers. Your social trust translates directly to their credit score.</p>
-              </div>
-            </div>
-
-            <div className="card hover-lift reveal" style={{ transitionDelay: '200ms', padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: 'var(--green-tint)', display: 'grid', placeItems: 'center', color: 'var(--green)', flexShrink: 0 }}>
-                <BarChart2 size={20} strokeWidth={2} />
-              </div>
-              <div>
-                <h3 className="heading" style={{ fontSize: 17, color: 'var(--ink)', marginBottom: 6 }}>4-factor scoring</h3>
-                <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.55 }}>Repayment history (40%), transactions (25%), community trust (20%), and remittance data (15%) — all weighted and transparent.</p>
-              </div>
-            </div>
-
-            <div className="card hover-lift reveal" style={{ transitionDelay: '300ms', padding: 28, display: 'flex', gap: 18, transition: 'transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out)' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: '#EFF6FF', display: 'grid', placeItems: 'center', color: '#3B82F6', flexShrink: 0 }}>
-                <Zap size={20} strokeWidth={2} />
-              </div>
-              <div>
-                <h3 className="heading" style={{ fontSize: 17, color: 'var(--ink)', marginBottom: 6 }}>Instant disbursement</h3>
-                <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.55 }}>Approved loans go directly to your Stellar wallet in seconds — no queues, no bank visits.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -486,15 +485,17 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
       {/* ── CTA BANNER ───────────────────────────────────────── */}
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 96px' }}>
-        <div className="panel-card landing-cta reveal" style={{ padding: '60px 64px', display: 'flex', alignItems: 'center', gap: 56 }}>
-          {/* bg glow */}
+        <div className="reveal" style={{
+          position: 'relative', overflow: 'hidden',
+          padding: '60px 64px', display: 'flex', alignItems: 'center', gap: 56,
+          background: 'rgba(34,197,94,.1)', border: '1px solid rgba(74,222,128,.25)',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: 24, boxShadow: '0 8px 48px rgba(34,197,94,.12), inset 0 1px 0 rgba(255,255,255,.08)',
+        }}>
           <div style={{
-            position: 'absolute', top: -80, right: -60,
-            width: 400, height: 400, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(34,197,94,.18) 0%, transparent 70%)',
-            pointerEvents: 'none',
+            position: 'absolute', top: -100, right: -80, width: 400, height: 400, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(34,197,94,.2) 0%, transparent 70%)', pointerEvents: 'none',
           }} />
-
           <div style={{ flex: 1, position: 'relative' }}>
             <h2 className="heading" style={{ fontSize: 'clamp(26px, 3vw, 38px)', color: '#fff', marginBottom: 12 }}>
               Ready to build your financial future?
@@ -503,16 +504,23 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               Connect your Stellar wallet in under 2 minutes. Free forever for borrowers.
             </p>
           </div>
-
-          <div style={{ display: 'flex', gap: 12, flexShrink: 0, position: 'relative' }}>
-            <button onClick={() => nav('/login')} className="btn btn-primary">
+          <div style={{ display: 'flex', gap: 12, flexShrink: 0, position: 'relative', flexWrap: 'wrap' }}>
+            <button onClick={() => nav('/login')} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '14px 28px', borderRadius: 'var(--r-full)',
+              background: 'rgba(34,197,94,.25)', border: '1.5px solid rgba(74,222,128,.55)',
+              backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+              boxShadow: '0 4px 24px rgba(34,197,94,.2), inset 0 1px 0 rgba(255,255,255,.15)',
+              color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+            }}>
               <Wallet size={16} strokeWidth={2} /> Connect Wallet
             </button>
-            <button
-              onClick={() => nav('/login?role=lender')}
-              className="btn"
-              style={{ background: 'rgba(255,255,255,.08)', color: 'rgba(255,255,255,.85)', border: '1px solid rgba(255,255,255,.15)', padding: '13px 22px', fontSize: 15 }}
-            >
+            <button onClick={() => nav('/login?role=lender')} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '14px 28px', borderRadius: 'var(--r-full)',
+              background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.18)',
+              backdropFilter: 'blur(8px)', color: 'rgba(255,255,255,.8)', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+            }}>
               Lender Sign In
             </button>
           </div>
@@ -521,15 +529,15 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
 
       {/* ── FOOTER ───────────────────────────────────────────── */}
       <footer style={{
-        borderTop: '1px solid var(--border-2)',
+        borderTop: '1px solid rgba(255,255,255,.08)',
         padding: '28px 40px',
         display: 'flex', alignItems: 'center',
         maxWidth: 1160, margin: '0 auto',
       }}>
-        <span className="heading" style={{ fontSize: 16 }}>
-          Bank<span style={{ color: 'var(--green)' }}>e</span>ro
+        <span className="heading" style={{ fontSize: 16, color: '#fff' }}>
+          Bank<span style={{ color: '#4ADE80' }}>e</span>ro
         </span>
-        <p style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--ink-4)' }}>
+        <p style={{ marginLeft: 'auto', fontSize: 13, color: 'rgba(255,255,255,.3)' }}>
           © 2026 Bankero · Built on Stellar / Soroban · Testnet
         </p>
       </footer>
