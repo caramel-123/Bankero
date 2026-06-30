@@ -351,7 +351,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
               boxShadow: '0 4px 16px rgba(0,0,0,.2)',
             }}
           >
-            <MessageSquare size={14} /> Mag-iwan ng Feedback
+            <MessageSquare size={14} /> Leave Feedback
           </button>
         </div>
         </div>

@@ -136,7 +136,7 @@ export const DEMO_PALUWAGAN_GROUPS = [
 export const DEMO_PALUWAGAN_MEMBERS = [
   { id: 'dm-001', group_id: 'demo-paluwagan-001', user_id: 'demo-user-001', stellar_address: 'GMEMBER1DEMO000000000000000000000000000000000000000000001', rotation_order: 1, is_active: true, consecutive_misses: 0, total_contributions: 2, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'Maria Santos' },
   { id: 'dm-002', group_id: 'demo-paluwagan-001', user_id: 'demo-user-002', stellar_address: 'GMEMBER2DEMO000000000000000000000000000000000000000000002', rotation_order: 2, is_active: true, consecutive_misses: 0, total_contributions: 2, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'Juan dela Cruz' },
-  { id: 'dm-003', group_id: 'demo-paluwagan-001', user_id: 'demo-user-id',  stellar_address: DEMO_WALLET, rotation_order: 3, is_active: true, consecutive_misses: 0, total_contributions: 1, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'Ikaw (Demo)' },
+  { id: 'dm-003', group_id: 'demo-paluwagan-001', user_id: 'demo-user-id',  stellar_address: DEMO_WALLET, rotation_order: 3, is_active: true, consecutive_misses: 0, total_contributions: 1, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'You (Demo)' },
   { id: 'dm-004', group_id: 'demo-paluwagan-001', user_id: 'demo-user-004', stellar_address: 'GMEMBER4DEMO000000000000000000000000000000000000000000004', rotation_order: 4, is_active: true, consecutive_misses: 0, total_contributions: 2, joined_at: new Date(Date.now() - 35 * 86400000).toISOString(), display_name: 'Ana Reyes' },
 ]
 
