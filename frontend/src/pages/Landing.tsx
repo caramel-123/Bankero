@@ -264,6 +264,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       </div>
 
       <style>{`
+        body, * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cdefs%3E%3CradialGradient id='g' cx='40%25' cy='35%25'%3E%3Cstop offset='0%25' stop-color='%2386efac'/%3E%3Cstop offset='45%25' stop-color='%2322c55e'/%3E%3Cstop offset='100%25' stop-color='%23052e16'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='18' cy='18' r='10' fill='url(%23g)' opacity='0.95'/%3E%3Cellipse cx='18' cy='18' rx='17' ry='5' fill='none' stroke='%234ade80' stroke-width='1.5' opacity='0.7' transform='rotate(-30 18 18)'/%3E%3Cellipse cx='18' cy='18' rx='14' ry='3.5' fill='none' stroke='%2386efac' stroke-width='0.8' opacity='0.4' transform='rotate(20 18 18)'/%3E%3Ccircle cx='10' cy='10' r='1.2' fill='%23bbf7d0' opacity='0.8'/%3E%3Ccircle cx='26' cy='8' r='0.8' fill='%234ade80' opacity='0.6'/%3E%3Ccircle cx='28' cy='24' r='1' fill='%2386efac' opacity='0.5'/%3E%3Ccircle cx='7' cy='22' r='0.6' fill='%23bbf7d0' opacity='0.7'/%3E%3C/svg%3E") 18 18, auto !important; }
         @keyframes heroBlurUp {
           from { opacity: 0; filter: blur(18px); transform: translateY(32px); }
           to   { opacity: 1; filter: blur(0);    transform: translateY(0); }
