@@ -196,20 +196,20 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
 
               {/* Guest mode divider */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,.08)' }} />
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,.3)', whiteSpace: 'nowrap' }}>o kaya</span>
-                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,.08)' }} />
+                <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+                <span style={{ fontSize: 12, color: '#94A3B8', whiteSpace: 'nowrap' }}>or</span>
+                <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
               </div>
               <button
                 onClick={() => { wallet.connectAsGuest(); nav('/dashboard') }}
                 style={{
                   width: '100%', padding: '13px 0', borderRadius: 'var(--r-lg)',
-                  background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)',
-                  color: 'rgba(255,255,255,.7)', fontSize: 15, fontWeight: 600,
+                  background: '#F8FAFC', border: '1.5px solid #E2E8F0',
+                  color: '#475569', fontSize: 15, fontWeight: 600,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}
               >
-                👀 Subukan bilang Guest
+                👀 Browse as Guest — No wallet needed
               </button>
             </div>
           )}
