@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Wallet, TrendingUp, Users, ShieldCheck, ArrowRight,
-  Zap, BarChart2, ChevronRight, Star,
+  Zap, BarChart2, ChevronRight, Star, MessageSquare,
 } from 'lucide-react'
+import { supabase } from '../lib/supabase'
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
 const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }
@@ -72,7 +74,76 @@ function ScoreCard() {
   )
 }
 
-export default function Landing() {
+interface FeedbackRow {
+  id: string
+  display_name: string
+  rating: number
+  message: string
+  is_guest: boolean
+  created_at: string
+}
+
+function StarRow({ rating }: { rating: number }) {
+  return (
+    <div style={{ display: 'flex', gap: 2 }}>
+      {[1,2,3,4,5].map(n => (
+        <Star key={n} size={13} fill={n <= rating ? '#F59E0B' : 'none'} color={n <= rating ? '#F59E0B' : 'rgba(255,255,255,.2)'} strokeWidth={1.5} />
+      ))}
+    </div>
+  )
+}
+
+function TestimonialsSection() {
+  const [items, setItems] = useState<FeedbackRow[]>([])
+
+  useEffect(() => {
+    supabase
+      .from('feedback')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(6)
+      .then(({ data }) => setItems((data ?? []) as FeedbackRow[]))
+  }, [])
+
+  if (items.length === 0) return null
+
+  return (
+    <section style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 80px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
+        <MessageSquare size={20} color="var(--green)" />
+        <h2 className="heading" style={{ fontSize: 'clamp(22px, 2.5vw, 30px)', color: 'var(--ink)' }}>
+          Sinasabi ng mga Users
+        </h2>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+        {items.map(f => (
+          <div key={f.id} className="panel-card" style={{ padding: '22px 24px' }}>
+            <StarRow rating={f.rating} />
+            <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.65, margin: '12px 0' }}>
+              "{f.message}"
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: 'var(--green)', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: 700, flexShrink: 0,
+              }}>
+                {f.display_name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{f.display_name}</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>{f.is_guest ? 'Guest User' : 'Verified User'}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export default function Landing({ connectAsGuest }: { connectAsGuest: () => void }) {
   const nav = useNavigate()
 
   return (
@@ -166,8 +237,12 @@ export default function Landing() {
             <button onClick={() => nav('/login')} className="btn btn-primary" style={{ fontSize: 16, padding: '14px 32px' }}>
               Build your score <ArrowRight size={16} strokeWidth={2.5} />
             </button>
-            <button onClick={() => nav('/login?role=lender')} className="btn btn-ghost" style={{ fontSize: 16 }}>
-              Lender access
+            <button
+              onClick={() => { connectAsGuest(); nav('/dashboard') }}
+              className="btn btn-ghost"
+              style={{ fontSize: 16 }}
+            >
+              Try as Guest
             </button>
           </motion.div>
 
@@ -308,6 +383,9 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* ── TESTIMONIALS ─────────────────────────────────────── */}
+      <TestimonialsSection />
 
       {/* ── CTA BANNER ───────────────────────────────────────── */}
       <section style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 96px' }}>
