@@ -127,14 +127,35 @@ export function getAnchorTxs(wallet: string): AnchorTx[] {
 // Every 2 transactions synced: +1 pt bonus (up to +30 bonus per account)
 // So: linking + actively using it = up to 60 pts per account, but total capped at 100
 
+const SCAN_KEY = 'bankero_verified_scans'
+const SCAN_BONUS_PER_SCAN = 2
+const SCAN_BONUS_CAP = 20
+
+/** Record a passed AI-verified e-payment scan (see services/epaymentScan.ts). */
+export function recordVerifiedScan(wallet: string): number {
+  const all = JSON.parse(localStorage.getItem(SCAN_KEY) ?? '{}')
+  const count = (all[wallet] ?? 0) + 1
+  all[wallet] = count
+  localStorage.setItem(SCAN_KEY, JSON.stringify(all))
+  return count
+}
+
+function getVerifiedScanCount(wallet: string): number {
+  try {
+    const all = JSON.parse(localStorage.getItem(SCAN_KEY) ?? '{}')
+    return all[wallet] ?? 0
+  } catch { return 0 }
+}
+
 export function computeAnchorScore(wallet: string): number {
   const accounts = getLinkedAccounts(wallet)
-  const total = accounts.reduce((sum, a) => {
+  const linkTotal = accounts.reduce((sum, a) => {
     const linkPts = a.scoreBoost
     const txBonus = Math.min(30, Math.floor((a.txCount ?? 0) / 2))
     return sum + linkPts + txBonus
   }, 0)
-  return Math.min(100, total)
+  const scanBonus = Math.min(SCAN_BONUS_CAP, getVerifiedScanCount(wallet) * SCAN_BONUS_PER_SCAN)
+  return Math.min(100, linkTotal + scanBonus)
 }
 
 // Payment providers

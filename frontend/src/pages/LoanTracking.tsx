@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, FileText, ArrowRight, Clock, CheckCircle, Zap,
-  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X
+  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Users, Banknote, ChevronDown,
 } from 'lucide-react'
 import { formatPeso, scoreTier, scorePercent } from '../lib/stellar'
 import {
@@ -10,10 +10,19 @@ import {
   computeLocalScore, getScoreCache, daysUntil, formatDate,
   type LocalLoan, type LoanStatus
 } from '../lib/loanStore'
-import { DEMO_LOANS } from '../lib/demoData'
+import { DEMO_LOANS, DEMO_SCORE_RECORD } from '../lib/demoData'
+import { useScore } from '../hooks/useScore'
 import GuestActionModal from '../components/GuestActionModal'
+import BottomNav from '../components/BottomNav'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
+
+const SCORE_FACTORS = [
+  { key: 'repayment_score', label: 'Repayment History',   weight: 40, color: 'var(--green-soft)', Icon: TrendingUp, desc: 'The single biggest factor. Every on-time repayment raises this; a default lowers it by 15 points.' },
+  { key: 'tx_score',        label: 'Transaction Activity', weight: 25, color: '#60A5FA',           Icon: RefreshCw,  desc: 'How active your Stellar wallet is — regular transactions, and consistent weekly Savings Bank deposits, both count here.' },
+  { key: 'vouch_score',     label: 'Community Vouches',   weight: 20, color: '#FBBF24',           Icon: Users,      desc: 'XLM staked by other members vouching for you. More vouches from higher-scored members count more.' },
+  { key: 'anchor_score',    label: 'Remittance',          weight: 15, color: '#A78BFA',           Icon: Banknote,   desc: 'Linked GCash/Maya accounts, and AI-verified e-payment scans (tap the camera in the nav bar) both add points here.' },
+] as const
 
 const STATUS_CFG: Record<LoanStatus, { label: string; color: string; bg: string; Icon: any }> = {
   Pending:   { label: 'Pending Approval', color: '#D97706',      bg: '#FFFBEB',          Icon: Clock },
@@ -138,6 +147,10 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [successInfo, setSuccessInfo] = useState<{ newScore: number; diff: number } | null>(null)
   const [defaultedInfo, setDefaultedInfo] = useState<{ count: number } | null>(null)
   const [showGuestModal, setShowGuestModal] = useState(false)
+  const [expandedFactor, setExpandedFactor] = useState<string | null>(null)
+
+  const { record: liveRecord, isLoading: scoreLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
+  const scoreRecord = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
 
   async function refresh() {
     if (wallet.isGuest) {
@@ -192,7 +205,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const visibleTabs = TABS.filter(t => (counts[t] ?? 0) > 0)
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)', padding: 32 }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)', padding: '32px 32px 100px' }}>
 
       {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
       {repayingLoan && wallet.publicKey && (
@@ -218,7 +231,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
         </div>
       )}
 
-      <button onClick={() => nav('/dashboard')} className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>
+      <button onClick={() => nav('/home')} className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>
         <ArrowLeft size={15} strokeWidth={2} /> Back
       </button>
 
@@ -231,6 +244,59 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
           <button onClick={refresh} className="btn btn-ghost btn-sm" disabled={loading}>
             <RefreshCw size={14} strokeWidth={2} style={loading ? { animation: 'spin 1s linear infinite' } : {}} /> Refresh
           </button>
+        </div>
+
+        {/* How your score is calculated */}
+        <div className="card" style={{ padding: '20px 24px', marginBottom: 24 }}>
+          <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 4 }}>How your score is calculated</h3>
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 18 }}>Tap any factor for details on how it's measured.</p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {SCORE_FACTORS.map(f => {
+              const Icon = f.Icon
+              const value = (scoreRecord?.[f.key] ?? 0) as number
+              const isOpen = expandedFactor === f.key
+              return (
+                <div key={f.key} style={{ borderRadius: 'var(--r-lg)', border: '1px solid var(--border-2)', overflow: 'hidden' }}>
+                  <button
+                    onClick={() => setExpandedFactor(isOpen ? null : f.key)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '14px 16px', border: 'none', background: 'var(--surface)',
+                      cursor: 'pointer', textAlign: 'left',
+                    }}
+                  >
+                    <div style={{ width: 32, height: 32, borderRadius: 'var(--r-md)', background: f.color + '18', display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
+                      <Icon size={15} strokeWidth={2} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{f.label}</span>
+                        <span style={{ fontSize: 11, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '1px 7px', borderRadius: 'var(--r-full)' }}>{f.weight}%</span>
+                      </div>
+                      <div className="progress-track" style={{ marginTop: 7, height: 6 }}>
+                        {scoreLoading
+                          ? <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: 'var(--r-full)' }} />
+                          : <div className="progress-fill" style={{ width: `${value}%`, background: f.color }} />
+                        }
+                      </div>
+                    </div>
+                    <span className="score-num" style={{ fontSize: 15, color: 'var(--ink-2)', flexShrink: 0 }}>
+                      {scoreLoading ? '—' : value}<span style={{ fontSize: 11, color: 'var(--ink-4)' }}>/100</span>
+                    </span>
+                    <ChevronDown size={16} strokeWidth={2} color="var(--ink-4)" style={{ flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+                  </button>
+                  <div style={{
+                    maxHeight: isOpen ? 80 : 0, opacity: isOpen ? 1 : 0,
+                    overflow: 'hidden', transition: 'max-height 220ms ease, opacity 200ms ease',
+                    background: 'var(--surface-2)',
+                  }}>
+                    <p style={{ margin: 0, padding: '12px 16px 14px 60px', fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.55 }}>{f.desc}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {/* Summary strip */}
@@ -423,6 +489,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
       </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <BottomNav active="transaction" />
     </div>
   )
 }

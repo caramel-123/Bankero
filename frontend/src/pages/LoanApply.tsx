@@ -100,7 +100,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)', padding: 32 }}>
-      <button onClick={() => nav('/dashboard')} className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>
+      <button onClick={() => nav('/home')} className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>
         <ArrowLeft size={14} strokeWidth={2} /> Back
       </button>
 

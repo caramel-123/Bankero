@@ -129,7 +129,7 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
           <button onClick={() => nav(`/paluwagan/${id}`)} className="btn btn-primary" style={{ flex: 1, borderRadius: 'var(--r-lg)', padding: '12px 0' }}>
             Back to Group
           </button>
-          <button onClick={() => nav('/dashboard')} className="btn btn-ghost" style={{ flex: 1, borderRadius: 'var(--r-lg)', padding: '12px 0' }}>
+          <button onClick={() => nav('/home')} className="btn btn-ghost" style={{ flex: 1, borderRadius: 'var(--r-lg)', padding: '12px 0' }}>
             Dashboard
           </button>
         </div>
