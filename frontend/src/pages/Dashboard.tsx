@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home, BarChart2, CreditCard, FileText, Users, LogOut, UserCircle,
-  ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, Award, TrendingUp, MessageSquare,
+  ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, Award, TrendingUp, MessageSquare, PiggyBank,
 } from 'lucide-react'
 import { stellarExplorerUrl } from '../lib/stellar'
 import { scoreTier, scorePercent, formatWallet, formatPeso } from '../lib/stellar'
@@ -289,6 +289,7 @@ export default function Dashboard({ wallet }: { wallet: WalletHook }) {
             items: [
               { Icon: FileText,   title: 'Bill Payment Proof', desc: 'Verify electricity, water, or internet bill payments',    action: () => nav('/pop/history'), accent: '#16A34A', tint: 'rgba(22,163,74,.1)' },
               { Icon: TrendingUp, title: 'XLM Savings Streak', desc: 'Deposit 1 XLM/week to earn bonus score points',          action: () => nav('/savings'),     accent: '#F59E0B', tint: 'rgba(245,158,11,.1)' },
+              { Icon: PiggyBank,  title: 'Savings Bank',       desc: 'Deposit XLM and grow a real on-chain balance',           action: () => nav('/savings-bank'), accent: '#0EA5E9', tint: 'rgba(14,165,233,.1)' },
             ],
           },
           {

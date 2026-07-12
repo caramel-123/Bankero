@@ -20,11 +20,36 @@
 | `credit_score` | `CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE` |
 | `loan_registry` | `CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI` |
 | `vouching` | `CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F` |
+| `savings_bank` | _not yet deployed — see below_ |
 
 > Verify on Stellar Explorer:
 > - [credit_score on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE)
 > - [loan_registry on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI)
 > - [vouching on stellar.expert](https://stellar.expert/explorer/testnet/contract/CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F)
+
+### Deploying `savings_bank`
+
+The `savings_bank` contract (`contracts/savings_bank`) holds user XLM deposits — a real on-chain savings balance, separate from the streak-tracking "Savings Tracker" feature. It's built and unit-tested but not yet deployed to testnet. To deploy it:
+
+```bash
+stellar contract build --package savings_bank
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/savings_bank.wasm \
+  --source <your-funded-testnet-account> \
+  --network testnet
+
+# Look up the native XLM token's contract ID on testnet
+stellar contract id asset --asset native --network testnet
+
+# One-time initialization
+stellar contract invoke \
+  --id <deployed-contract-id> \
+  --source <your-funded-testnet-account> \
+  --network testnet \
+  -- initialize --admin <your-admin-address> --xlm_token <native-xlm-contract-id-from-above>
+```
+
+Then set `VITE_SAVINGS_BANK_CONTRACT_ID` (see [Environment Variables](#3-configure-environment-variables)) to the deployed contract ID.
 
 ---
 
@@ -310,6 +335,8 @@ VITE_SOROBAN_RPC=https://soroban-testnet.stellar.org
 VITE_CREDIT_SCORE_CONTRACT_ID=CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE
 VITE_LOAN_REGISTRY_CONTRACT_ID=CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI
 VITE_VOUCHING_CONTRACT_ID=CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F
+# Not yet deployed — see "Deploying savings_bank" above
+VITE_SAVINGS_BANK_CONTRACT_ID=
 
 # Supabase — create a free project at supabase.com
 VITE_SUPABASE_URL=https://your-project.supabase.co
