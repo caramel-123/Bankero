@@ -201,7 +201,27 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
       { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
     )
     document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
-    return () => obs.disconnect()
+
+    // Elements that mount later (e.g. after an async fetch resolves) need to be
+    // picked up too, since querySelectorAll above only sees what's present at mount.
+    // React can also reuse an existing DOM node across conditional branches and just
+    // toggle its class attribute, so attribute changes must be watched too, not only
+    // new nodes being added.
+    const mutationObs = new MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.target instanceof Element) {
+          if (mutation.target.classList.contains('reveal')) obs.observe(mutation.target)
+        }
+        mutation.addedNodes.forEach(node => {
+          if (!(node instanceof Element)) return
+          if (node.classList.contains('reveal')) obs.observe(node)
+          node.querySelectorAll?.('.reveal').forEach(el => obs.observe(el))
+        })
+      }
+    })
+    mutationObs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
+
+    return () => { obs.disconnect(); mutationObs.disconnect() }
   }, [])
 
   // Binary cursor trail
