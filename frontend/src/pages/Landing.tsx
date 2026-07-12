@@ -191,7 +191,7 @@ function TestimonialsSection() {
   )
 }
 
-export default function Landing({ connectAsGuest }: { connectAsGuest: () => void }) {
+export default function Landing() {
   const nav = useNavigate()
   const heroRef = useRef<HTMLElement>(null)
 
@@ -462,13 +462,6 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               }}>
                 Build your score <ArrowRight size={16} strokeWidth={2.5} />
               </button>
-              <button onClick={() => { connectAsGuest(); nav('/dashboard') }} className="lg" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '14px 28px', borderRadius: 'var(--r-full)',
-                color: 'rgba(255,255,255,.85)', fontSize: 16, fontWeight: 600, cursor: 'pointer', border: 'none',
-              }}>
-                Try as Guest
-              </button>
             </div>
 
             {/* Trust pills */}
@@ -610,7 +603,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               Ready to build your financial future?
             </h2>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,.55)', lineHeight: 1.6 }}>
-              Connect your Stellar wallet in under 2 minutes. Free forever for borrowers.
+              Sign up in under 2 minutes. Free forever for borrowers.
             </p>
           </div>
           <div style={{ display: 'flex', gap: 12, flexShrink: 0, position: 'relative', flexWrap: 'wrap' }}>
@@ -619,7 +612,7 @@ export default function Landing({ connectAsGuest }: { connectAsGuest: () => void
               padding: '14px 28px', borderRadius: 'var(--r-full)',
               color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none',
             }}>
-              <Wallet size={16} strokeWidth={2} /> Connect Wallet
+              <Wallet size={16} strokeWidth={2} /> Get Started
             </button>
             <button onClick={() => nav('/login?role=lender')} className="lg" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,

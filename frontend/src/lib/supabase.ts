@@ -9,7 +9,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export interface User {
   id: string
-  wallet_address: string
+  auth_user_id: string | null
+  wallet_address: string | null
   first_name: string | null
   last_name: string | null
   email: string | null
@@ -98,6 +99,115 @@ export async function getUser(walletAddress: string): Promise<User | null> {
     .eq('wallet_address', walletAddress)
     .maybeSingle()
   return data as User | null
+}
+
+// ── Borrower Auth ──────────────────────────────────────────────────────────────
+// Identity now exists independently of a wallet — a `users` row is created at
+// signup (email/password or Google) and a wallet is linked to it later, once
+// connected (see useWallet.ts `connect()`).
+
+export async function signInBorrower(email: string, password: string): Promise<User> {
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+  if (authError) throw new Error(authError.message)
+
+  const userId = authData.user?.id
+  if (!userId) throw new Error('Authentication failed')
+
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('auth_user_id', userId)
+    .maybeSingle()
+
+  if (userError) throw new Error(userError.message)
+  if (!userData) throw new Error('No account found for this login.')
+
+  return userData as User
+}
+
+export async function signUpBorrower(email: string, password: string, displayName: string): Promise<void> {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { display_name: displayName } },
+  })
+  if (error) throw new Error(error.message)
+
+  const userId = data.user?.id
+  if (!userId) return // email confirmation required — profile row is created on first sign-in after confirming
+
+  const [firstName, ...rest] = displayName.trim().split(/\s+/)
+  await supabase.from('users').insert({
+    auth_user_id: userId,
+    email,
+    display_name: displayName,
+    first_name: firstName || null,
+    last_name: rest.join(' ') || null,
+  })
+}
+
+/** Ensure a `users` row exists for the current auth session (covers Google sign-in, which has no explicit signUp step). */
+export async function ensureBorrowerProfile(): Promise<User | null> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const authUser = session?.user
+  if (!authUser) return null
+
+  const { data: existing } = await supabase
+    .from('users')
+    .select('*')
+    .eq('auth_user_id', authUser.id)
+    .maybeSingle()
+  if (existing) return existing as User
+
+  const meta = authUser.user_metadata ?? {}
+  const fullName: string = meta.full_name ?? meta.name ?? ''
+  const [firstName, ...rest] = fullName.trim().split(/\s+/)
+
+  const { data: created, error } = await supabase
+    .from('users')
+    .insert({
+      auth_user_id: authUser.id,
+      email: authUser.email ?? null,
+      display_name: fullName || authUser.email || null,
+      first_name: firstName || null,
+      last_name: rest.join(' ') || null,
+    })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return created as User
+}
+
+export async function getCurrentBorrowerSession(): Promise<User | null> {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user?.id) return null
+
+  const { data } = await supabase
+    .from('users')
+    .select('*')
+    .eq('auth_user_id', session.user.id)
+    .maybeSingle()
+  return data as User | null
+}
+
+export async function signOutBorrower(): Promise<void> {
+  await supabase.auth.signOut()
+}
+
+/** Link a connected wallet to the currently logged-in borrower's profile row. */
+export async function linkWalletToUser(walletAddress: string): Promise<User> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const authUserId = session?.user?.id
+  if (!authUserId) throw new Error('Not logged in')
+
+  const { data, error } = await supabase
+    .from('users')
+    .update({ wallet_address: walletAddress })
+    .eq('auth_user_id', authUserId)
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return data as User
 }
 
 // ── Lender Auth ────────────────────────────────────────────────────────────────

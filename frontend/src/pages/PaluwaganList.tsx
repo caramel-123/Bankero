@@ -164,7 +164,7 @@ export default function PaluwaganList({ wallet }: { wallet: WalletHook }) {
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)', padding: '28px 20px' }}>
       <div style={{ maxWidth: 600, margin: '0 auto' }}>
 
-        <button onClick={() => nav('/dashboard')} className="btn btn-ghost btn-sm" style={{ marginBottom: 20 }}>
+        <button onClick={() => nav('/home')} className="btn btn-ghost btn-sm" style={{ marginBottom: 20 }}>
           <ArrowLeft size={15} /> Back
         </button>
 

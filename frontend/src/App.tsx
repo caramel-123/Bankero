@@ -1,17 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useWallet } from './hooks/useWallet'
+import { useAuthUser } from './hooks/useAuthUser'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import ScoreDetails from './pages/ScoreDetails'
+import Home from './pages/Home'
 import LoanApply from './pages/LoanApply'
 import LoanTracking from './pages/LoanTracking'
 import Vouch from './pages/Vouch'
 import LenderDashboard from './pages/LenderDashboard'
-import CreditCertificate from './pages/CreditCertificate'
-import POPRegistration from './pages/POPRegistration'
-import POPSubmission from './pages/POPSubmission'
-import POPHistory from './pages/POPHistory'
+import ScanEpayment from './pages/ScanEpayment'
 import SavingsTrackerPage from './pages/SavingsTracker'
 import SavingsBank from './pages/SavingsBank'
 import PaluwaganList from './pages/PaluwaganList'
@@ -20,100 +17,101 @@ import PaluwaganDetail from './pages/PaluwaganDetail'
 import PaluwaganContribute from './pages/PaluwaganContribute'
 import MyAccount from './pages/MyAccount'
 import Onboarding from './pages/Onboarding'
+type AuthHook = ReturnType<typeof useAuthUser>
 
-function ProtectedRoute({ children, publicKey }: { children: React.ReactNode; publicKey: string | null }) {
-  if (!publicKey) return <Navigate to="/login" replace />
+/**
+ * Gate on login only — reachable whether or not a wallet is connected yet.
+ * Guest/demo mode (wallet.isGuest) bypasses the login requirement entirely,
+ * same as it always has — there's just no button pointing at it anymore.
+ */
+function AuthProtectedRoute({ children, auth, isGuest }: { children: React.ReactNode; auth: AuthHook; isGuest: boolean }) {
+  if (isGuest) return <>{children}</>
+  if (auth.loadState === 'loading') return null
+  if (!auth.isAuthed) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
+/** Gate on login AND a connected wallet — for anything that moves funds. Guest mode bypasses both. */
+function WalletProtectedRoute({ children, auth, publicKey, isGuest }: { children: React.ReactNode; auth: AuthHook; publicKey: string | null; isGuest: boolean }) {
+  if (isGuest) return <>{children}</>
+  if (auth.loadState === 'loading') return null
+  if (!auth.isAuthed) return <Navigate to="/login" replace />
+  if (!publicKey) return <Navigate to="/home" replace state={{ needsWallet: true }} />
   return <>{children}</>
 }
 
 export default function App() {
   const wallet = useWallet()
+  const auth = useAuthUser()
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing connectAsGuest={wallet.connectAsGuest} />} />
-        <Route path="/login" element={<Login wallet={wallet} />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
-            <Dashboard wallet={wallet} />
-          </ProtectedRoute>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/home" element={
+          <AuthProtectedRoute auth={auth} isGuest={wallet.isGuest}>
+            <Home wallet={wallet} authUser={auth.user} />
+          </AuthProtectedRoute>
         } />
-        <Route path="/score" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
-            <ScoreDetails wallet={wallet} />
-          </ProtectedRoute>
-        } />
+        <Route path="/dashboard" element={<Navigate to="/home" replace />} />
+        <Route path="/score" element={<Navigate to="/loans" replace />} />
+        <Route path="/certificate" element={<Navigate to="/account" replace />} />
         <Route path="/apply" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
             <LoanApply wallet={wallet} />
-          </ProtectedRoute>
+          </WalletProtectedRoute>
         } />
         <Route path="/loans" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <AuthProtectedRoute auth={auth} isGuest={wallet.isGuest}>
             <LoanTracking wallet={wallet} />
-          </ProtectedRoute>
+          </AuthProtectedRoute>
         } />
         <Route path="/vouch" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
             <Vouch wallet={wallet} />
-          </ProtectedRoute>
+          </WalletProtectedRoute>
         } />
         <Route path="/lender" element={<LenderDashboard wallet={wallet} />} />
-        <Route path="/certificate" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
-            <CreditCertificate wallet={wallet} />
-          </ProtectedRoute>
-        } />
-        <Route path="/pop/register" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
-            <POPRegistration wallet={wallet} />
-          </ProtectedRoute>
-        } />
-        <Route path="/pop/submit" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
-            <POPSubmission wallet={wallet} />
-          </ProtectedRoute>
-        } />
-        <Route path="/pop/history" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
-            <POPHistory wallet={wallet} />
-          </ProtectedRoute>
+        <Route path="/scan" element={
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
+            <ScanEpayment wallet={wallet} />
+          </WalletProtectedRoute>
         } />
         <Route path="/savings" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
             <SavingsTrackerPage wallet={wallet} />
-          </ProtectedRoute>
+          </WalletProtectedRoute>
         } />
         <Route path="/savings-bank" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
             <SavingsBank wallet={wallet} />
-          </ProtectedRoute>
+          </WalletProtectedRoute>
         } />
         <Route path="/paluwagan" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
             <PaluwaganList wallet={wallet} />
-          </ProtectedRoute>
+          </WalletProtectedRoute>
         } />
         <Route path="/paluwagan/create" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
             <PaluwaganCreate wallet={wallet} />
-          </ProtectedRoute>
+          </WalletProtectedRoute>
         } />
         <Route path="/paluwagan/:id" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
             <PaluwaganDetail wallet={wallet} />
-          </ProtectedRoute>
+          </WalletProtectedRoute>
         } />
         <Route path="/paluwagan/:id/contribute" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <WalletProtectedRoute auth={auth} publicKey={wallet.publicKey} isGuest={wallet.isGuest}>
             <PaluwaganContribute wallet={wallet} />
-          </ProtectedRoute>
+          </WalletProtectedRoute>
         } />
         <Route path="/account" element={
-          <ProtectedRoute publicKey={wallet.publicKey}>
+          <AuthProtectedRoute auth={auth} isGuest={wallet.isGuest}>
             <MyAccount wallet={wallet} />
-          </ProtectedRoute>
+          </AuthProtectedRoute>
         } />
         <Route path="/onboarding" element={<Onboarding wallet={wallet} />} />
         <Route path="*" element={<Navigate to="/" replace />} />

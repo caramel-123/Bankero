@@ -64,7 +64,7 @@ export default function Onboarding({ wallet }: Props) {
         if (err) throw new Error(err.message)
       }
       setDone(true)
-      setTimeout(() => nav(isLender ? '/lender' : '/dashboard'), 1200)
+      setTimeout(() => nav(isLender ? '/lender' : '/home'), 1200)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to save. Please try again.')
     } finally {
@@ -212,7 +212,7 @@ export default function Onboarding({ wallet }: Props) {
 
             <button
               type="button"
-              onClick={() => nav(isLender ? '/lender' : '/dashboard')}
+              onClick={() => nav(isLender ? '/lender' : '/home')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--ink-4)', padding: '4px 0', textAlign: 'center' }}
             >
               Skip for now

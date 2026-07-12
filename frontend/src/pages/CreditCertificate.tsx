@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Download, Shield, CheckCircle, Star, User, Check } from 'lucide-react'
 import { scoreTier, scorePercent, SCORE_TIERS } from '../lib/stellar'
 import { fetchLoans, type LocalLoan } from '../lib/loanStore'
@@ -19,8 +18,7 @@ function formatLongDate(d: Date) {
   return d.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
-export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
-  const nav = useNavigate()
+export default function CreditCertificate({ wallet, onBack }: { wallet: WalletHook; onBack: () => void }) {
   const printRef = useRef<HTMLDivElement>(null)
   const [profile, setProfile] = useState<BorrowerUser | null>(null)
   const [loans, setLoans] = useState<LocalLoan[]>([])
@@ -78,7 +76,7 @@ export default function CreditCertificate({ wallet }: { wallet: WalletHook }) {
 
       {/* Toolbar — hidden on print */}
       <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, maxWidth: 760, margin: '0 auto 28px' }}>
-        <button onClick={() => nav('/dashboard')} className="btn btn-ghost btn-sm">
+        <button onClick={onBack} className="btn btn-ghost btn-sm">
           <ArrowLeft size={15} strokeWidth={2} /> Back
         </button>
         <div style={{ display: 'flex', gap: 10 }}>

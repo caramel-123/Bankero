@@ -2,19 +2,18 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Wallet, TrendingUp, Lock, Users, Banknote, ShieldCheck,
-  AlertCircle, ExternalLink, Eye, EyeOff, UserPlus,
+  AlertCircle, Eye, EyeOff, UserPlus, Globe,
 } from 'lucide-react'
-import { supabase, signInLender, signUpLender } from '../lib/supabase'
-import type { useWallet } from '../hooks/useWallet'
-type WalletHook = ReturnType<typeof useWallet>
+import { supabase, signInLender, signUpLender, signInBorrower, signUpBorrower } from '../lib/supabase'
+import { useAuthUser } from '../hooks/useAuthUser'
 
-export default function Login({ wallet }: { wallet: WalletHook }) {
+export default function Login() {
   const nav = useNavigate()
   const [params] = useSearchParams()
   const [tab, setTab] = useState<'borrower' | 'lender'>(
     params.get('role') === 'lender' ? 'lender' : 'borrower'
   )
-  const [lenderMode, setLenderMode] = useState<'signin' | 'signup'>('signin')
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -22,22 +21,49 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
   const [lenderLoading, setLenderLoading] = useState(false)
   const [lenderError, setLenderError] = useState<string | null>(null)
   const [signupSuccess, setSignupSuccess] = useState(false)
+  const [borrowerLoading, setBorrowerLoading] = useState(false)
+  const [borrowerError, setBorrowerError] = useState<string | null>(null)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const auth = useAuthUser()
 
-  // Clear stale wallet error on mount
-  useEffect(() => { wallet.clearError() }, [])
-
-  // Redirect borrower on connect — go to onboarding if name not yet set
+  // Already logged in — no need to see the login screen again
   useEffect(() => {
-    if (!wallet.isConnected || tab !== 'borrower') return
-    supabase
-      .from('users')
-      .select('first_name')
-      .eq('wallet_address', wallet.publicKey!)
-      .maybeSingle()
-      .then(({ data }) => {
-        nav(data?.first_name ? '/dashboard' : '/onboarding')
-      })
-  }, [wallet.isConnected])
+    if (auth.isAuthed) nav('/home')
+  }, [auth.isAuthed])
+
+  async function handleBorrowerSignIn() {
+    if (!email || !password) return
+    setBorrowerLoading(true)
+    setBorrowerError(null)
+    try {
+      await signInBorrower(email, password)
+      nav('/home')
+    } catch (e: any) {
+      setBorrowerError(e.message ?? 'Sign in failed. Check your email and password.')
+    } finally {
+      setBorrowerLoading(false)
+    }
+  }
+
+  async function handleBorrowerSignUp() {
+    if (!email || !password || !displayName) return
+    setBorrowerLoading(true)
+    setBorrowerError(null)
+    try {
+      await signUpBorrower(email, password, displayName)
+      setSignupSuccess(true)
+    } catch (e: any) {
+      setBorrowerError(e.message ?? 'Sign up failed.')
+    } finally {
+      setBorrowerLoading(false)
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true)
+    const redirectTo = `${window.location.origin}/home`
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })
+  }
 
   async function handleLenderSignIn() {
     if (!email || !password) return
@@ -159,7 +185,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
             Welcome to Bankero
           </h2>
           <p style={{ fontSize: 15, color: 'var(--ink-3)', marginBottom: 32, lineHeight: 1.5 }}>
-            Connect your Stellar wallet or sign in as a lender.
+            Sign in or create an account to get started.
           </p>
 
           {/* Tab switcher */}
@@ -185,55 +211,103 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
           {/* ── BORROWER ── */}
           {tab === 'borrower' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Only show error for non-"not installed" cases (rejected, locked, etc.) */}
-              {wallet.error && !wallet.error.includes('not installed') && (
-                <div style={{ display: 'flex', gap: 10, padding: '12px 16px', borderRadius: 'var(--r-lg)', background: 'var(--red-tint)', border: '1px solid #FECACA', color: 'var(--red)', fontSize: 14 }}>
-                  <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
-                  <span>{wallet.error}</span>
+
+              {/* Sign in / Sign up sub-tabs */}
+              <div style={{ display: 'flex', gap: 2, marginBottom: 4 }}>
+                {(['signin', 'signup'] as const).map(m => (
+                  <button key={m} onClick={() => { setAuthMode(m); setBorrowerError(null); setSignupSuccess(false) }}
+                    style={{ flex: 1, padding: '7px 0', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', borderRadius: 'var(--r-md)', background: authMode === m ? 'var(--panel)' : 'transparent', color: authMode === m ? '#fff' : 'var(--ink-4)' }}>
+                    {m === 'signin' ? 'Sign In' : 'Create Account'}
+                  </button>
+                ))}
+              </div>
+
+              {signupSuccess ? (
+                <div style={{ padding: '20px 18px', borderRadius: 'var(--r-lg)', background: 'var(--green-tint)', border: '1px solid var(--green-border)', fontSize: 14, color: 'var(--green-hi)', lineHeight: 1.6 }}>
+                  <strong>Check your email!</strong><br />
+                  A confirmation link was sent to <strong>{email}</strong>. Confirm your email then sign in.
+                  <button onClick={() => { setSignupSuccess(false); setAuthMode('signin') }} style={{ display: 'block', marginTop: 12, fontSize: 13, fontWeight: 700, color: 'var(--green)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    Go to Sign In →
+                  </button>
                 </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    disabled={googleLoading}
+                    style={{
+                      width: '100%', padding: '13px 0', borderRadius: 'var(--r-lg)',
+                      background: '#fff', border: '1.5px solid #E2E8F0',
+                      color: '#334155', fontSize: 15, fontWeight: 600,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                      opacity: googleLoading ? 0.65 : 1,
+                    }}
+                  >
+                    {googleLoading ? (
+                      <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(0,0,0,.15)', borderTopColor: '#4285F4', animation: 'spin 0.8s linear infinite' }} />
+                    ) : (
+                      <Globe size={18} strokeWidth={2} color="#4285F4" />
+                    )}
+                    Continue with Google
+                  </button>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+                    <span style={{ fontSize: 12, color: '#94A3B8', whiteSpace: 'nowrap' }}>or</span>
+                    <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+                  </div>
+
+                  {borrowerError && (
+                    <div style={{ display: 'flex', gap: 10, padding: '12px 16px', borderRadius: 'var(--r-lg)', background: 'var(--red-tint)', border: '1px solid #FECACA', fontSize: 13, color: 'var(--red)' }}>
+                      <AlertCircle size={14} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                      {borrowerError}
+                    </div>
+                  )}
+
+                  {authMode === 'signup' && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink-2)', marginBottom: 6 }}>Your Name</label>
+                      <input className="input" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="First and last name" />
+                    </div>
+                  )}
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink-2)', marginBottom: 6 }}>Email address</label>
+                    <input className="input" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" type="email" />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink-2)', marginBottom: 6 }}>Password</label>
+                    <div style={{ position: 'relative' }}>
+                      <input className="input" value={password} onChange={e => setPassword(e.target.value)}
+                        placeholder={authMode === 'signup' ? 'At least 8 characters' : 'Password'}
+                        type={showPw ? 'text' : 'password'}
+                        style={{ paddingLeft: 42, paddingRight: 42 }}
+                      />
+                      <Lock size={14} strokeWidth={2} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-4)' }} />
+                      <button onClick={() => setShowPw(p => !p)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-4)', display: 'grid', placeItems: 'center' }}>
+                        {showPw ? <EyeOff size={14} strokeWidth={2} /> : <Eye size={14} strokeWidth={2} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={authMode === 'signin' ? handleBorrowerSignIn : handleBorrowerSignUp}
+                    disabled={borrowerLoading || !email || !password || (authMode === 'signup' && !displayName)}
+                    className="btn btn-primary"
+                    style={{ width: '100%', padding: '14px 0', fontSize: 15, fontWeight: 700, borderRadius: 'var(--r-lg)', marginTop: 4, opacity: borrowerLoading ? 0.65 : 1 }}
+                  >
+                    {borrowerLoading ? (
+                      <><div style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> {authMode === 'signin' ? 'Signing in…' : 'Creating account…'}</>
+                    ) : authMode === 'signin' ? (
+                      <><Wallet size={16} strokeWidth={2} /> Sign In</>
+                    ) : (
+                      <><UserPlus size={16} strokeWidth={2} /> Create Account</>
+                    )}
+                  </button>
+                </>
               )}
-
-              <button
-                onClick={wallet.connect}
-                disabled={wallet.state === 'connecting'}
-                className="btn btn-primary"
-                style={{ width: '100%', padding: '15px 0', fontSize: 16, borderRadius: 'var(--r-lg)', opacity: wallet.state === 'connecting' ? 0.65 : 1 }}
-              >
-                {wallet.state === 'connecting' ? (
-                  <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Connecting…</>
-                ) : (
-                  <><Wallet size={17} strokeWidth={2} /> Connect Freighter Wallet</>
-                )}
-              </button>
-
-              {/* Guest mode */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
-                <span style={{ fontSize: 12, color: '#94A3B8', whiteSpace: 'nowrap' }}>or</span>
-                <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
-              </div>
-              <button
-                onClick={() => { wallet.connectAsGuest(); nav('/dashboard') }}
-                style={{
-                  width: '100%', padding: '13px 0', borderRadius: 'var(--r-lg)',
-                  background: '#F8FAFC', border: '1.5px solid #E2E8F0',
-                  color: '#475569', fontSize: 15, fontWeight: 600,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                }}
-              >
-                Browse as Guest — No wallet needed
-              </button>
-
-              {/* Freighter install notice — shown always so user knows what to install */}
-              <div style={{ display: 'flex', gap: 10, padding: '11px 14px', borderRadius: 'var(--r-md)', background: wallet.freighterInstalled === false ? '#FEF2F2' : '#EFF6FF', border: `1px solid ${wallet.freighterInstalled === false ? '#FECACA' : '#BFDBFE'}`, fontSize: 13, color: wallet.freighterInstalled === false ? '#DC2626' : '#1D4ED8' }}>
-                <ExternalLink size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span>
-                  {wallet.freighterInstalled === false ? 'Freighter is not installed. ' : 'No Freighter? '}
-                  <a href="https://freighter.app" target="_blank" rel="noreferrer" style={{ color: wallet.freighterInstalled === false ? '#DC2626' : '#1D4ED8', fontWeight: 700 }}>
-                    Install at freighter.app
-                  </a>
-                </span>
-              </div>
             </div>
           )}
 
@@ -244,8 +318,8 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
               {/* Sign in / Sign up sub-tabs */}
               <div style={{ display: 'flex', gap: 2, marginBottom: 4 }}>
                 {(['signin', 'signup'] as const).map(m => (
-                  <button key={m} onClick={() => { setLenderMode(m); setLenderError(null); setSignupSuccess(false) }}
-                    style={{ flex: 1, padding: '7px 0', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', borderRadius: 'var(--r-md)', background: lenderMode === m ? 'var(--panel)' : 'transparent', color: lenderMode === m ? '#fff' : 'var(--ink-4)' }}>
+                  <button key={m} onClick={() => { setAuthMode(m); setLenderError(null); setSignupSuccess(false) }}
+                    style={{ flex: 1, padding: '7px 0', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', borderRadius: 'var(--r-md)', background: authMode === m ? 'var(--panel)' : 'transparent', color: authMode === m ? '#fff' : 'var(--ink-4)' }}>
                     {m === 'signin' ? 'Sign In' : 'Create Account'}
                   </button>
                 ))}
@@ -255,7 +329,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
                 <div style={{ padding: '20px 18px', borderRadius: 'var(--r-lg)', background: 'var(--green-tint)', border: '1px solid var(--green-border)', fontSize: 14, color: 'var(--green-hi)', lineHeight: 1.6 }}>
                   <strong>Check your email!</strong><br />
                   A confirmation link was sent to <strong>{email}</strong>. Confirm your email then sign in.
-                  <button onClick={() => { setSignupSuccess(false); setLenderMode('signin') }} style={{ display: 'block', marginTop: 12, fontSize: 13, fontWeight: 700, color: 'var(--green)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <button onClick={() => { setSignupSuccess(false); setAuthMode('signin') }} style={{ display: 'block', marginTop: 12, fontSize: 13, fontWeight: 700, color: 'var(--green)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     Go to Sign In →
                   </button>
                 </div>
@@ -268,7 +342,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
                     </div>
                   )}
 
-                  {lenderMode === 'signup' && (
+                  {authMode === 'signup' && (
                     <div>
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink-2)', marginBottom: 6 }}>Display Name</label>
                       <input className="input" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name or institution" />
@@ -284,7 +358,7 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink-2)', marginBottom: 6 }}>Password</label>
                     <div style={{ position: 'relative' }}>
                       <input className="input" value={password} onChange={e => setPassword(e.target.value)}
-                        placeholder={lenderMode === 'signup' ? 'At least 8 characters' : 'Password'}
+                        placeholder={authMode === 'signup' ? 'At least 8 characters' : 'Password'}
                         type={showPw ? 'text' : 'password'}
                         style={{ paddingLeft: 42, paddingRight: 42 }}
                       />
@@ -296,14 +370,14 @@ export default function Login({ wallet }: { wallet: WalletHook }) {
                   </div>
 
                   <button
-                    onClick={lenderMode === 'signin' ? handleLenderSignIn : handleLenderSignUp}
-                    disabled={lenderLoading || !email || !password || (lenderMode === 'signup' && !displayName)}
+                    onClick={authMode === 'signin' ? handleLenderSignIn : handleLenderSignUp}
+                    disabled={lenderLoading || !email || !password || (authMode === 'signup' && !displayName)}
                     className="btn"
                     style={{ width: '100%', padding: '14px 0', fontSize: 15, fontWeight: 700, background: 'var(--panel)', color: '#fff', borderRadius: 'var(--r-lg)', marginTop: 4, opacity: lenderLoading ? 0.65 : 1 }}
                   >
                     {lenderLoading ? (
-                      <><div style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> {lenderMode === 'signin' ? 'Signing in…' : 'Creating account…'}</>
-                    ) : lenderMode === 'signin' ? (
+                      <><div style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> {authMode === 'signin' ? 'Signing in…' : 'Creating account…'}</>
+                    ) : authMode === 'signin' ? (
                       <><Banknote size={16} strokeWidth={2} /> Sign In as Lender</>
                     ) : (
                       <><UserPlus size={16} strokeWidth={2} /> Create Lender Account</>

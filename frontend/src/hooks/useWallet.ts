@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { connectWallet, getWalletPublicKey, checkFreighterInstalled } from '../lib/stellar'
-import { upsertUser } from '../lib/supabase'
+import { linkWalletToUser } from '../lib/supabase'
 
 export type WalletState = 'idle' | 'connecting' | 'connected' | 'error' | 'guest'
 
@@ -29,7 +29,7 @@ export function useWallet() {
       setPublicKey(key)
       setState('connected')
       setIsGuest(false)
-      await upsertUser(key).catch(() => {})
+      await linkWalletToUser(key).catch(() => {})
     } catch (err: any) {
       let msg: string
       if (err.message === 'FREIGHTER_NOT_INSTALLED') {
