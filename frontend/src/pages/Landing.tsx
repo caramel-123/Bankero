@@ -94,6 +94,7 @@ function StarRow({ rating }: { rating: number }) {
 function TestimonialsSection() {
   const [items, setItems] = useState<FeedbackRow[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     supabase
@@ -101,7 +102,15 @@ function TestimonialsSection() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(9)
-      .then(({ data }) => { setItems((data ?? []) as FeedbackRow[]); setLoaded(true) })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Failed to load feedback:', error)
+          setError(error.message)
+        } else {
+          setItems((data ?? []) as FeedbackRow[])
+        }
+        setLoaded(true)
+      })
   }, [])
 
   const displayName = (f: FeedbackRow) => {
@@ -132,6 +141,12 @@ function TestimonialsSection() {
         {/* Cards */}
         {!loaded ? (
           <div style={{ textAlign: 'center', color: 'rgba(255,255,255,.4)', padding: '40px 0' }}>Loading reviews...</div>
+        ) : error ? (
+          <div className="reveal" style={{ textAlign: 'center', padding: '48px 24px', borderRadius: 16, background: 'rgba(255,255,255,.05)', border: '1.5px dashed rgba(255,255,255,.15)' }}>
+            <MessageSquare size={32} color="rgba(255,255,255,.3)" style={{ marginBottom: 12 }} />
+            <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Couldn't load reviews</p>
+            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: 14 }}>Please try again later.</p>
+          </div>
         ) : items.length === 0 ? (
           <div className="reveal" style={{ textAlign: 'center', padding: '48px 24px', borderRadius: 16, background: 'rgba(255,255,255,.05)', border: '1.5px dashed rgba(255,255,255,.15)' }}>
             <MessageSquare size={32} color="rgba(255,255,255,.3)" style={{ marginBottom: 12 }} />
