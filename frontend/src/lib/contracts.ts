@@ -1,4 +1,5 @@
-import { rpc, Address, scValToNative } from '@stellar/stellar-sdk'
+import { rpc, Address, scValToNative, nativeToScVal, type xdr } from '@stellar/stellar-sdk'
+import { signTransaction } from '@stellar/freighter-api'
 import { CONTRACT_IDS, RPC_URL, NETWORK } from './stellar'
 
 // ── Soroban RPC server ────────────────────────────────────
@@ -157,4 +158,148 @@ export async function fetchVouchScore(walletAddress: string): Promise<number> {
   } catch {
     return 0
   }
+}
+
+// ── savings_bank ABI ───────────────────────────────────────
+// Functions we call:
+//   get_balance(user: Address) -> i128 (stroops)
+//   get_tx_count(user: Address) -> u32
+
+/** Simulate a read-only savings_bank call that takes a single Address arg. */
+async function fetchSavingsBankValue(walletAddress: string, functionName: string): Promise<number> {
+  try {
+    const server = getServer()
+    const contractId = CONTRACT_IDS.savingsBank
+    if (!contractId) return 0
+
+    const { TransactionBuilder, Account, Operation, BASE_FEE } = await import('@stellar/stellar-sdk')
+
+    let account: any
+    try {
+      account = await server.getAccount(walletAddress)
+    } catch {
+      account = new Account(walletAddress, '0')
+    }
+
+    const tx = new TransactionBuilder(account, {
+      fee: BASE_FEE,
+      networkPassphrase: NETWORK,
+    })
+      .addOperation(
+        Operation.invokeContractFunction({
+          contract: contractId,
+          function: functionName,
+          args: [new Address(walletAddress).toScVal()],
+        })
+      )
+      .setTimeout(30)
+      .build()
+
+    const result = await server.simulateTransaction(tx)
+    if (!rpc.Api.isSimulationSuccess(result) || !result.result) return 0
+    return Number(scValToNative(result.result.retval)) || 0
+  } catch {
+    return 0
+  }
+}
+
+/** Fetch a user's saved balance from the savings_bank contract, in stroops. */
+export async function fetchSavingsBankBalance(walletAddress: string): Promise<number> {
+  return fetchSavingsBankValue(walletAddress, 'get_balance')
+}
+
+/** Fetch a user's deposit + withdrawal count from the savings_bank contract. */
+export async function fetchSavingsBankTxCount(walletAddress: string): Promise<number> {
+  return fetchSavingsBankValue(walletAddress, 'get_tx_count')
+}
+
+// ── Generic write (state-changing) contract invocation ────
+//
+// Everything above only simulates reads. A write needs to be prepared
+// (simulated + assembled with resource fees/footprint by the RPC server),
+// signed by the caller's wallet, submitted, then polled for the result —
+// nothing in this codebase did that yet before the savings_bank contract.
+
+const TX_POLL_INTERVAL_MS = 1500
+const TX_POLL_MAX_ATTEMPTS = 20
+
+export class ContractWriteError extends Error {}
+
+/**
+ * Build, sign (via Freighter), submit, and poll a Soroban contract write
+ * transaction. Returns the transaction hash and the contract's decoded
+ * return value.
+ */
+export async function invokeContractWrite(
+  contractId: string,
+  functionName: string,
+  args: xdr.ScVal[],
+  sourceAddress: string
+): Promise<{ hash: string; returnValue: unknown }> {
+  const server = getServer()
+  const { TransactionBuilder, Operation, BASE_FEE } = await import('@stellar/stellar-sdk')
+
+  const account = await server.getAccount(sourceAddress)
+
+  const tx = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORK,
+  })
+    .addOperation(
+      Operation.invokeContractFunction({
+        contract: contractId,
+        function: functionName,
+        args,
+      })
+    )
+    .setTimeout(60)
+    .build()
+
+  const prepared = await server.prepareTransaction(tx)
+
+  const signResult = await signTransaction(prepared.toXDR(), {
+    networkPassphrase: NETWORK,
+    address: sourceAddress,
+  })
+  if (signResult.error) {
+    throw new ContractWriteError(
+      typeof signResult.error === 'string' ? signResult.error : 'Signing rejected'
+    )
+  }
+  if (!signResult.signedTxXdr) {
+    throw new ContractWriteError('Signing cancelled')
+  }
+
+  const signedTx = TransactionBuilder.fromXDR(signResult.signedTxXdr, NETWORK)
+  const sendResult = await server.sendTransaction(signedTx)
+
+  if (sendResult.status === 'ERROR' || sendResult.status === 'DUPLICATE') {
+    throw new ContractWriteError(`Transaction ${sendResult.status.toLowerCase()}`)
+  }
+
+  for (let attempt = 0; attempt < TX_POLL_MAX_ATTEMPTS; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, TX_POLL_INTERVAL_MS))
+    const result = await server.getTransaction(sendResult.hash)
+
+    if (result.status === rpc.Api.GetTransactionStatus.SUCCESS) {
+      return {
+        hash: sendResult.hash,
+        returnValue: result.returnValue ? scValToNative(result.returnValue) : undefined,
+      }
+    }
+    if (result.status === rpc.Api.GetTransactionStatus.FAILED) {
+      throw new ContractWriteError('Transaction failed on-chain')
+    }
+    // NOT_FOUND — still pending, keep polling
+  }
+
+  throw new ContractWriteError('Timed out waiting for transaction confirmation')
+}
+
+/** Helper: build the ScVal args for a `(user: Address, amount: i128)` call. */
+export function addressAmountArgs(userAddress: string, amountStroops: number | bigint): xdr.ScVal[] {
+  return [
+    new Address(userAddress).toScVal(),
+    nativeToScVal(amountStroops, { type: 'i128' }),
+  ]
 }

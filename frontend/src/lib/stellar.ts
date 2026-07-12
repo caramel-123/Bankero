@@ -21,6 +21,7 @@ export const CONTRACT_IDS = {
   creditScore: import.meta.env.VITE_CREDIT_SCORE_CONTRACT_ID as string,
   loanRegistry: import.meta.env.VITE_LOAN_REGISTRY_CONTRACT_ID as string,
   vouching:     import.meta.env.VITE_VOUCHING_CONTRACT_ID as string,
+  savingsBank:  import.meta.env.VITE_SAVINGS_BANK_CONTRACT_ID as string,
 }
 
 // ── Freighter wallet helpers ───────────────────────────────
@@ -112,6 +113,14 @@ export function formatWallet(address: string): string {
 
 export function formatXLM(stroops: number): string {
   return (stroops / 10_000_000).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' XLM'
+}
+
+export function xlmToStroops(xlm: number): number {
+  return Math.round(xlm * 10_000_000)
+}
+
+export function stroopsToXlm(stroops: number): number {
+  return stroops / 10_000_000
 }
 
 export function formatPeso(amount: number): string {

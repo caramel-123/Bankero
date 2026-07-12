@@ -13,6 +13,7 @@ import POPRegistration from './pages/POPRegistration'
 import POPSubmission from './pages/POPSubmission'
 import POPHistory from './pages/POPHistory'
 import SavingsTrackerPage from './pages/SavingsTracker'
+import SavingsBank from './pages/SavingsBank'
 import PaluwaganList from './pages/PaluwaganList'
 import PaluwaganCreate from './pages/PaluwaganCreate'
 import PaluwaganDetail from './pages/PaluwaganDetail'
@@ -82,6 +83,11 @@ export default function App() {
         <Route path="/savings" element={
           <ProtectedRoute publicKey={wallet.publicKey}>
             <SavingsTrackerPage wallet={wallet} />
+          </ProtectedRoute>
+        } />
+        <Route path="/savings-bank" element={
+          <ProtectedRoute publicKey={wallet.publicKey}>
+            <SavingsBank wallet={wallet} />
           </ProtectedRoute>
         } />
         <Route path="/paluwagan" element={

@@ -83,6 +83,14 @@ export const DEMO_WEEKLY_DEPOSITS = [
   { id: '3', user_id: 'demo', stellar_address: DEMO_WALLET, week_identifier: '2026-26', deposit_amount: 2.5, tx_hash: 'TX3', deposited_at: new Date(Date.now() - 7 * 86400000).toISOString(), streak_count_at_deposit: 3, bonus_awarded: 10, created_at: '' },
 ]
 
+export const DEMO_SAVINGS_BANK_BALANCE_XLM = 42.5
+
+export const DEMO_SAVINGS_BANK_TRANSACTIONS = [
+  { id: '1', user_id: 'demo', stellar_address: DEMO_WALLET, type: 'deposit', amount_xlm: 20, tx_hash: 'SBDEMOTX1', balance_after_xlm: 20, score_bonus_applied: 2, created_at: new Date(Date.now() - 14 * 86400000).toISOString() },
+  { id: '2', user_id: 'demo', stellar_address: DEMO_WALLET, type: 'deposit', amount_xlm: 25, tx_hash: 'SBDEMOTX2', balance_after_xlm: 45, score_bonus_applied: 2, created_at: new Date(Date.now() - 7 * 86400000).toISOString() },
+  { id: '3', user_id: 'demo', stellar_address: DEMO_WALLET, type: 'withdraw', amount_xlm: 2.5, tx_hash: 'SBDEMOTX3', balance_after_xlm: 42.5, score_bonus_applied: 0, created_at: new Date(Date.now() - 2 * 86400000).toISOString() },
+]
+
 export const DEMO_POP_SUBMISSIONS = [
   {
     id: 'DEMO-POP-001', user_id: 'demo-user-id', utility_account_id: 'demo-util-001',
