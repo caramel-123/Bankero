@@ -148,13 +148,13 @@ export default function Login() {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
             {[
-              { range: '300–449', label: 'Starting Out', color: '#DC2626', loan: '5 XLM' },
-              { range: '450–549', label: 'Fair',          color: '#EA580C', loan: '15 XLM' },
-              { range: '550–649', label: 'Developing',    color: '#D97706', loan: '30 XLM' },
-              { range: '650–749', label: 'Good',          color: '#65A30D', loan: '75 XLM' },
-              { range: '750–799', label: 'Trusted',       color: '#16A34A', loan: '150 XLM' },
-              { range: '800–849', label: 'Excellent',     color: '#0D9488', loan: '250 XLM' },
-              { range: '850',     label: 'Elite',         color: '#6366F1', loan: '500 XLM' },
+              { range: '300–449', label: 'Starting Out', color: '#DC2626', loan: '10 XLM' },
+              { range: '450–549', label: 'Fair',          color: '#EA580C', loan: '30 XLM' },
+              { range: '550–649', label: 'Developing',    color: '#D97706', loan: '60 XLM' },
+              { range: '650–749', label: 'Good',          color: '#65A30D', loan: '150 XLM' },
+              { range: '750–799', label: 'Trusted',       color: '#16A34A', loan: '300 XLM' },
+              { range: '800–849', label: 'Excellent',     color: '#0D9488', loan: '500 XLM' },
+              { range: '850',     label: 'Elite',         color: '#6366F1', loan: '1,000 XLM' },
             ].map(t => (
               <div key={t.range} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: t.color, flexShrink: 0 }} />

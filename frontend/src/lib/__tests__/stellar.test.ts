@@ -15,27 +15,27 @@ describe('scoreTier()', () => {
     const tier = scoreTier(300)
     expect(tier.label).toBe('Starting Out')
     expect(tier.color).toBe('#DC2626')
-    expect(tier.max).toBe(5)
+    expect(tier.max).toBe(10)
     expect(tier.interest).toBe(8)
   })
 
   it('returns Fair for score 450', () => {
     const tier = scoreTier(450)
     expect(tier.label).toBe('Fair')
-    expect(tier.max).toBe(15)
+    expect(tier.max).toBe(30)
   })
 
   it('returns Good for score 700', () => {
     const tier = scoreTier(700)
     expect(tier.label).toBe('Good')
-    expect(tier.max).toBe(75)
+    expect(tier.max).toBe(150)
     expect(tier.interest).toBe(5)
   })
 
   it('returns Elite for score 850 (maximum)', () => {
     const tier = scoreTier(850)
     expect(tier.label).toBe('Elite')
-    expect(tier.max).toBe(500)
+    expect(tier.max).toBe(1000)
     expect(tier.interest).toBe(3.5)
   })
 

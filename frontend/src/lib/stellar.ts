@@ -78,20 +78,25 @@ export interface ScoreTierDef {
   max: number
   label: string
   color: string
-  loanMax: number       // max loan in XLM
+  loanMax: number       // max loan in XLM (≈ 1 XLM : ₱50, chosen so every tier — up to Elite's 1,000 XLM cap — lands on a clean whole number)
   interest: number      // flat interest rate %
   desc: string
 }
 
 export const SCORE_TIERS: ScoreTierDef[] = [
-  { min: 300, max: 449, label: 'Starting Out', color: '#DC2626', loanMax:   5, interest: 8,   desc: 'Build history by repaying your first small loan' },
-  { min: 450, max: 549, label: 'Fair',          color: '#EA580C', loanMax:  15, interest: 7,   desc: 'Consistent repayments push you here' },
-  { min: 550, max: 649, label: 'Developing',    color: '#D97706', loanMax:  30, interest: 6,   desc: 'Community vouches and linked accounts help' },
-  { min: 650, max: 749, label: 'Good',          color: '#65A30D', loanMax:  75, interest: 5,   desc: 'Strong repayment record, active wallet' },
-  { min: 750, max: 799, label: 'Trusted',       color: '#16A34A', loanMax: 150, interest: 4.5, desc: 'Multiple on-time repayments, vouches received' },
-  { min: 800, max: 849, label: 'Excellent',     color: '#0D9488', loanMax: 250, interest: 4,   desc: 'Sustained excellence in all score factors' },
-  { min: 850, max: 850, label: 'Elite',         color: '#6366F1', loanMax: 500, interest: 3.5, desc: 'Perfect score — maximum borrowing power' },
+  { min: 300, max: 449, label: 'Starting Out', color: '#DC2626', loanMax:   10, interest: 8,   desc: 'Build history by repaying your first small loan' },
+  { min: 450, max: 549, label: 'Fair',          color: '#EA580C', loanMax:   30, interest: 7,   desc: 'Consistent repayments push you here' },
+  { min: 550, max: 649, label: 'Developing',    color: '#D97706', loanMax:   60, interest: 6,   desc: 'Community vouches and linked accounts help' },
+  { min: 650, max: 749, label: 'Good',          color: '#65A30D', loanMax:  150, interest: 5,   desc: 'Strong repayment record, active wallet' },
+  { min: 750, max: 799, label: 'Trusted',       color: '#16A34A', loanMax:  300, interest: 4.5, desc: 'Multiple on-time repayments, vouches received' },
+  { min: 800, max: 849, label: 'Excellent',     color: '#0D9488', loanMax:  500, interest: 4,   desc: 'Sustained excellence in all score factors' },
+  { min: 850, max: 850, label: 'Elite',         color: '#6366F1', loanMax: 1000, interest: 3.5, desc: 'Perfect score — maximum borrowing power' },
 ]
+
+/** Illustrative peso estimate shown next to loan limits — not used for any real conversion; Bankero only ever moves value in XLM. */
+export function xlmToPesoEstimate(xlm: number): string {
+  return '≈₱' + (xlm * 50).toLocaleString('en-PH')
+}
 
 export function scoreTier(score: number): { label: string; color: string; max: number; interest: number } {
   const t = [...SCORE_TIERS].reverse().find(t => score >= t.min) ?? SCORE_TIERS[0]

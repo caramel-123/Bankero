@@ -4,7 +4,7 @@ import {
   ArrowLeft, CheckCircle, CreditCard, Calendar, Tag, FileText,
   Info, AlertTriangle, ArrowRight, TrendingUp, ChevronRight, Check,
 } from 'lucide-react'
-import { scoreTier, SCORE_TIERS, nextScoreTier, formatXlmAmount } from '../lib/stellar'
+import { scoreTier, SCORE_TIERS, nextScoreTier, formatXlmAmount, xlmToPesoEstimate } from '../lib/stellar'
 import { saveLoan, fetchLoans, type LocalLoan } from '../lib/loanStore'
 import { useScore } from '../hooks/useScore'
 import { DEMO_SCORE_RECORD, DEMO_LOANS } from '../lib/demoData'
@@ -25,7 +25,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
 
   const [myLoans, setMyLoans] = useState<LocalLoan[]>([])
   const [loansLoading, setLoansLoading] = useState(true)
-  const [amount,    setAmount]    = useState(5)
+  const [amount,    setAmount]    = useState(10)
   const [term,      setTerm]      = useState(7)
   const [purpose,   setPurpose]   = useState('Business')
   const [notes,     setNotes]     = useState('')
@@ -48,11 +48,11 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const activeLoan = myLoans.find(l => ['Pending', 'Approved', 'Disbursed'].includes(l.status))
 
   // Build valid loan amounts for current tier
-  const ALL_AMOUNTS = [5, 15, 30, 75, 150, 250, 500]
+  const ALL_AMOUNTS = [10, 30, 60, 150, 300, 500, 1000]
   const validAmounts = ALL_AMOUNTS.filter(a => a <= tier.max)
 
   // Snap amount into valid range if tier changed
-  const safeAmount = validAmounts.includes(amount) ? amount : validAmounts[validAmounts.length - 1] ?? 5
+  const safeAmount = validAmounts.includes(amount) ? amount : validAmounts[validAmounts.length - 1] ?? 10
   // Round to 2dp, not the nearest whole XLM — these are small fractional amounts now
   const interest = Math.round(safeAmount * (tier.interest / 100) * 100) / 100
   const total    = safeAmount + interest
@@ -183,7 +183,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: isUnlocked ? t.color : 'var(--ink-4)' }}>{formatXlmAmount(t.loanMax)}</div>
-                      <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>{t.interest}% interest</div>
+                      <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>{xlmToPesoEstimate(t.loanMax)} · {t.interest}% interest</div>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: isUnlocked ? 'var(--green)' : 'var(--ink-4)', width: 20, textAlign: 'center' }}>
                       {isUnlocked ? <Check size={13} color="var(--green)" strokeWidth={2.5} /> : null}
@@ -195,7 +195,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
                 <div style={{ padding: '12px 18px', background: 'var(--surface-2)', borderTop: '1px solid var(--border-2)', fontSize: 13, color: 'var(--ink-3)' }}>
                   <TrendingUp size={13} strokeWidth={2} color="var(--green)" style={{ verticalAlign: 'middle', marginRight: 6 }} />
                   Reach score <strong style={{ color: 'var(--ink)' }}>{next.min}</strong> to unlock{' '}
-                  <strong style={{ color: next.color }}>{formatXlmAmount(next.loanMax)}</strong> loans. Repay on time to get there faster.
+                  <strong style={{ color: next.color }}>{formatXlmAmount(next.loanMax)}</strong> ({xlmToPesoEstimate(next.loanMax)}) loans. Repay on time to get there faster.
                 </div>
               )}
             </div>
