@@ -182,9 +182,15 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
       const validation = await validateEpaymentScan(data, imageHash)
       setResult(validation)
 
-      setStep(3)
-      await recordEpaymentScan(user.id, wallet.publicKey, imageUrl, imageHash, validation)
-      loadHistory(user.id)
+      // Already know it's a duplicate (matched by reference number) —
+      // don't attempt to save it, that would just hit the DB unique
+      // constraint and surface a raw Postgres error instead of the
+      // friendly message already shown above.
+      if (!validation.isDuplicate) {
+        setStep(3)
+        await recordEpaymentScan(user.id, wallet.publicKey, imageUrl, imageHash, validation)
+        loadHistory(user.id)
+      }
       setDone(true)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.')

@@ -135,9 +135,13 @@ export async function recordEpaymentScan(
   if (error) {
     // 23505 = unique_violation — the DB-level backstop for image_hash/
     // extracted_reference caught a duplicate that raced past the
-    // check in validateEpaymentScan.
-    if (error.code === '23505') throw new Error('This receipt has already been submitted.')
-    throw new Error(`Could not save this scan: ${error.message}`)
+    // check in validateEpaymentScan. Match on the message text too in
+    // case a client/proxy layer doesn't surface `code` — never let the
+    // raw Postgres constraint text reach the UI.
+    if (error.code === '23505' || error.message.includes('duplicate key value')) {
+      throw new Error('This receipt has already been submitted.')
+    }
+    throw new Error('Could not save this scan. Please try again.')
   }
 
   if (validation.passed) recordVerifiedScan(stellarAddress)
