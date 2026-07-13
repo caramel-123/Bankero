@@ -349,6 +349,12 @@ export async function getLoansFromSupabase(borrowerWallet: string): Promise<Supa
   return data as SupabaseLoan[]
 }
 
+/** Cancel/remove a loan the borrower no longer wants — DB policy only allows this while Pending/Approved (not yet disbursed). */
+export async function deleteLoanFromSupabase(id: string): Promise<void> {
+  const { error } = await supabase.from('loans').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function getAllLoansFromSupabase(): Promise<SupabaseLoan[]> {
   const { data, error } = await supabase
     .from('loans')

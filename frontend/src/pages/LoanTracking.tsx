@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, FileText, ArrowRight, Clock, CheckCircle, Zap,
-  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Users, Banknote, ChevronDown,
+  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Users, Banknote, ChevronDown, Info, Trash2,
 } from 'lucide-react'
 import { formatPeso, scoreTier, scorePercent } from '../lib/stellar'
 import {
-  fetchLoans, updateLoanStatus, updateScoreOnRepay, updateScoreOnDefault,
+  fetchLoans, updateLoanStatus, updateScoreOnRepay, updateScoreOnDefault, deleteLoan,
   computeLocalScore, getScoreCache, daysUntil, formatDate,
   type LocalLoan, type LoanStatus
 } from '../lib/loanStore'
@@ -18,10 +18,49 @@ import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
 const SCORE_FACTORS = [
-  { key: 'repayment_score', label: 'Repayment History',   weight: 40, color: 'var(--green-soft)', Icon: TrendingUp, desc: 'The single biggest factor. Every on-time repayment raises this; a default lowers it by 15 points.' },
-  { key: 'tx_score',        label: 'Transaction Activity', weight: 25, color: '#60A5FA',           Icon: RefreshCw,  desc: 'How active your Stellar wallet is — regular transactions, and consistent weekly Savings Bank deposits, both count here.' },
-  { key: 'vouch_score',     label: 'Community Vouches',   weight: 20, color: '#FBBF24',           Icon: Users,      desc: 'XLM staked by other members vouching for you. More vouches from higher-scored members count more.' },
-  { key: 'anchor_score',    label: 'Remittance',          weight: 15, color: '#A78BFA',           Icon: Banknote,   desc: 'Linked GCash/Maya accounts, and AI-verified e-payment scans (tap the camera in the nav bar) both add points here.' },
+  {
+    key: 'repayment_score', label: 'Repayment History', weight: 40, color: 'var(--green-soft)', Icon: TrendingUp,
+    desc: 'The single biggest factor. Every on-time repayment raises this; a default lowers it by 15 points.',
+    formula: 'round( loans_repaid / (total_loans + 2) × 100 ) − (loans_defaulted × 15)',
+    variables: [
+      ['loans_repaid', 'Loans you have fully paid back.'],
+      ['total_loans', 'All loans that have reached a final outcome (repaid or defaulted). Loans still pending or active don’t count yet.'],
+      ['loans_defaulted', 'Loans you failed to repay.'],
+      ['+2', 'A "trust buffer" — stops brand-new borrowers from hitting a perfect score after just 1–2 loans. It matters less the longer your history gets.'],
+      ['× 15', 'A flat penalty subtracted per default, on top of the ratio already being worse.'],
+    ],
+  },
+  {
+    key: 'tx_score', label: 'Transaction Activity', weight: 25, color: '#60A5FA', Icon: RefreshCw,
+    desc: 'How active you are across Bankero features — Savings Bank deposits, savings streaks, and Paluwagan contributions all add capped bonus points here.',
+    formula: 'min( 100, savings_bank_bonus + savings_streak_bonus + paluwagan_bonus )',
+    variables: [
+      ['savings_bank_bonus', '+2 per Savings Bank deposit, capped at 20 total.'],
+      ['savings_streak_bonus', '+10 per weekly savings streak milestone reached, capped at 30 total.'],
+      ['paluwagan_bonus', '+3 per on-time Paluwagan contribution, capped at 15 per group — but stacks across multiple groups.'],
+      ['min(100, …)', 'The three bonuses are added together, then capped so the total can never exceed 100.'],
+    ],
+  },
+  {
+    key: 'vouch_score', label: 'Community Vouches', weight: 20, color: '#FBBF24', Icon: Users,
+    desc: 'XLM staked by other members vouching for you. More total stake means a higher score.',
+    formula: 'min( 100, total_xlm_staked ÷ 10 )',
+    variables: [
+      ['total_xlm_staked', 'The sum of active XLM stakes from everyone currently vouching for you (minimum 50 XLM per vouch).'],
+      ['÷ 10', 'Converts staked XLM into score points — 1,000 XLM staked in total reaches the maximum score of 100.'],
+      ['min(100, …)', 'Caps the score at 100 no matter how much is staked beyond that.'],
+    ],
+  },
+  {
+    key: 'anchor_score', label: 'Remittance', weight: 15, color: '#A78BFA', Icon: Banknote,
+    desc: 'AI-verified e-payment scans add points here — tap the camera icon to scan a receipt and grow this factor.',
+    formula: 'min( 100, verified_scans × 2 )',
+    variables: [
+      ['verified_scans', 'The number of e-payment screenshots you’ve scanned with the camera that passed AI verification.'],
+      ['× 2', 'Each verified scan is worth 2 points, capped at 20 points total from scanning.'],
+      ['min(100, …)', 'Keeps the overall factor within the 0–100 scale.'],
+    ],
+  },
 ] as const
 
 const STATUS_CFG: Record<LoanStatus, { label: string; color: string; bg: string; Icon: any }> = {
@@ -131,6 +170,88 @@ function RepaySuccessBanner({ newScore, scoreDiff, onDismiss }: { newScore: numb
   )
 }
 
+// ── Score info modal ────────────────────────────────────────
+function ScoreInfoModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(11,31,58,.5)', backdropFilter: 'blur(6px)', padding: 20 }}>
+      <div style={{ width: 560, maxHeight: '85vh', overflowY: 'auto', background: 'var(--surface)', borderRadius: 24, padding: 32, boxShadow: '0 24px 64px rgba(11,31,58,.24)', position: 'relative' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: '50%', border: 'none', background: '#F1F5F9', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--ink-3)' }}>
+          <X size={15} strokeWidth={2} />
+        </button>
+        <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(96,165,250,.12)', border: '1.5px solid rgba(96,165,250,.3)', display: 'grid', placeItems: 'center', marginBottom: 20 }}>
+          <Info size={24} strokeWidth={1.75} color="#3B82F6" />
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}>How your credit score is calculated</h2>
+        <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24, lineHeight: 1.6 }}>
+          Your 300–850 credit score is built from four factors, each measured 0–100 and weighted differently. Here's exactly how each one is computed.
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {SCORE_FACTORS.map(f => {
+            const Icon = f.Icon
+            return (
+              <div key={f.key} style={{ borderRadius: 'var(--r-lg)', border: '1px solid var(--border-2)', padding: '18px 20px', background: 'var(--surface-2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 'var(--r-md)', background: f.color + '18', display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
+                    <Icon size={14} strokeWidth={2} />
+                  </div>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{f.label}</span>
+                  <span style={{ fontSize: 11, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '2px 8px', borderRadius: 'var(--r-full)' }}>{f.weight}% of score</span>
+                </div>
+
+                <p style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.6, marginBottom: 12 }}>{f.desc}</p>
+
+                <div style={{ background: 'var(--ink)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, overflowX: 'auto' }}>
+                  <code style={{ fontSize: 12, color: '#4ADE80', fontFamily: 'monospace', whiteSpace: 'pre' }}>{f.formula}</code>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {f.variables.map(([term, meaning]) => (
+                    <div key={term} style={{ display: 'flex', gap: 8, fontSize: 12.5, lineHeight: 1.5 }}>
+                      <code style={{ color: f.color, fontFamily: 'monospace', fontWeight: 700, flexShrink: 0 }}>{term}</code>
+                      <span style={{ color: 'var(--ink-3)' }}>{meaning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <button onClick={onClose} style={{ width: '100%', marginTop: 24, padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
+          Got it
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Cancel loan modal ───────────────────────────────────────
+function CancelLoanModal({ loan, onConfirm, onClose }: { loan: LocalLoan; onConfirm: () => void; onClose: () => void }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(11,31,58,.5)', backdropFilter: 'blur(6px)' }}>
+      <div style={{ width: 420, background: 'var(--surface)', borderRadius: 24, padding: 32, boxShadow: '0 24px 64px rgba(11,31,58,.24)', position: 'relative' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: '50%', border: 'none', background: '#F1F5F9', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--ink-3)' }}>
+          <X size={15} strokeWidth={2} />
+        </button>
+        <div style={{ width: 52, height: 52, borderRadius: 16, background: '#FEF2F2', border: '1.5px solid #FECACA', display: 'grid', placeItems: 'center', marginBottom: 20 }}>
+          <Trash2 size={22} strokeWidth={1.75} color="#DC2626" />
+        </div>
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}>Remove this loan?</h2>
+        <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24, lineHeight: 1.6 }}>
+          This cancels your application for <strong style={{ color: 'var(--ink)' }}>{formatPeso(loan.amount)}</strong>. Since it hasn't been disbursed yet, this won't affect your credit score.
+        </p>
+        <button onClick={onConfirm} style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: '#fff', background: '#DC2626', border: 'none', cursor: 'pointer', marginBottom: 10 }}>
+          Yes, remove it
+        </button>
+        <button onClick={onClose} style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
+          Keep it
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Main ───────────────────────────────────────────────────
 const TABS: LoanStatus[] = ['Pending', 'Approved', 'Disbursed', 'Repaid', 'Defaulted', 'Rejected']
 const TAB_LABELS: Record<LoanStatus, string> = {
@@ -148,6 +269,8 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [defaultedInfo, setDefaultedInfo] = useState<{ count: number } | null>(null)
   const [showGuestModal, setShowGuestModal] = useState(false)
   const [expandedFactor, setExpandedFactor] = useState<string | null>(null)
+  const [showInfoModal, setShowInfoModal] = useState(false)
+  const [cancelingLoan, setCancelingLoan] = useState<LocalLoan | null>(null)
 
   const { record: liveRecord, isLoading: scoreLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
   const scoreRecord = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
@@ -199,6 +322,14 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
     setSuccessInfo({ newScore: scoreAfter, diff: scoreAfter - scoreBefore })
   }
 
+  async function handleCancelConfirm() {
+    if (!cancelingLoan) return
+    if (wallet.isGuest) { setShowGuestModal(true); setCancelingLoan(null); return }
+    await deleteLoan(cancelingLoan.id)
+    setCancelingLoan(null)
+    await refresh()
+  }
+
   const tabLoans = loans.filter(l => l.status === activeTab)
   const counts: Partial<Record<LoanStatus, number>> = {}
   for (const l of loans) counts[l.status] = (counts[l.status] ?? 0) + 1
@@ -208,6 +339,10 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
     <div style={{ minHeight: '100dvh', background: 'var(--surface-2)', fontFamily: 'var(--font)', padding: '32px 32px 100px' }}>
 
       {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
+      {showInfoModal && <ScoreInfoModal onClose={() => setShowInfoModal(false)} />}
+      {cancelingLoan && (
+        <CancelLoanModal loan={cancelingLoan} onConfirm={handleCancelConfirm} onClose={() => setCancelingLoan(null)} />
+      )}
       {repayingLoan && wallet.publicKey && (
         <RepayModal loan={repayingLoan} wallet={wallet.publicKey} onConfirm={handleRepayConfirm} onClose={() => setRepayingLoan(null)} />
       )}
@@ -241,9 +376,14 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
             <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--ink)', marginBottom: 4 }}>My Loans</h1>
             <p style={{ color: 'var(--ink-3)' }}>{loading ? 'Loading…' : `${loans.length} loan${loans.length !== 1 ? 's' : ''} total`}</p>
           </div>
-          <button onClick={refresh} className="btn btn-ghost btn-sm" disabled={loading}>
-            <RefreshCw size={14} strokeWidth={2} style={loading ? { animation: 'spin 1s linear infinite' } : {}} /> Refresh
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => setShowInfoModal(true)} className="btn btn-ghost btn-sm" title="How your score is calculated">
+              <Info size={14} strokeWidth={2} />
+            </button>
+            <button onClick={refresh} className="btn btn-ghost btn-sm" disabled={loading}>
+              <RefreshCw size={14} strokeWidth={2} style={loading ? { animation: 'spin 1s linear infinite' } : {}} /> Refresh
+            </button>
+          </div>
         </div>
 
         {/* How your score is calculated */}
@@ -451,6 +591,15 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, background: '#EFF6FF', border: '1px solid #BFDBFE', fontSize: 13, fontWeight: 600, color: '#1D4ED8' }}>
                           <CheckCircle size={14} strokeWidth={2} /> Approved — waiting for lender to disburse funds
                         </div>
+                      )}
+
+                      {(isPending || isApproved) && (
+                        <button
+                          onClick={() => wallet.isGuest ? setShowGuestModal(true) : setCancelingLoan(loan)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer' }}
+                        >
+                          <Trash2 size={14} strokeWidth={2} /> Remove
+                        </button>
                       )}
 
                       {loan.status === 'Repaid' && (
