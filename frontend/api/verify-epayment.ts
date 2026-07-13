@@ -36,7 +36,7 @@ export default async function handler(req: any, res: any) {
     res.status(500).json({ error: 'AI verification is not configured on the server yet.' })
     return
   }
-  const model = process.env.GROQ_MODEL || 'meta-llama/llama-4-maverick-17b-128e-instruct'
+  const model = process.env.GROQ_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct'
 
   try {
     const imageRes = await fetch(imageUrl)
