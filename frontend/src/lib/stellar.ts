@@ -78,19 +78,19 @@ export interface ScoreTierDef {
   max: number
   label: string
   color: string
-  loanMax: number       // max loan in ₱
+  loanMax: number       // max loan in XLM
   interest: number      // flat interest rate %
   desc: string
 }
 
 export const SCORE_TIERS: ScoreTierDef[] = [
-  { min: 300, max: 449, label: 'Starting Out', color: '#DC2626', loanMax:   500, interest: 8,   desc: 'Build history by repaying your first small loan' },
-  { min: 450, max: 549, label: 'Fair',          color: '#EA580C', loanMax:  1500, interest: 7,   desc: 'Consistent repayments push you here' },
-  { min: 550, max: 649, label: 'Developing',    color: '#D97706', loanMax:  3000, interest: 6,   desc: 'Community vouches and linked accounts help' },
-  { min: 650, max: 749, label: 'Good',          color: '#65A30D', loanMax:  7500, interest: 5,   desc: 'Strong repayment record, active wallet' },
-  { min: 750, max: 799, label: 'Trusted',       color: '#16A34A', loanMax: 15000, interest: 4.5, desc: 'Multiple on-time repayments, vouches received' },
-  { min: 800, max: 849, label: 'Excellent',     color: '#0D9488', loanMax: 25000, interest: 4,   desc: 'Sustained excellence in all score factors' },
-  { min: 850, max: 850, label: 'Elite',         color: '#6366F1', loanMax: 50000, interest: 3.5, desc: 'Perfect score — maximum borrowing power' },
+  { min: 300, max: 449, label: 'Starting Out', color: '#DC2626', loanMax:   5, interest: 8,   desc: 'Build history by repaying your first small loan' },
+  { min: 450, max: 549, label: 'Fair',          color: '#EA580C', loanMax:  15, interest: 7,   desc: 'Consistent repayments push you here' },
+  { min: 550, max: 649, label: 'Developing',    color: '#D97706', loanMax:  30, interest: 6,   desc: 'Community vouches and linked accounts help' },
+  { min: 650, max: 749, label: 'Good',          color: '#65A30D', loanMax:  75, interest: 5,   desc: 'Strong repayment record, active wallet' },
+  { min: 750, max: 799, label: 'Trusted',       color: '#16A34A', loanMax: 150, interest: 4.5, desc: 'Multiple on-time repayments, vouches received' },
+  { min: 800, max: 849, label: 'Excellent',     color: '#0D9488', loanMax: 250, interest: 4,   desc: 'Sustained excellence in all score factors' },
+  { min: 850, max: 850, label: 'Elite',         color: '#6366F1', loanMax: 500, interest: 3.5, desc: 'Perfect score — maximum borrowing power' },
 ]
 
 export function scoreTier(score: number): { label: string; color: string; max: number; interest: number } {
@@ -123,20 +123,15 @@ export function stroopsToXlm(stroops: number): number {
   return stroops / 10_000_000
 }
 
-export function formatPeso(amount: number): string {
-  return '₱' + amount.toLocaleString('en-PH')
+/** Formats a plain XLM amount (loan principal/interest/totals — not stroops) for display, e.g. 5 → "5 XLM", 0.4 → "0.4 XLM". */
+export function formatXlmAmount(amount: number): string {
+  return amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' XLM'
 }
 
 const NETWORK_SLUG = import.meta.env.VITE_STELLAR_NETWORK === 'testnet' ? 'testnet' : 'public'
 
 export function stellarExplorerUrl(address: string, type: 'account' | 'contract' = 'account'): string {
   return `https://stellar.expert/explorer/${NETWORK_SLUG}/${type}/${address}`
-}
-
-// ── XLM / Peso conversion (testnet: 1 XLM = ₱100) ────────
-export const XLM_PER_PESO = 0.01       // 1 ₱ = 0.01 XLM  →  ₱500 = 5 XLM
-export function pesoToXlm(peso: number): string {
-  return (peso * XLM_PER_PESO).toFixed(7)
 }
 
 const HORIZON_URL = import.meta.env.VITE_STELLAR_NETWORK === 'testnet'
@@ -150,11 +145,10 @@ const HORIZON_URL = import.meta.env.VITE_STELLAR_NETWORK === 'testnet'
 export async function disburseXlmPayment(opts: {
   lenderAddress: string
   borrowerAddress: string
-  pesoAmount: number
+  xlmAmount: number
   loanId: string
 }): Promise<string> {
-  const { lenderAddress, borrowerAddress, pesoAmount, loanId } = opts
-  const xlmAmount = pesoToXlm(pesoAmount)
+  const { lenderAddress, borrowerAddress, xlmAmount, loanId } = opts
   const server = new Horizon.Server(HORIZON_URL)
 
   // Load lender's account sequence number
@@ -168,7 +162,7 @@ export async function disburseXlmPayment(opts: {
     .addOperation(Operation.payment({
       destination: borrowerAddress,
       asset: Asset.native(),
-      amount: xlmAmount,
+      amount: xlmAmount.toFixed(7),
     }))
     .addMemo(Memo.text(`BNK:${loanId.slice(0, 23)}`))
     .setTimeout(300)

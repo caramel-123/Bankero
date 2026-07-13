@@ -249,7 +249,7 @@ export default function CreditCertificate({ wallet, onBack }: { wallet: WalletHo
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'sans-serif' }}>
                 <thead>
                   <tr style={{ background: '#F3F4F6' }}>
-                    {['Date Applied', 'Purpose', 'Amount (₱)', 'Term', 'Status'].map(h => (
+                    {['Date Applied', 'Purpose', 'Amount (XLM)', 'Term', 'Status'].map(h => (
                       <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 10, color: '#6B7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', border: '1px solid #E5E7EB' }}>{h}</th>
                     ))}
                   </tr>

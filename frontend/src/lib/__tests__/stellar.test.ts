@@ -4,8 +4,7 @@ import {
   scorePercent,
   nextScoreTier,
   formatWallet,
-  formatPeso,
-  pesoToXlm,
+  formatXlmAmount,
   SCORE_TIERS,
 } from '../stellar'
 
@@ -16,27 +15,27 @@ describe('scoreTier()', () => {
     const tier = scoreTier(300)
     expect(tier.label).toBe('Starting Out')
     expect(tier.color).toBe('#DC2626')
-    expect(tier.max).toBe(500)
+    expect(tier.max).toBe(5)
     expect(tier.interest).toBe(8)
   })
 
   it('returns Fair for score 450', () => {
     const tier = scoreTier(450)
     expect(tier.label).toBe('Fair')
-    expect(tier.max).toBe(1500)
+    expect(tier.max).toBe(15)
   })
 
   it('returns Good for score 700', () => {
     const tier = scoreTier(700)
     expect(tier.label).toBe('Good')
-    expect(tier.max).toBe(7500)
+    expect(tier.max).toBe(75)
     expect(tier.interest).toBe(5)
   })
 
   it('returns Elite for score 850 (maximum)', () => {
     const tier = scoreTier(850)
     expect(tier.label).toBe('Elite')
-    expect(tier.max).toBe(50000)
+    expect(tier.max).toBe(500)
     expect(tier.interest).toBe(3.5)
   })
 
@@ -137,32 +136,19 @@ describe('formatWallet()', () => {
   })
 })
 
-// ── formatPeso ─────────────────────────────────────────────
+// ── formatXlmAmount ────────────────────────────────────────
 
-describe('formatPeso()', () => {
-  it('formats 500 as ₱500', () => {
-    expect(formatPeso(500)).toBe('₱500')
+describe('formatXlmAmount()', () => {
+  it('formats 5 as "5 XLM"', () => {
+    expect(formatXlmAmount(5)).toBe('5 XLM')
   })
 
-  it('formats 50000 with thousands separator', () => {
-    expect(formatPeso(50000)).toBe('₱50,000')
-  })
-})
-
-// ── pesoToXlm ──────────────────────────────────────────────
-
-describe('pesoToXlm()', () => {
-  it('converts ₱500 to 5 XLM at testnet rate (₱100 = 1 XLM)', () => {
-    expect(parseFloat(pesoToXlm(500))).toBeCloseTo(5, 4)
+  it('formats 500 with thousands separator', () => {
+    expect(formatXlmAmount(500)).toBe('500 XLM')
   })
 
-  it('converts ₱1500 to 15 XLM', () => {
-    expect(parseFloat(pesoToXlm(1500))).toBeCloseTo(15, 4)
-  })
-
-  it('returns a string with 7 decimal places for Stellar compatibility', () => {
-    const result = pesoToXlm(500)
-    const decimals = result.split('.')[1]?.length ?? 0
-    expect(decimals).toBe(7)
+  it('preserves up to 2 decimal places', () => {
+    expect(formatXlmAmount(0.4)).toBe('0.4 XLM')
+    expect(formatXlmAmount(15.75)).toBe('15.75 XLM')
   })
 })
