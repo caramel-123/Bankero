@@ -3,6 +3,7 @@ import { CONTRACT_IDS, xlmToStroops, stroopsToXlm } from '../lib/stellar'
 import {
   fetchSavingsBankBalance, fetchSavingsBankTxCount, invokeContractWrite, addressAmountArgs,
 } from '../lib/contracts'
+import { updateSavingsStreak } from './savingsTracker'
 import type { SavingsBankTransaction } from '../types/savingsBank'
 
 /** Read the on-chain balance for a wallet, in XLM (0 if never deposited / contract unset). */
@@ -86,6 +87,11 @@ export async function deposit(userId: string, walletAddress: string, amountXlm: 
   await recordTransaction({
     userId, walletAddress, type: 'deposit', amountXlm, txHash: hash, balanceAfterXlm: newBalance,
   })
+
+  // Keep the fire-icon streak in sync with real deposits — a deposit here
+  // should count toward this week's streak immediately, not only once the
+  // user separately opens the Savings Streak page and taps "Check My Deposit".
+  try { await updateSavingsStreak(userId, walletAddress) } catch (err) { console.error('[Bankero] streak update after deposit failed:', err) }
 
   return newBalance
 }
