@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase'
 import type { SavingsStreak, WeeklyDeposit, HorizonPayment, DepositCheckResult } from '../types/savings'
 
-const HORIZON_TESTNET = 'https://horizon-testnet.stellar.org'
 const MIN_DEPOSIT_XLM = 1
 
 export function getCurrentWeekIdentifier(date: Date = new Date()): string {
@@ -27,24 +26,39 @@ export function getWeekBounds(weekIdentifier: string): { start: Date; end: Date 
   return { start, end }
 }
 
+/**
+ * A "qualifying deposit" for the savings streak is a Savings Bank deposit
+ * (savings_bank_transactions, type='deposit') — not a generic incoming
+ * Horizon payment. A Soroban contract deposit moves XLM *out* of the
+ * user's wallet into the savings_bank contract; it was never going to
+ * show up as a classic Horizon "payment" received by the wallet, which
+ * is what this used to check.
+ */
 export async function fetchWalletDeposits(
   stellarAddress: string,
   since: Date,
 ): Promise<HorizonPayment[]> {
-  const cursor = since.toISOString()
-  const url = `${HORIZON_TESTNET}/accounts/${stellarAddress}/payments?order=desc&limit=50&cursor=`
-  const res = await fetch(url)
-  if (!res.ok) throw new Error('Hindi ma-load ang Stellar transaction history.')
-  const json = await res.json()
-  const records: HorizonPayment[] = (json._embedded?.records ?? [])
-    .filter((r: HorizonPayment) =>
-      r.type === 'payment' &&
-      r.to === stellarAddress &&
-      parseFloat(r.amount) >= MIN_DEPOSIT_XLM &&
-      (r.asset_type === 'native') &&
-      new Date(r.created_at) >= new Date(cursor),
-    )
-  return records
+  const { data, error } = await supabase
+    .from('savings_bank_transactions')
+    .select('*')
+    .eq('stellar_address', stellarAddress)
+    .eq('type', 'deposit')
+    .gte('created_at', since.toISOString())
+    .order('created_at', { ascending: false })
+  if (error) throw new Error('Could not load your Savings Bank deposit history.')
+
+  return (data ?? [])
+    .filter(r => r.amount_xlm >= MIN_DEPOSIT_XLM)
+    .map(r => ({
+      id: r.id,
+      type: 'payment',
+      from: stellarAddress,
+      to: stellarAddress,
+      amount: String(r.amount_xlm),
+      asset_type: 'native',
+      transaction_hash: r.tx_hash,
+      created_at: r.created_at,
+    }))
 }
 
 export async function detectQualifyingDeposit(
