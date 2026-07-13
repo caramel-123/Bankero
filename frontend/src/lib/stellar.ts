@@ -78,7 +78,7 @@ export interface ScoreTierDef {
   max: number
   label: string
   color: string
-  loanMax: number       // max loan in XLM (≈ 1 XLM : ₱50, chosen so every tier — up to Elite's 1,000 XLM cap — lands on a clean whole number)
+  loanMax: number       // max loan in XLM — picked as round numbers up to Elite's 1,000 XLM cap. The peso figure shown alongside (xlmToPesoEstimate) uses the real market rate, so it won't be a round number — that's expected.
   interest: number      // flat interest rate %
   desc: string
 }
@@ -93,9 +93,15 @@ export const SCORE_TIERS: ScoreTierDef[] = [
   { min: 850, max: 850, label: 'Elite',         color: '#6366F1', loanMax: 1000, interest: 3.5, desc: 'Perfect score — maximum borrowing power' },
 ]
 
-/** Illustrative peso estimate shown next to loan limits — not used for any real conversion; Bankero only ever moves value in XLM. */
+// Snapshot of the real XLM/PHP market rate (~₱12.10–₱13.16 across exchanges
+// as of this writing — Coinbase, CoinGecko, Bybit, CoinMarketCap). This
+// drifts constantly since XLM is a live-traded asset; this is a point-in-time
+// reference, not a live feed.
+const XLM_TO_PHP_RATE = 12.20
+
+/** Illustrative peso estimate shown next to loan limits, at the real (unrounded) market rate — not used for any real conversion; Bankero only ever moves value in XLM. */
 export function xlmToPesoEstimate(xlm: number): string {
-  return '≈₱' + (xlm * 50).toLocaleString('en-PH')
+  return '≈₱' + (xlm * XLM_TO_PHP_RATE).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 export function scoreTier(score: number): { label: string; color: string; max: number; interest: number } {
