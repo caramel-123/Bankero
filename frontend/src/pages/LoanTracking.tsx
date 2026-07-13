@@ -20,7 +20,7 @@ type WalletHook = ReturnType<typeof useWallet>
 const SCORE_FACTORS = [
   {
     key: 'repayment_score', label: 'Repayment History', weight: 40, color: 'var(--green-soft)', Icon: TrendingUp,
-    desc: 'The single biggest factor. Every on-time repayment raises this; a default lowers it by 15 points.',
+    desc: 'Measures how reliably you pay back what you borrow — the ratio of loans you\'ve fully repaid against your total loan history, with a built-in trust buffer so a brand-new borrower can\'t hit a perfect score off one loan. It\'s the single biggest factor in your overall score: every on-time repayment raises it, while a default lowers it by a flat 15 points on top of an already-worse ratio.',
     formula: 'round( loans_repaid / (total_loans + 2) × 100 ) − (loans_defaulted × 15)',
     variables: [
       ['loans_repaid', 'Loans you have fully paid back.'],
@@ -36,7 +36,7 @@ const SCORE_FACTORS = [
   },
   {
     key: 'tx_score', label: 'Transaction Activity', weight: 25, color: '#60A5FA', Icon: RefreshCw,
-    desc: 'How active you are across Bankero features — Savings Bank deposits, savings streaks, and Paluwagan contributions all add capped bonus points here.',
+    desc: 'Measures how actively and consistently you use Bankero\'s savings and community features — not one-off activity, but a habit. Savings Bank deposits, weekly savings streaks, and on-time Paluwagan contributions each add their own capped bonus, rewarding people who keep showing up over time rather than making a single large deposit.',
     formula: 'min( 100, savings_bank_bonus + savings_streak_bonus + paluwagan_bonus )',
     variables: [
       ['savings_bank_bonus', '+2 per Savings Bank deposit, capped at 20 total.'],
@@ -52,7 +52,7 @@ const SCORE_FACTORS = [
   },
   {
     key: 'vouch_score', label: 'Community Vouches', weight: 20, color: '#FBBF24', Icon: Users,
-    desc: 'XLM staked by other members vouching for you. More total stake means a higher score.',
+    desc: 'Measures how much your community trusts you — real XLM that other members have staked to vouch for your reliability. Vouching isn\'t free: vouchers risk their own stake if you default, so every vouch is a genuine signal of trust, not just a click. More total stake, from more people, pushes this factor higher.',
     formula: 'min( 100, total_xlm_staked ÷ 10 )',
     variables: [
       ['total_xlm_staked', 'The sum of active XLM stakes from everyone currently vouching for you (minimum 50 XLM per vouch).'],
@@ -67,7 +67,7 @@ const SCORE_FACTORS = [
   },
   {
     key: 'anchor_score', label: 'Remittance', weight: 15, color: '#A78BFA', Icon: Banknote,
-    desc: 'AI-verified e-payment scans add points here — tap the camera icon to scan a receipt and grow this factor.',
+    desc: 'Measures real-world financial activity happening outside Bankero — e-wallet transfers, remittances, and other payments you scan with the camera icon. An AI verifier reads the screenshot and checks it\'s a genuine, non-duplicate transaction before it counts, so this factor reflects income and cash flow proof a lender can\'t see anywhere else in the app.',
     formula: 'min( 100, verified_scans × 2 )',
     variables: [
       ['verified_scans', 'The number of e-payment screenshots you’ve scanned with the camera that passed AI verification.'],
@@ -462,39 +462,36 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
         </div>
 
         {/* How your score is calculated */}
-        <div className="card" style={{ padding: '20px 24px', marginBottom: 24 }}>
-          <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 4 }}>How your score is calculated</h3>
-          <p style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 18 }}>Tap the info button above for full formulas and examples.</p>
+        <div className="card" style={{ padding: '24px 28px', marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+            <h3 className="heading" style={{ fontSize: 16, color: 'var(--ink)' }}>How your score is calculated</h3>
+            {!scoreLoading && (
+              <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>Live · Stellar testnet</span>
+            )}
+          </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
             {SCORE_FACTORS.map(f => {
-              const Icon = f.Icon
               const value = (scoreRecord?.[f.key] ?? 0) as number
               return (
-                <div key={f.key} style={{ borderRadius: 'var(--r-lg)', border: '1px solid var(--border-2)', overflow: 'hidden', background: 'var(--surface)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 'var(--r-md)', background: f.color + '18', display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
-                      <Icon size={15} strokeWidth={2} />
+                <div key={f.key}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{f.label}</span>
+                      <span style={{ fontSize: 12, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '1px 7px', borderRadius: 'var(--r-full)' }}>{f.weight}%</span>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{f.label}</span>
-                        <span style={{ fontSize: 11, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '1px 7px', borderRadius: 'var(--r-full)' }}>{f.weight}%</span>
-                      </div>
-                      <div className="progress-track" style={{ marginTop: 7, height: 6 }}>
-                        {scoreLoading
-                          ? <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: 'var(--r-full)' }} />
-                          : <div className="progress-fill" style={{ width: `${value}%`, background: f.color }} />
-                        }
-                      </div>
-                    </div>
-                    <span className="score-num" style={{ fontSize: 15, color: 'var(--ink-2)', flexShrink: 0 }}>
-                      {scoreLoading ? '—' : value}<span style={{ fontSize: 11, color: 'var(--ink-4)' }}>/100</span>
+                    <span className="score-num" style={{ fontSize: 15, color: 'var(--ink-2)' }}>
+                      {scoreLoading ? '—' : value}
+                      <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>/100</span>
                     </span>
                   </div>
-                  <div style={{ background: 'var(--surface-2)' }}>
-                    <p style={{ margin: 0, padding: '0 16px 14px 60px', fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.55 }}>{f.desc}</p>
+                  <div className="progress-track">
+                    {scoreLoading
+                      ? <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: 'var(--r-full)' }} />
+                      : <div className="progress-fill" style={{ width: `${value}%`, background: f.color }} />
+                    }
                   </div>
+                  <p style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.55, marginTop: 6 }}>{f.desc}</p>
                 </div>
               )
             })}
