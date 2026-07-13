@@ -2,6 +2,7 @@
 import {
   saveLoanToSupabase,
   updateLoanStatusInSupabase,
+  deleteLoanFromSupabase,
   getLoansFromSupabase,
   getAllLoansFromSupabase,
   upsertScoreCache,
@@ -157,6 +158,12 @@ export async function updateLoanStatus(id: string, status: LoanStatus, extra?: {
     console.error('[Bankero] Loan status update to Supabase failed (cache updated):', err)
     throw err  // re-throw so callers (lender dashboard) can surface the error
   }
+}
+
+/** Cancel a loan that hasn't been disbursed yet (borrower changed their mind / wrong amount). */
+export async function deleteLoan(id: string): Promise<void> {
+  cacheSet(cacheGet().filter(l => l.id !== id))
+  await deleteLoanFromSupabase(id)
 }
 
 export function daysUntil(iso: string): number {

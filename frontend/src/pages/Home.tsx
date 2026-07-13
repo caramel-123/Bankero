@@ -159,13 +159,6 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
             >
               <Flame size={18} color="#F59E0B" strokeWidth={2} />
             </button>
-            <button
-              onClick={() => nav('/scan')}
-              title="Scan E-Payment"
-              style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(34,197,94,.1)', border: '1.5px solid rgba(34,197,94,.3)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
-            >
-              <Camera size={18} color="var(--green)" strokeWidth={2} />
-            </button>
           </div>
         </div>
 
@@ -250,7 +243,7 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
                 { label: 'Repayment History', weight: '40%', score: record?.repayment_score ?? 0, color: 'var(--green-soft)', hint: 'Repay loans on time' },
                 { label: 'Transactions',      weight: '25%', score: record?.tx_score ?? 0,         color: '#60A5FA',           hint: 'Stay active on Stellar' },
                 { label: 'Community Trust',   weight: '20%', score: record?.vouch_score ?? 0,      color: '#FBBF24',           hint: 'Get vouched by peers' },
-                { label: 'Remittance',        weight: '15%', score: record?.anchor_score ?? 0,     color: '#A78BFA',           hint: 'Link GCash, or scan a verified e-payment' },
+                { label: 'Remittance',        weight: '15%', score: record?.anchor_score ?? 0,     color: '#A78BFA',           hint: 'Scan a verified e-payment' },
               ].map(f => (
                 <div key={f.label}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
