@@ -137,13 +137,14 @@ export async function signUpBorrower(email: string, password: string, displayNam
   if (!userId) return // email confirmation required — profile row is created on first sign-in after confirming
 
   const [firstName, ...rest] = displayName.trim().split(/\s+/)
-  await supabase.from('users').insert({
+  const { error: profileError } = await supabase.from('users').insert({
     auth_user_id: userId,
     email,
     display_name: displayName,
     first_name: firstName || null,
     last_name: rest.join(' ') || null,
   })
+  if (profileError) throw new Error(profileError.message)
 }
 
 /** Ensure a `users` row exists for the current auth session (covers Google sign-in, which has no explicit signUp step). */
