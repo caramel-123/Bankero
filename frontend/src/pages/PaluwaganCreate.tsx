@@ -43,7 +43,6 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
   const [frequency, setFrequency] = useState<'weekly' | 'monthly'>('monthly')
   const [members, setMembers] = useState<MemberEntry[]>([
     { stellar_address: '', display_name: '' },
-    { stellar_address: '', display_name: '' },
   ])
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
@@ -56,7 +55,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
   }
 
   function removeMember(i: number) {
-    if (members.length <= 2) return
+    if (members.length <= 1) return
     setMembers(m => m.filter((_, idx) => idx !== i))
   }
 
@@ -72,7 +71,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
   const potPerCycle = contributionXlm * allMembers.length
 
   const step0Valid = groupName.trim().length >= 3 && contributionXlm >= 10
-  const step1Valid = members.every(m => m.stellar_address.length >= 10) && members.length >= 2
+  const step1Valid = members.every(m => m.stellar_address.length >= 10) && members.length >= 1
   const totalMembers = allMembers.length // organizer included
 
   async function handleSubmit() {
@@ -213,7 +212,7 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <p style={{ fontSize: 14, color: 'var(--ink-3)', margin: 0 }}>
-              Add members (minimum 2, maximum 9 besides yourself). The order determines who receives the pot each cycle.
+              Add members (minimum 1, maximum 9 besides yourself). The order determines who receives the pot each cycle.
             </p>
 
             {/* Organizer note */}
