@@ -22,6 +22,8 @@
 | `vouching` | `CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F` |
 | `savings_bank` | `CAOWTHTJRNWKRF6BLFWQKK3H5AGTZI6HGHRUGIY2R2MCS4RHH2FBTSKS` |
 
+> See [`docs/savings-bank-deployment.md`](docs/savings-bank-deployment.md) for the full step-by-step deployment log (useful as a runbook for redeploying to a new environment, e.g. mainnet).
+
 > Verify on Stellar Explorer:
 > - [credit_score on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE)
 > - [loan_registry on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI)
