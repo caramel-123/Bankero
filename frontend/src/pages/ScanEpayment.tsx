@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload, CheckCircle, XCircle, Loader, Camera, Clock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import {
-  uploadEpaymentImage, extractEpaymentData, validateEpaymentScan, recordEpaymentScan, getEpaymentScans, MAX_SCAN_BONUS,
+  uploadEpaymentImage, extractEpaymentData, validateEpaymentScan, recordEpaymentScan, getEpaymentScans,
+  hashEpaymentImage, findDuplicateImage, MAX_SCAN_BONUS,
 } from '../services/epaymentScan'
 import type { EpaymentValidationResult, EpaymentScan } from '../types/epaymentScan'
 import GuestActionModal from '../components/GuestActionModal'
@@ -162,6 +163,15 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
       const { data: user } = await supabase.from('users').select('id').eq('wallet_address', wallet.publicKey).maybeSingle()
       if (!user) throw new Error('Your account was not found.')
 
+      const imageHash = await hashEpaymentImage(file)
+
+      const duplicate = await findDuplicateImage(imageHash)
+      if (duplicate) {
+        setResult(duplicate)
+        setDone(true)
+        return
+      }
+
       setStep(0)
       const imageUrl = await uploadEpaymentImage(file, user.id)
 
@@ -169,11 +179,11 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
       const data = await extractEpaymentData(imageUrl)
 
       setStep(2)
-      const validation = await validateEpaymentScan(data)
+      const validation = await validateEpaymentScan(data, imageHash)
       setResult(validation)
 
       setStep(3)
-      await recordEpaymentScan(user.id, wallet.publicKey, imageUrl, validation)
+      await recordEpaymentScan(user.id, wallet.publicKey, imageUrl, imageHash, validation)
       loadHistory(user.id)
       setDone(true)
     } catch (e: unknown) {

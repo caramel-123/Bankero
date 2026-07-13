@@ -2,6 +2,40 @@ import { supabase } from '../lib/supabase'
 import { recordVerifiedScan } from '../lib/anchorStore'
 import type { EpaymentOCRData, EpaymentValidationResult, EpaymentScan } from '../types/epaymentScan'
 
+/** SHA-256 of the raw image bytes — catches the exact same screenshot being resubmitted even if OCR reads a different (or no) reference number each time. */
+export async function hashEpaymentImage(file: File): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * Check for an exact re-upload before spending an OCR call or storage
+ * write on it. Returns the original scan's extracted fields (read back
+ * from what was saved the first time) so the UI can show the user
+ * exactly which past submission they're duplicating.
+ */
+export async function findDuplicateImage(imageHash: string): Promise<EpaymentValidationResult | null> {
+  const { data: existing } = await supabase
+    .from('epayment_scans')
+    .select('extracted_amount, extracted_reference, extracted_date, extracted_status')
+    .eq('image_hash', imageHash)
+    .maybeSingle()
+  if (!existing) return null
+
+  return {
+    passed: false,
+    errors: ['This exact receipt image has already been submitted.'],
+    isDuplicate: true,
+    data: {
+      provider: null,
+      amount: existing.extracted_amount,
+      reference_number: existing.extracted_reference,
+      transaction_date: existing.extracted_date,
+      transaction_status: existing.extracted_status,
+    },
+  }
+}
+
 export async function uploadEpaymentImage(file: File, userId: string): Promise<string> {
   const path = `${userId}/scan_${Date.now()}_${file.name}`
   const { error } = await supabase.storage.from('bankero-epayment-scans').upload(path, file, { upsert: false })
@@ -28,15 +62,28 @@ export async function extractEpaymentData(imageUrl: string): Promise<EpaymentOCR
   return data as EpaymentOCRData
 }
 
-export async function validateEpaymentScan(data: EpaymentOCRData): Promise<EpaymentValidationResult> {
+export async function validateEpaymentScan(data: EpaymentOCRData, imageHash: string): Promise<EpaymentValidationResult> {
   const errors: string[] = []
 
   if (!data.amount || data.amount <= 0) {
     errors.push('Could not read a valid amount from this transaction.')
   }
+
+  let isDuplicate = false
+
+  const { data: sameImage } = await supabase
+    .from('epayment_scans')
+    .select('id')
+    .eq('image_hash', imageHash)
+    .maybeSingle()
+  if (sameImage) {
+    errors.push('This exact receipt image has already been submitted.')
+    isDuplicate = true
+  }
+
   if (!data.reference_number) {
     errors.push('No reference number was found on this transaction.')
-  } else {
+  } else if (!sameImage) {
     const { data: existing } = await supabase
       .from('epayment_scans')
       .select('id')
@@ -44,6 +91,7 @@ export async function validateEpaymentScan(data: EpaymentOCRData): Promise<Epaym
       .maybeSingle()
     if (existing) {
       errors.push('This transaction has already been scanned before.')
+      isDuplicate = true
     }
   }
   if (data.transaction_status) {
@@ -55,7 +103,7 @@ export async function validateEpaymentScan(data: EpaymentOCRData): Promise<Epaym
     errors.push('Could not read the transaction status.')
   }
 
-  return { passed: errors.length === 0, errors, data }
+  return { passed: errors.length === 0, errors, data, isDuplicate }
 }
 
 const MAX_SCAN_BONUS = 20
@@ -66,6 +114,7 @@ export async function recordEpaymentScan(
   userId: string,
   stellarAddress: string,
   imageUrl: string,
+  imageHash: string,
   validation: EpaymentValidationResult,
 ): Promise<EpaymentScan> {
   const bonus = validation.passed ? BONUS_PER_SCAN : 0
@@ -74,6 +123,7 @@ export async function recordEpaymentScan(
     user_id: userId,
     stellar_address: stellarAddress,
     image_url: imageUrl,
+    image_hash: imageHash,
     extracted_amount: validation.data.amount,
     extracted_reference: validation.data.reference_number,
     extracted_date: validation.data.transaction_date,
@@ -82,7 +132,13 @@ export async function recordEpaymentScan(
     validation_errors: validation.errors.length > 0 ? validation.errors : null,
     score_bonus_applied: bonus,
   }).select().single()
-  if (error) throw new Error(`Could not save this scan: ${error.message}`)
+  if (error) {
+    // 23505 = unique_violation — the DB-level backstop for image_hash/
+    // extracted_reference caught a duplicate that raced past the
+    // check in validateEpaymentScan.
+    if (error.code === '23505') throw new Error('This receipt has already been submitted.')
+    throw new Error(`Could not save this scan: ${error.message}`)
+  }
 
   if (validation.passed) recordVerifiedScan(stellarAddress)
 

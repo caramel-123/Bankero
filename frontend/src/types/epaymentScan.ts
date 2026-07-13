@@ -10,6 +10,8 @@ export interface EpaymentValidationResult {
   passed: boolean
   errors: string[]
   data: EpaymentOCRData
+  /** True when this exact image or reference number already has a saved scan — no new row should be inserted. */
+  isDuplicate: boolean
 }
 
 export interface EpaymentScan {
@@ -17,6 +19,7 @@ export interface EpaymentScan {
   user_id: string
   stellar_address: string
   image_url: string
+  image_hash: string | null
   extracted_amount: number | null
   extracted_reference: string | null
   extracted_date: string | null
