@@ -236,17 +236,12 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
           <div className="card" style={{ padding: '24px 28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
               <h3 className="heading" style={{ fontSize: 16, color: 'var(--ink)' }}>Score Breakdown</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {!isLoading && (
-                  <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>Live · Stellar testnet</span>
-                )}
-                <button
-                  onClick={() => setShowInfoModal(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 'var(--r-full)', border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--ink-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-                >
-                  <Info size={12} strokeWidth={2} /> How it calculates my score
-                </button>
-              </div>
+              <button
+                onClick={() => setShowInfoModal(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 'var(--r-full)', border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--ink-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+              >
+                <Info size={12} strokeWidth={2} /> How it calculates my score
+              </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>

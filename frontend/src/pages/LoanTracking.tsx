@@ -296,12 +296,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
             }}
           >
             <h3 className="heading" style={{ fontSize: 16, color: 'var(--ink)' }}>How your score is calculated</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              {!scoreLoading && (
-                <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>Live · Stellar testnet</span>
-              )}
-              <ChevronDown size={18} strokeWidth={2} color="var(--ink-4)" style={{ transform: showBreakdown ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
-            </div>
+            <ChevronDown size={18} strokeWidth={2} color="var(--ink-4)" style={{ transform: showBreakdown ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
           </button>
 
           {showBreakdown && (
