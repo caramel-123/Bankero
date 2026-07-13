@@ -99,30 +99,31 @@ export function getLoans(): LocalLoan[] {
   return cacheGet()
 }
 
-/** Save new loan to Supabase + cache */
+/**
+ * Save a new loan application. Pushes to Supabase first and throws on
+ * failure — the lender only ever reads from Supabase directly, so a loan
+ * that only exists in the local cache is invisible to them, and the
+ * borrower must be told it didn't actually go through rather than being
+ * shown a false success screen. Only cache locally once the shared write
+ * has succeeded.
+ */
 export async function saveLoan(loan: LocalLoan): Promise<void> {
-  // Optimistic cache update
+  await saveLoanToSupabase({
+    id: loan.id,
+    borrower_wallet: loan.wallet,
+    amount: loan.amount,
+    interest: loan.interest,
+    total: loan.total,
+    purpose: loan.purpose ?? '',
+    term: loan.term,
+    notes: loan.notes ?? '',
+    status: loan.status,
+    applied_at: loan.appliedAt,
+  })
+
   const loans = cacheGet()
   loans.unshift(loan)
   cacheSet(loans)
-
-  // Push to Supabase (non-fatal — localStorage is the safety net)
-  try {
-    await saveLoanToSupabase({
-      id: loan.id,
-      borrower_wallet: loan.wallet,
-      amount: loan.amount,
-      interest: loan.interest,
-      total: loan.total,
-      purpose: loan.purpose ?? '',
-      term: loan.term,
-      notes: loan.notes ?? '',
-      status: loan.status,
-      applied_at: loan.appliedAt,
-    })
-  } catch (err) {
-    console.error('[Bankero] Loan save to Supabase failed (stored locally):', err)
-  }
 }
 
 /** Update loan status in Supabase + cache */
