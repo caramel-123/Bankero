@@ -13,7 +13,7 @@ import { fetchAllLoans, updateLoanStatus, computeLocalScore, getScoreCache, type
 import { fetchOnChainScore } from '../lib/contracts'
 import { computeAnchorScore } from '../lib/anchorStore'
 import {
-  ensureLenderProfile, signOutLender, updateLenderSettings, type Lender,
+  ensureLenderProfile, signOutLender, updateLenderSettings, getBorrowerNames, type Lender,
 } from '../lib/supabase'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -21,6 +21,7 @@ type WalletHook = ReturnType<typeof useWallet>
 // ── Borrower Profile Modal ────────────────────────────────
 interface BorrowerProfile {
   wallet: string
+  name: string | null
   score: number
   repayment: number
   tx: number
@@ -54,7 +55,10 @@ function BorrowerProfileModal({ profile, onClose }: { profile: BorrowerProfile; 
         {/* Header */}
         <div style={{ padding: '22px 24px 16px', borderBottom: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink-3)', marginBottom: 4 }}>{formatWallet(profile.wallet)}</p>
+            <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', marginBottom: 2 }}>{profile.name ?? formatWallet(profile.wallet)}</p>
+            {profile.name && (
+              <p style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink-3)', marginBottom: 4 }}>{formatWallet(profile.wallet)}</p>
+            )}
             <span style={{ display: 'inline-flex', padding: '3px 10px', borderRadius: 999, background: tier.color, color: '#fff', fontSize: 12, fontWeight: 700 }}>{tier.label}</span>
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -211,6 +215,17 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
     if (lender) refreshLoans()
   }, [lender])
 
+  // Borrower names for the loan lists — wallets are pseudonymous, but a
+  // borrower's real name is known once they've signed up (see PATCH
+  // 1.7.12's login-first flow). Falls back to formatWallet() below for
+  // legacy wallet-only rows with no linked profile.
+  const [borrowerNames, setBorrowerNames] = useState<Record<string, string>>({})
+  useEffect(() => {
+    const wallets = loans.map(l => l.wallet)
+    if (wallets.length === 0) return
+    getBorrowerNames(wallets).then(setBorrowerNames)
+  }, [loans])
+
   async function approve(id: string) {
     await updateLoanStatus(id, 'Approved', { lenderWallet: lender?.wallet_address })
     refreshLoans()
@@ -312,6 +327,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       const anchor = Math.max(onChain?.anchor_score ?? 0, computeAnchorScore(wallet))
       setProfile({
         wallet,
+        name: borrowerNames[wallet] ?? null,
         score: computeLocalScore(repayment, tx, vouch, anchor),
         repayment, tx, vouch, anchor,
         totalLoans: Math.max(onChain?.total_loans ?? 0, local.total_loans, borrowerLoans.length),
@@ -325,6 +341,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       const anchor = computeAnchorScore(wallet)
       setProfile({
         wallet,
+        name: borrowerNames[wallet] ?? null,
         score: computeLocalScore(local.repayment_score, 0, 0, anchor),
         repayment: local.repayment_score, tx: 0, vouch: 0, anchor,
         totalLoans: Math.max(local.total_loans, borrowerLoans.length),
@@ -513,8 +530,11 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       : <Users size={16} strokeWidth={2} color="var(--green)" />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{formatWallet(loan.wallet)}</p>
-                    <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{loan.purpose} · {loan.term} days · Applied {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}</p>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{borrowerNames[loan.wallet] ?? formatWallet(loan.wallet)}</p>
+                    <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
+                      {borrowerNames[loan.wallet] && <span style={{ fontFamily: 'var(--font-mono)' }}>{formatWallet(loan.wallet)} · </span>}
+                      {loan.purpose} · {loan.term} days · Applied {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
+                    </p>
                   </div>
                   <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
                   <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
@@ -546,8 +566,11 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                         : <Users size={16} strokeWidth={2} color="#3B82F6" />}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{formatWallet(loan.wallet)}</p>
-                      <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{loan.purpose} · {loan.term} days</p>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{borrowerNames[loan.wallet] ?? formatWallet(loan.wallet)}</p>
+                      <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
+                        {borrowerNames[loan.wallet] && <span style={{ fontFamily: 'var(--font-mono)' }}>{formatWallet(loan.wallet)} · </span>}
+                        {loan.purpose} · {loan.term} days
+                      </p>
                     </div>
                     <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
                     <div onClick={e => e.stopPropagation()}>
@@ -595,8 +618,11 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       : <Users size={16} strokeWidth={2} color="var(--ink-4)" />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{formatWallet(loan.wallet)}</p>
-                    <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{loan.purpose} · {loan.term} days · {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}</p>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{borrowerNames[loan.wallet] ?? formatWallet(loan.wallet)}</p>
+                    <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
+                      {borrowerNames[loan.wallet] && <span style={{ fontFamily: 'var(--font-mono)' }}>{formatWallet(loan.wallet)} · </span>}
+                      {loan.purpose} · {loan.term} days · {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
+                    </p>
                   </div>
                   <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
                   <StatusPill status={loan.status} />

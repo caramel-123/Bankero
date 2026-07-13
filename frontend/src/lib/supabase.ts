@@ -107,6 +107,25 @@ export async function getUser(walletAddress: string): Promise<User | null> {
   return data as User | null
 }
 
+/** Bulk name lookup for a list of wallets (lender loan lists) — wallet_address → display name. */
+export async function getBorrowerNames(walletAddresses: string[]): Promise<Record<string, string>> {
+  const wallets = [...new Set(walletAddresses)].filter(Boolean)
+  if (wallets.length === 0) return {}
+
+  const { data } = await supabase
+    .from('users')
+    .select('wallet_address, display_name, first_name, last_name')
+    .in('wallet_address', wallets)
+
+  const names: Record<string, string> = {}
+  for (const row of data ?? []) {
+    if (!row.wallet_address) continue
+    const name = row.display_name || [row.first_name, row.last_name].filter(Boolean).join(' ')
+    if (name) names[row.wallet_address] = name
+  }
+  return names
+}
+
 // ── Borrower Auth ──────────────────────────────────────────────────────────────
 // Identity now exists independently of a wallet — a `users` row is created at
 // signup (email/password or Google) and a wallet is linked to it later, once
