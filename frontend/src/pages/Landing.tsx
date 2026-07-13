@@ -469,7 +469,7 @@ export default function Landing() {
               {[
                 { icon: <ShieldCheck size={14} strokeWidth={2} />, text: 'Soroban smart contracts' },
                 { icon: <Star size={14} strokeWidth={2} />, text: '300–850 score range' },
-                { icon: <Zap size={14} strokeWidth={2} />, text: '5–100 XLM loans' },
+                { icon: <Zap size={14} strokeWidth={2} />, text: '10–200 XLM loans' },
               ].map(({ icon, text }, i) => (
                 <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'rgba(255,255,255,.6)' }}>
                   <span style={{ color: 'rgba(255,255,255,.45)' }}>{icon}</span>
@@ -509,7 +509,7 @@ export default function Landing() {
             {[
               { num: '01', icon: <Wallet size={20} strokeWidth={2} />, title: 'Connect your Stellar wallet', desc: 'Link Freighter in seconds. Your wallet address is your financial identity — no ID required, no paperwork.' },
               { num: '02', icon: <TrendingUp size={20} strokeWidth={2} />, title: 'Build your score', desc: 'Your 300–850 score grows with every on-time repayment, community vouch, wallet transaction, and remittance record.' },
-              { num: '03', icon: <Zap size={20} strokeWidth={2} />, title: 'Access micro-loans', desc: 'Higher score = higher limit. Borrow up to 100 XLM at a flat 5% rate with 7, 14, or 30-day terms.' },
+              { num: '03', icon: <Zap size={20} strokeWidth={2} />, title: 'Access micro-loans', desc: 'Higher score = higher limit. Borrow up to 200 XLM at a flat 5% rate with 7, 14, or 30-day terms.' },
             ].map((s, i) => (
               <div key={s.num} className="lg reveal" style={{
                 transitionDelay: `${i * 120}ms`,

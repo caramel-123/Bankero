@@ -182,7 +182,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   const [disburseTxHash, setDisburseTxHash] = useState<string | null>(null)
 
   // Settings form state (mirrors lender profile)
-  const [maxLoan, setMaxLoan]       = useState(100)
+  const [maxLoan, setMaxLoan]       = useState(200)
   const [interestRate, setInterest] = useState(5)
   const [minScore, setMinScore]     = useState(300)
   const [bio, setBio]               = useState('')
@@ -707,7 +707,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
               {/* Lending preferences */}
               <div className="card" style={{ padding: 24 }}>
                 <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 18 }}>Max Loan Amount (XLM)</h3>
-                <input className="input" type="number" value={maxLoan} onChange={e => setMaxLoan(Number(e.target.value))} min={5} max={1000} />
+                <input className="input" type="number" value={maxLoan} onChange={e => setMaxLoan(Number(e.target.value))} min={10} max={2000} />
                 <p style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 6 }}>Maximum XLM you're willing to lend per borrower</p>
               </div>
 
