@@ -31,6 +31,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const [notes,     setNotes]     = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [showLadder, setShowLadder] = useState(false)
   const [showGuestModal, setShowGuestModal] = useState(false)
 
@@ -59,6 +60,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
     if (wallet.isGuest) { setShowGuestModal(true); return }
     if (activeLoan || submitting) return
     setSubmitting(true)
+    setSubmitError(null)
     if (wallet.publicKey) {
       const loan: LocalLoan = {
         id: crypto.randomUUID(),
@@ -68,7 +70,14 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
         dueAt: null,
         wallet: wallet.publicKey ?? 'unknown',
       }
-      try { await saveLoan(loan) } catch (err) { console.error('[Bankero] saveLoan error:', err) }
+      try {
+        await saveLoan(loan)
+      } catch (err: any) {
+        console.error('[Bankero] saveLoan error:', err)
+        setSubmitting(false)
+        setSubmitError(err?.message ?? 'Could not submit your application — please try again.')
+        return
+      }
     }
     await new Promise(r => setTimeout(r, 800))
     setSubmitted(true)
@@ -296,6 +305,14 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
           </div>
 
           {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
+
+          {submitError && (
+            <div style={{ display: 'flex', gap: 10, padding: '12px 16px', borderRadius: 'var(--r-md)', background: '#FEF2F2', border: '1px solid #FECACA', marginBottom: 16, fontSize: 13, color: '#DC2626', lineHeight: 1.55 }}>
+              <AlertTriangle size={14} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span><strong>Couldn't submit your application.</strong> {submitError} Please try again.</span>
+            </div>
+          )}
+
           <button onClick={handleSubmit} disabled={submitting} className="btn btn-primary" style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: submitting ? 0.65 : 1 }}>
             {submitting
               ? <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Submitting…</>
