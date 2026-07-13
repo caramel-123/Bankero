@@ -8,6 +8,13 @@
 -- "could not create unique index ... is duplicated". Keep the oldest
 -- row per duplicated reference/hash and drop the rest, then (re)create
 -- the indexes from 016.
+--
+-- Self-contained (re-adds the image_hash column too): 016 ran as one
+-- multi-statement script that errored partway through, and Supabase's
+-- SQL editor wraps that in a single transaction — so everything in it,
+-- including the `alter table add column`, was rolled back.
+
+alter table epayment_scans add column if not exists image_hash text;
 
 -- (created_at, id) tuple comparison breaks ties when two rows share
 -- the exact same timestamp, guaranteeing exactly one survivor per
