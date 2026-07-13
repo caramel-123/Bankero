@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home as HomeIcon, CreditCard, Users, UserCircle, FileText, LogOut,
-  ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, MessageSquare, PiggyBank, Flame, Camera, Wallet,
+  ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, MessageSquare, PiggyBank, Flame, Camera, Wallet, Info,
 } from 'lucide-react'
 import { stellarExplorerUrl } from '../lib/stellar'
 import { scoreTier, scorePercent, formatWallet, formatXlmAmount, xlmToPesoEstimate } from '../lib/stellar'
@@ -10,6 +10,7 @@ import { useScore } from '../hooks/useScore'
 import GuestBanner from '../components/GuestBanner'
 import FeedbackModal from '../components/FeedbackModal'
 import BottomNav from '../components/BottomNav'
+import ScoreInfoModal from '../components/ScoreInfoModal'
 import { DEMO_SCORE_RECORD } from '../lib/demoData'
 import type { useWallet } from '../hooks/useWallet'
 import type { User } from '../lib/supabase'
@@ -21,6 +22,7 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
   const record = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
   const [copied, setCopied] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
+  const [showInfoModal, setShowInfoModal] = useState(false)
 
   function copyAddress() {
     if (!wallet.publicKey || wallet.isGuest) return
@@ -39,6 +41,7 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
   return (
     <div className="app-layout" style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: 'var(--surface-2)', fontFamily: 'var(--font)' }}>
       {showFeedback && <FeedbackModal walletAddress={wallet.publicKey} isGuest={wallet.isGuest} onClose={() => setShowFeedback(false)} />}
+      {showInfoModal && <ScoreInfoModal onClose={() => setShowInfoModal(false)} />}
 
       {/* ── SIDEBAR (desktop) ────────────────────────────────── */}
       <aside className="app-sidebar" style={{
@@ -233,9 +236,17 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
           <div className="card" style={{ padding: '24px 28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
               <h3 className="heading" style={{ fontSize: 16, color: 'var(--ink)' }}>Score Breakdown</h3>
-              {!isLoading && (
-                <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>Live · Stellar testnet</span>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {!isLoading && (
+                  <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>Live · Stellar testnet</span>
+                )}
+                <button
+                  onClick={() => setShowInfoModal(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 'var(--r-full)', border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--ink-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <Info size={12} strokeWidth={2} /> How it calculates my score
+                </button>
+              </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
