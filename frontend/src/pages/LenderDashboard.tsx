@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Home, Users, CreditCard, BarChart2, Settings, UserCircle,
+  Home, Users, CreditCard, BarChart2, UserCircle,
   LogOut, Check, X, Banknote, TrendingUp, AlertCircle,
   Clock, Save, RefreshCw, Lock, Shield, ExternalLink,
 } from 'lucide-react'
@@ -236,7 +236,6 @@ const PAGES = [
   { id: 'Dashboard', Icon: Home },
   { id: 'Loans',     Icon: CreditCard },
   { id: 'Reports',   Icon: BarChart2 },
-  { id: 'Settings',  Icon: Settings },
 ]
 
 function StatusPill({ status }: { status: string }) {
@@ -526,7 +525,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
 
         <div style={{ marginTop: 'auto' }}>
           <button onClick={() => setPage('Settings')} className={`sidenav-btn${page === 'Settings' ? ' active' : ''}`}>
-            <UserCircle size={16} strokeWidth={2} /> My Account
+            <UserCircle size={16} strokeWidth={2} /> My Profile
           </button>
           <button onClick={handleSignOut} className="sidenav-btn">
             <LogOut size={14} strokeWidth={2} /> Sign Out
@@ -799,8 +798,8 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
         {/* ── SETTINGS ──────────────────────────────────── */}
         {page === 'Settings' && (
           <div>
-            <h1 className="heading" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 6 }}>Settings</h1>
-            <p style={{ color: 'var(--ink-3)', fontSize: 14, marginBottom: 28 }}>Your lending preferences — saved to your Bankero profile.</p>
+            <h1 className="heading" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 6 }}>My Profile</h1>
+            <p style={{ color: 'var(--ink-3)', fontSize: 14, marginBottom: 28 }}>Your profile and lending preferences — saved to your Bankero account.</p>
             <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 720 }}>
               {/* Profile */}
               <div className="card" style={{ padding: 24, gridColumn: '1/-1' }}>
@@ -853,10 +852,10 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       {/* ── MOBILE BOTTOM NAV ─────────────────────────────── */}
       <nav className="mobile-bottom-nav">
         {[
-          { icon: Home,       label: 'Dashboard', pageId: 'Dashboard' },
-          { icon: CreditCard, label: 'Loans',     pageId: 'Loans' },
-          { icon: BarChart2,  label: 'Reports',   pageId: 'Reports' },
-          { icon: Settings,   label: 'Settings',  pageId: 'Settings' },
+          { icon: Home,       label: 'Dashboard',  pageId: 'Dashboard' },
+          { icon: CreditCard, label: 'Loans',      pageId: 'Loans' },
+          { icon: BarChart2,  label: 'Reports',    pageId: 'Reports' },
+          { icon: UserCircle, label: 'My Profile', pageId: 'Settings' },
         ].map(n => {
           const Icon = n.icon
           const active = page === n.pageId
