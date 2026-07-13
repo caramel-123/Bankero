@@ -29,6 +29,10 @@ const SCORE_FACTORS = [
       ['+2', 'A "trust buffer" — stops brand-new borrowers from hitting a perfect score after just 1–2 loans. It matters less the longer your history gets.'],
       ['× 15', 'A flat penalty subtracted per default, on top of the ratio already being worse.'],
     ],
+    example: [
+      '7 loans total, 6 repaid, 1 defaulted →',
+      'round( 6 ÷ (7+2) × 100 ) − (1 × 15) = round(66.7) − 15 = 67 − 15 = 52',
+    ],
   },
   {
     key: 'tx_score', label: 'Transaction Activity', weight: 25, color: '#60A5FA', Icon: RefreshCw,
@@ -40,6 +44,11 @@ const SCORE_FACTORS = [
       ['paluwagan_bonus', '+3 per on-time Paluwagan contribution, capped at 15 per group — but stacks across multiple groups.'],
       ['min(100, …)', 'The three bonuses are added together, then capped so the total can never exceed 100.'],
     ],
+    example: [
+      '6 Savings Bank deposits, 2 streak milestones, 4 on-time Paluwagan contributions →',
+      'savings_bank_bonus = 6×2 = 12   savings_streak_bonus = 2×10 = 20   paluwagan_bonus = 4×3 = 12',
+      'min( 100, 12+20+12 ) = min(100, 44) = 44',
+    ],
   },
   {
     key: 'vouch_score', label: 'Community Vouches', weight: 20, color: '#FBBF24', Icon: Users,
@@ -50,6 +59,11 @@ const SCORE_FACTORS = [
       ['÷ 10', 'Converts staked XLM into score points — 1,000 XLM staked in total reaches the maximum score of 100.'],
       ['min(100, …)', 'Caps the score at 100 no matter how much is staked beyond that.'],
     ],
+    example: [
+      '3 members vouch for you — 200, 150, and 150 XLM staked →',
+      'total_xlm_staked = 200+150+150 = 500',
+      'min( 100, 500 ÷ 10 ) = min(100, 50) = 50',
+    ],
   },
   {
     key: 'anchor_score', label: 'Remittance', weight: 15, color: '#A78BFA', Icon: Banknote,
@@ -59,6 +73,10 @@ const SCORE_FACTORS = [
       ['verified_scans', 'The number of e-payment screenshots you’ve scanned with the camera that passed AI verification.'],
       ['× 2', 'Each verified scan is worth 2 points, capped at 20 points total from scanning.'],
       ['min(100, …)', 'Keeps the overall factor within the 0–100 scale.'],
+    ],
+    example: [
+      '5 verified e-payment scans →',
+      'min( 100, 5 × 2 ) = min(100, 10) = 10',
     ],
   },
 ] as const
@@ -205,12 +223,19 @@ function ScoreInfoModal({ onClose }: { onClose: () => void }) {
                   <code style={{ fontSize: 12, color: '#4ADE80', fontFamily: 'monospace', whiteSpace: 'pre' }}>{f.formula}</code>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
                   {f.variables.map(([term, meaning]) => (
                     <div key={term} style={{ display: 'flex', gap: 8, fontSize: 12.5, lineHeight: 1.5 }}>
                       <code style={{ color: f.color, fontFamily: 'monospace', fontWeight: 700, flexShrink: 0 }}>{term}</code>
                       <span style={{ color: 'var(--ink-3)' }}>{meaning}</span>
                     </div>
+                  ))}
+                </div>
+
+                <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '12px 14px', border: '1px solid var(--border-2)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>Example</div>
+                  {f.example.map((line, i) => (
+                    <p key={i} style={{ fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.6, margin: 0, fontFamily: i > 0 ? 'monospace' : 'inherit' }}>{line}</p>
                   ))}
                 </div>
               </div>
