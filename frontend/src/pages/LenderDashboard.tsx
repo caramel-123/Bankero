@@ -725,6 +725,23 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                     </p>
                   </div>
                   <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</p>
+                  {['Pending', 'Approved', 'Disbursed', 'Repaid'].includes(loan.status) && (
+                    <div
+                      title={loan.status === 'Repaid' ? 'Interest earned' : 'Interest you\'ll gain once this loan is disbursed and repaid'}
+                      style={{
+                        textAlign: 'right', flexShrink: 0, padding: '3px 9px', borderRadius: 10,
+                        background: loan.status === 'Repaid' ? 'var(--green-tint)' : 'var(--surface-2)',
+                        border: `1px solid ${loan.status === 'Repaid' ? '#BBF7D0' : 'var(--border-2)'}`,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, fontWeight: 700, color: loan.status === 'Repaid' ? '#16A34A' : 'var(--ink-3)', whiteSpace: 'nowrap' }}>
+                        +{formatXlmAmount(loan.interest)}
+                      </div>
+                      <div style={{ fontSize: 10, color: loan.status === 'Repaid' ? '#16A34A' : 'var(--ink-4)', whiteSpace: 'nowrap' }}>
+                        {xlmToPesoEstimate(loan.interest)}
+                      </div>
+                    </div>
+                  )}
                   <StatusPill status={loan.status} />
                   <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
                     {loan.status === 'Pending' && (<>
