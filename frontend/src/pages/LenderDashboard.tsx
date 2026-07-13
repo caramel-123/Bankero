@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import {
   formatXlmAmount, formatWallet, scoreTier, scorePercent, stellarExplorerUrl,
-  connectWallet, disburseXlmPayment,
+  connectWallet, disburseXlmPayment, xlmToPesoEstimate,
 } from '../lib/stellar'
 import { fetchAllLoans, updateLoanStatus, computeLocalScore, getScoreCache, type LocalLoan } from '../lib/loanStore'
 import { fetchOnChainScore } from '../lib/contracts'
@@ -145,6 +145,93 @@ function BorrowerProfileModal({ profile, onClose }: { profile: BorrowerProfile; 
   )
 }
 
+// ── Approve & disburse confirmation modal ─────────────────
+function ApproveConfirmModal({ loan, profile, profileLoading, onCancel, onConfirm, disbursing }: {
+  loan: LocalLoan
+  profile: BorrowerProfile | null
+  profileLoading: boolean
+  onCancel: () => void
+  onConfirm: () => void
+  disbursing: boolean
+}) {
+  const tier = profile ? scoreTier(profile.score) : null
+  return (
+    <div
+      onClick={onCancel}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'grid', placeItems: 'center', zIndex: 1000, padding: 24 }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ background: 'var(--surface)', borderRadius: 20, width: '100%', maxWidth: 440, boxShadow: '0 24px 64px rgba(0,0,0,.25)', padding: 28 }}
+      >
+        <h2 className="heading" style={{ fontSize: 19, color: 'var(--ink)', marginBottom: 4 }}>Approve &amp; Disburse This Loan?</h2>
+        <p style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 20 }}>Review the borrower and what you'll earn before sending real XLM.</p>
+
+        {/* Borrower status */}
+        <div style={{ borderRadius: 14, border: '1px solid var(--border-2)', padding: '14px 16px', marginBottom: 16 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink-4)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>Borrower</p>
+          {profileLoading || !profile ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--ink-3)', fontSize: 13 }}>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--border)', borderTopColor: 'var(--green)', animation: 'spin 0.8s linear infinite' }} />
+              Loading borrower status…
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', margin: '0 0 2px' }}>{profile.name ?? formatWallet(profile.wallet)}</p>
+                <p style={{ fontSize: 11, color: 'var(--ink-4)' }}>{profile.totalLoans} loans · {profile.loansRepaid} repaid · {profile.loansDefaulted} defaulted</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div className="score-num" style={{ fontSize: 22, color: tier?.color }}>{profile.score}</div>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 8px', borderRadius: 999, background: tier?.color, color: '#fff' }}>{tier?.label}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Financial summary */}
+        <div style={{ borderRadius: 14, background: 'var(--green-tint)', border: '1px solid #BBF7D0', padding: '16px 18px', marginBottom: 20 }}>
+          {[
+            ['Loan principal', loan.amount],
+            ['Interest you\'ll earn', loan.interest],
+          ].map(([label, xlm]) => (
+            <div key={label as string} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>{label}</span>
+              <span style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(xlm as number)}</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>{xlmToPesoEstimate(xlm as number)}</div>
+              </span>
+            </div>
+          ))}
+          <div style={{ borderTop: '1px dashed #86EFAC', paddingTop: 10, marginTop: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#15803D' }}>You'll receive back if fully repaid</span>
+            <span style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#15803D' }}>{formatXlmAmount(loan.total)}</div>
+              <div style={{ fontSize: 11, color: '#16A34A' }}>{xlmToPesoEstimate(loan.total)}</div>
+            </span>
+          </div>
+        </div>
+
+        <p style={{ fontSize: 12, color: 'var(--ink-4)', marginBottom: 20, lineHeight: 1.5 }}>
+          Confirming sends <strong style={{ color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</strong> in real XLM from your connected Freighter wallet to the borrower.
+        </p>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onCancel} disabled={disbursing} className="btn" style={{ flex: 1, padding: '13px 0', borderRadius: 'var(--r-lg)', fontSize: 14, fontWeight: 700, background: 'var(--surface-2)', color: 'var(--ink-3)', border: '1.5px solid var(--border)' }}>
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={disbursing} className="btn btn-primary" style={{ flex: 1, padding: '13px 0', borderRadius: 'var(--r-lg)', fontSize: 14, fontWeight: 700, opacity: disbursing ? 0.65 : 1 }}>
+            {disbursing
+              ? <><div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
+              : <><Banknote size={14} strokeWidth={2} /> Disburse</>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const PAGES = [
   { id: 'Dashboard', Icon: Home },
   { id: 'Loans',     Icon: CreditCard },
@@ -183,7 +270,6 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
 
   // Settings form state (mirrors lender profile)
   const [maxLoan, setMaxLoan]       = useState(200)
-  const [interestRate, setInterest] = useState(5)
   const [minScore, setMinScore]     = useState(300)
   const [bio, setBio]               = useState('')
   const [settingsSaving, setSaving] = useState(false)
@@ -197,7 +283,6 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       setAuthLoading(false)
       if (l) {
         setMaxLoan(l.max_loan_xlm)
-        setInterest(l.interest_rate)
         setMinScore(l.min_credit_score)
         setBio(l.bio ?? '')
       }
@@ -287,7 +372,6 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
     try {
       const updated = await updateLenderSettings(lender.auth_user_id, {
         max_loan_xlm: maxLoan,
-        interest_rate: interestRate,
         min_credit_score: minScore,
         bio,
       })
@@ -309,6 +393,22 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   // ── Borrower profile modal ─────────────────────────────
   const [profile, setProfile] = useState<BorrowerProfile | null>(null)
   const [profileLoading, setProfileLoading] = useState<string | null>(null)
+
+  // ── Approve & disburse confirmation ─────────────────────
+  const [confirmingLoan, setConfirmingLoan] = useState<LocalLoan | null>(null)
+
+  function openApproveConfirm(loan: LocalLoan) {
+    setConfirmingLoan(loan)
+    viewProfile(loan.wallet) // populates `profile` with the borrower's real status for the modal
+  }
+
+  async function handleConfirmDisburse() {
+    if (!confirmingLoan) return
+    const loan = confirmingLoan
+    setConfirmingLoan(null)
+    await approve(loan.id) // bookkeeping — if the disbursement below fails, the loan lands in the existing "Approved — Disburse Now" list, retryable from there
+    await disburse(loan)
+  }
 
   // Mirrors useScore.ts's merge logic (on-chain contract + local cache +
   // anchor bonuses) — the borrower's own score view was already correct,
@@ -538,7 +638,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                   </div>
                   <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</p>
                   <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
-                    <button onClick={() => approve(loan.id)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
+                    <button onClick={() => openApproveConfirm(loan)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
                       <Check size={13} strokeWidth={2.5} /> Approve
                     </button>
                     <button onClick={() => reject(loan.id)} className="btn btn-sm" style={{ borderRadius: 'var(--r-md)', background: '#FEF2F2', color: '#DC2626', border: 'none' }}>
@@ -628,7 +728,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                   <StatusPill status={loan.status} />
                   <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
                     {loan.status === 'Pending' && (<>
-                      <button onClick={() => approve(loan.id)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
+                      <button onClick={() => openApproveConfirm(loan)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
                         <Check size={12} strokeWidth={2.5} /> Approve
                       </button>
                       <button onClick={() => reject(loan.id)} className="btn btn-sm" style={{ borderRadius: 'var(--r-md)', background: '#FEF2F2', color: '#DC2626', border: 'none' }}>
@@ -712,12 +812,6 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
               </div>
 
               <div className="card" style={{ padding: 24 }}>
-                <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 18 }}>Interest Rate (%)</h3>
-                <input className="input" type="number" value={interestRate} onChange={e => setInterest(Number(e.target.value))} min={1} max={20} step={0.5} />
-                <p style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 6 }}>Flat rate applied to the loan principal</p>
-              </div>
-
-              <div className="card" style={{ padding: 24 }}>
                 <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 18 }}>Minimum Credit Score</h3>
                 <input className="input" type="number" value={minScore} onChange={e => setMinScore(Number(e.target.value))} min={300} max={850} />
                 <p style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 6 }}>Only approve borrowers at or above this score</p>
@@ -762,7 +856,19 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
 
       {/* ── Borrower Profile Modal ──────────────────────── */}
-      {profile && <BorrowerProfileModal profile={profile} onClose={() => setProfile(null)} />}
+      {profile && !confirmingLoan && <BorrowerProfileModal profile={profile} onClose={() => setProfile(null)} />}
+
+      {/* ── Approve & Disburse Confirmation ───────────────── */}
+      {confirmingLoan && (
+        <ApproveConfirmModal
+          loan={confirmingLoan}
+          profile={profile && profile.wallet === confirmingLoan.wallet ? profile : null}
+          profileLoading={profileLoading === confirmingLoan.wallet}
+          onCancel={() => { setConfirmingLoan(null); setProfile(null) }}
+          onConfirm={handleConfirmDisburse}
+          disbursing={disbursingId === confirmingLoan.id}
+        />
+      )}
     </div>
   )
 }
