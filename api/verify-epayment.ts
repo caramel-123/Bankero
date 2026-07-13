@@ -15,6 +15,12 @@ const PROMPT = `Extract the following fields from this e-wallet (GCash, Maya, Sh
 }
 If a field cannot be read clearly, set it to null. Do not guess.`
 
+// qwen3-vl:235b-cloud is a large model — vision inference regularly runs
+// past Vercel's default function timeout, which comes back to the
+// browser as an empty response body ("Unexpected end of JSON input").
+// Raise the budget to the Hobby-plan ceiling.
+export const config = { maxDuration: 60 }
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' })

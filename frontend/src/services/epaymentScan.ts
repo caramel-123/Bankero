@@ -10,14 +10,20 @@ export async function uploadEpaymentImage(file: File, userId: string): Promise<s
   return data.publicUrl
 }
 
-/** OCR runs server-side (api/verify-epayment.ts) so the Anthropic API key never reaches the browser. */
+/** OCR runs server-side (api/verify-epayment.ts) so the Ollama API key never reaches the browser. */
 export async function extractEpaymentData(imageUrl: string): Promise<EpaymentOCRData> {
   const res = await fetch('/api/verify-epayment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ imageUrl }),
   })
-  const data = await res.json()
+  let data: { error?: string } & Partial<EpaymentOCRData>
+  try {
+    data = await res.json()
+  } catch {
+    // Empty/non-JSON body — usually the AI verifier timed out server-side.
+    throw new Error('Verification took too long and timed out. Please try again.')
+  }
   if (!res.ok) throw new Error(data.error || 'Could not verify this image. Try again.')
   return data as EpaymentOCRData
 }
