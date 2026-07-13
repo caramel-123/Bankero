@@ -2,43 +2,6 @@ import { supabase } from '../lib/supabase'
 import { recordVerifiedScan } from '../lib/anchorStore'
 import type { EpaymentOCRData, EpaymentValidationResult, EpaymentScan } from '../types/epaymentScan'
 
-const OLLAMA_URL = (import.meta.env.VITE_OLLAMA_URL as string) || 'http://localhost:11434'
-const OLLAMA_MODEL = (import.meta.env.VITE_OLLAMA_MODEL as string) || 'llava'
-
-const EPAYMENT_PROMPT = `Extract the following fields from this e-wallet (GCash, Maya, ShopeePay, etc.) transaction screenshot and return ONLY a JSON object with no explanation:
-{
-  "provider": "",
-  "amount": 0,
-  "reference_number": "",
-  "transaction_date": "YYYY-MM-DD",
-  "transaction_status": ""
-}
-If a field cannot be read clearly, set it to null. Do not guess.`
-
-async function imageUrlToBase64(imageUrl: string): Promise<string> {
-  const res = await fetch(imageUrl)
-  if (!res.ok) throw new Error('Could not load the image.')
-  const buffer = await res.arrayBuffer()
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
-  return btoa(binary)
-}
-
-async function callOllamaVision(imageUrl: string, prompt: string): Promise<string> {
-  const base64 = await imageUrlToBase64(imageUrl)
-  const res = await fetch(`${OLLAMA_URL}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: OLLAMA_MODEL, prompt, images: [base64], stream: false }),
-  })
-  if (!res.ok) throw new Error('Could not reach the AI verifier. Make sure Ollama is installed and running.')
-  const data = await res.json() as { response: string }
-  const match = data.response.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('The AI could not read this image. Try a clearer screenshot.')
-  return match[0]
-}
-
 export async function uploadEpaymentImage(file: File, userId: string): Promise<string> {
   const path = `${userId}/scan_${Date.now()}_${file.name}`
   const { error } = await supabase.storage.from('bankero-epayment-scans').upload(path, file, { upsert: false })
@@ -47,9 +10,16 @@ export async function uploadEpaymentImage(file: File, userId: string): Promise<s
   return data.publicUrl
 }
 
+/** OCR runs server-side (api/verify-epayment.ts) so the Anthropic API key never reaches the browser. */
 export async function extractEpaymentData(imageUrl: string): Promise<EpaymentOCRData> {
-  const raw = await callOllamaVision(imageUrl, EPAYMENT_PROMPT)
-  return JSON.parse(raw) as EpaymentOCRData
+  const res = await fetch('/api/verify-epayment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageUrl }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Could not verify this image. Try again.')
+  return data as EpaymentOCRData
 }
 
 export async function validateEpaymentScan(data: EpaymentOCRData): Promise<EpaymentValidationResult> {
