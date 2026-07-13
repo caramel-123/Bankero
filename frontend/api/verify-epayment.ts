@@ -15,9 +15,7 @@ const PROMPT = `Extract the following fields from this e-wallet (GCash, Maya, Sh
 }
 If a field cannot be read clearly, set it to null. Do not guess.`
 
-// qwen3-vl:235b-cloud is a large model — vision inference regularly runs
-// past Vercel's default function timeout, which comes back to the
-// browser as an empty response body ("Unexpected end of JSON input").
+// Cloud vision inference can be slow; keep a generous timeout budget.
 // 300s requires Fluid Compute enabled on the Vercel project (Settings →
 // Functions → Fluid Compute); without it, Hobby caps at 60s regardless
 // of this value.
@@ -40,7 +38,7 @@ export default async function handler(req: any, res: any) {
     res.status(500).json({ error: 'AI verification is not configured on the server yet.' })
     return
   }
-  const model = process.env.OLLAMA_MODEL || 'qwen3-vl:235b-cloud'
+  const model = process.env.OLLAMA_MODEL || 'qwen3.5:cloud'
 
   try {
     const imageRes = await fetch(imageUrl)
