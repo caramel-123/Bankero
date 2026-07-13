@@ -9,10 +9,11 @@ import {
   formatPeso, formatWallet, scoreTier, scorePercent, stellarExplorerUrl,
   connectWallet, disburseXlmPayment, pesoToXlm,
 } from '../lib/stellar'
-import { fetchAllLoans, updateLoanStatus, computeLocalScore, type LocalLoan } from '../lib/loanStore'
+import { fetchAllLoans, updateLoanStatus, computeLocalScore, getScoreCache, type LocalLoan } from '../lib/loanStore'
+import { fetchOnChainScore } from '../lib/contracts'
+import { computeAnchorScore } from '../lib/anchorStore'
 import {
-  ensureLenderProfile, signOutLender, updateLenderSettings,
-  getScoreCacheFromSupabase, type Lender,
+  ensureLenderProfile, signOutLender, updateLenderSettings, type Lender,
 } from '../lib/supabase'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -22,6 +23,9 @@ interface BorrowerProfile {
   wallet: string
   score: number
   repayment: number
+  tx: number
+  vouch: number
+  anchor: number
   totalLoans: number
   loansRepaid: number
   loansDefaulted: number
@@ -32,8 +36,10 @@ function BorrowerProfileModal({ profile, onClose }: { profile: BorrowerProfile; 
   const tier = scoreTier(profile.score)
   const pct  = scorePercent(profile.score)
   const bars = [
-    { label: 'Repayment History', value: profile.repayment, color: '#16A34A' },
-    { label: 'Loan Activity',     value: Math.min(100, profile.totalLoans * 10), color: '#3B82F6' },
+    { label: 'Repayment History (40%)',   value: profile.repayment, color: 'var(--green-soft, #16A34A)' },
+    { label: 'Transaction Activity (25%)', value: profile.tx,        color: '#60A5FA' },
+    { label: 'Community Vouches (20%)',   value: profile.vouch,     color: '#FBBF24' },
+    { label: 'Remittance (15%)',          value: profile.anchor,    color: '#A78BFA' },
   ]
 
   return (
@@ -289,33 +295,41 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   const [profile, setProfile] = useState<BorrowerProfile | null>(null)
   const [profileLoading, setProfileLoading] = useState<string | null>(null)
 
+  // Mirrors useScore.ts's merge logic (on-chain contract + local cache +
+  // anchor bonuses) — the borrower's own score view was already correct,
+  // this modal was the one place still only reading repayment_score from
+  // score_cache and hardcoding tx/vouch/anchor to 0, which is why a
+  // borrower's real 686 was showing here as a bare 300.
   async function viewProfile(wallet: string) {
     setProfileLoading(wallet)
+    const borrowerLoans = loans.filter(l => l.wallet === wallet)
     try {
-      const cache = await getScoreCacheFromSupabase(wallet)
-      const repayment = cache?.repayment_score ?? 0
-      const score = computeLocalScore(repayment, 0, cache?.loans_repaid && cache.loans_repaid > 0 ? 10 : 0, 0)
-      const borrowerLoans = loans.filter(l => l.wallet === wallet)
+      const onChain = await fetchOnChainScore(wallet)
+      const local = getScoreCache(wallet)
+      const repayment = Math.max(onChain?.repayment_score ?? 0, local.repayment_score)
+      const tx = onChain?.tx_score ?? 0
+      const vouch = onChain?.vouch_score ?? 0
+      const anchor = Math.max(onChain?.anchor_score ?? 0, computeAnchorScore(wallet))
       setProfile({
         wallet,
-        score,
-        repayment,
-        totalLoans: cache?.total_loans ?? borrowerLoans.length,
-        loansRepaid: cache?.loans_repaid ?? borrowerLoans.filter(l => l.status === 'Repaid').length,
-        loansDefaulted: cache?.loans_defaulted ?? borrowerLoans.filter(l => l.status === 'Defaulted').length,
+        score: computeLocalScore(repayment, tx, vouch, anchor),
+        repayment, tx, vouch, anchor,
+        totalLoans: Math.max(onChain?.total_loans ?? 0, local.total_loans, borrowerLoans.length),
+        loansRepaid: Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid, borrowerLoans.filter(l => l.status === 'Repaid').length),
+        loansDefaulted: Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted, borrowerLoans.filter(l => l.status === 'Defaulted').length),
         loans: borrowerLoans,
       })
     } catch {
-      // Fallback from local loans data
-      const borrowerLoans = loans.filter(l => l.wallet === wallet)
-      const repayment = 0
+      // On-chain fetch failed — fall back to whatever's in the local cache
+      const local = getScoreCache(wallet)
+      const anchor = computeAnchorScore(wallet)
       setProfile({
         wallet,
-        score: 300,
-        repayment,
-        totalLoans: borrowerLoans.length,
-        loansRepaid: borrowerLoans.filter(l => l.status === 'Repaid').length,
-        loansDefaulted: borrowerLoans.filter(l => l.status === 'Defaulted').length,
+        score: computeLocalScore(local.repayment_score, 0, 0, anchor),
+        repayment: local.repayment_score, tx: 0, vouch: 0, anchor,
+        totalLoans: Math.max(local.total_loans, borrowerLoans.length),
+        loansRepaid: Math.max(local.loans_repaid, borrowerLoans.filter(l => l.status === 'Repaid').length),
+        loansDefaulted: Math.max(local.loans_defaulted, borrowerLoans.filter(l => l.status === 'Defaulted').length),
         loans: borrowerLoans,
       })
     } finally {
