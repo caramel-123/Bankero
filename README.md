@@ -61,6 +61,9 @@ The long-term goal is a world where any person with a smartphone can walk up to 
 
 ## Features
 
+### Platform
+- 📱 **Installable PWA** — add Bankero to your phone's home screen like a native app (works on Android and iOS); the app shell loads instantly offline, while live data (score, balances, loans) always comes fresh from the network, never from cache
+
 ### For Borrowers
 - 🔐 **Connect with Freighter** — wallet-based identity, no username/password needed
 - 📊 **Live credit score** — real-time 300–850 score with breakdown by factor
