@@ -6,8 +6,8 @@ import {
   Clock, Save, RefreshCw, Lock, Shield, ExternalLink,
 } from 'lucide-react'
 import {
-  formatPeso, formatWallet, scoreTier, scorePercent, stellarExplorerUrl,
-  connectWallet, disburseXlmPayment, pesoToXlm,
+  formatXlmAmount, formatWallet, scoreTier, scorePercent, stellarExplorerUrl,
+  connectWallet, disburseXlmPayment,
 } from '../lib/stellar'
 import { fetchAllLoans, updateLoanStatus, computeLocalScore, getScoreCache, type LocalLoan } from '../lib/loanStore'
 import { fetchOnChainScore } from '../lib/contracts'
@@ -116,7 +116,7 @@ function BorrowerProfileModal({ profile, onClose }: { profile: BorrowerProfile; 
                 {profile.loans.map(loan => (
                   <div key={loan.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border-2)' }}>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{formatPeso(loan.amount)}</p>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{formatXlmAmount(loan.amount)}</p>
                       <p style={{ fontSize: 11, color: 'var(--ink-4)' }}>{loan.purpose} · {loan.term}d · {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: '2-digit' })}</p>
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
@@ -182,7 +182,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   const [disburseTxHash, setDisburseTxHash] = useState<string | null>(null)
 
   // Settings form state (mirrors lender profile)
-  const [maxLoan, setMaxLoan]       = useState(10000)
+  const [maxLoan, setMaxLoan]       = useState(100)
   const [interestRate, setInterest] = useState(5)
   const [minScore, setMinScore]     = useState(300)
   const [bio, setBio]               = useState('')
@@ -251,7 +251,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       const txHash = await disburseXlmPayment({
         lenderAddress: walletAddr,
         borrowerAddress: loan.wallet,
-        pesoAmount: loan.amount,
+        xlmAmount: loan.amount,
         loanId: loan.id,
       })
 
@@ -480,7 +480,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
               {[
                 { label: 'Pending',         value: String(pending.length),     color: '#D97706',      Icon: Clock },
                 { label: 'Active Loans',    value: String(active.length),      color: 'var(--green)', Icon: CreditCard },
-                { label: 'Total Disbursed', value: formatPeso(totalDisbursed), color: '#3B82F6',      Icon: Banknote },
+                { label: 'Total Disbursed', value: formatXlmAmount(totalDisbursed), color: '#3B82F6',      Icon: Banknote },
                 { label: 'Default Rate',    value: `${defaultRate}%`,          color: defaultRate > 10 ? '#DC2626' : 'var(--ink)', Icon: AlertCircle },
               ].map((s, i) => {
                 const Icon = s.Icon
@@ -536,7 +536,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       {loan.purpose} · {loan.term} days · Applied {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
                     </p>
                   </div>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
+                  <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</p>
                   <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
                     <button onClick={() => approve(loan.id)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
                       <Check size={13} strokeWidth={2.5} /> Approve
@@ -572,12 +572,12 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                         {loan.purpose} · {loan.term} days
                       </p>
                     </div>
-                    <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
+                    <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</p>
                     <div onClick={e => e.stopPropagation()}>
                       <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
                         {disbursingId === loan.id
                           ? <><div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
-                          : <><Banknote size={13} strokeWidth={2} /> Disburse {pesoToXlm(loan.amount)} XLM</>}
+                          : <><Banknote size={13} strokeWidth={2} /> Disburse {formatXlmAmount(loan.amount)}</>}
                       </button>
                     </div>
                   </div>
@@ -624,7 +624,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       {loan.purpose} · {loan.term} days · {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
                     </p>
                   </div>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</p>
+                  <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</p>
                   <StatusPill status={loan.status} />
                   <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
                     {loan.status === 'Pending' && (<>
@@ -639,7 +639,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
                         {disbursingId === loan.id
                           ? <><div style={{ width: 11, height: 11, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
-                          : <><Banknote size={12} strokeWidth={2} /> Disburse {pesoToXlm(loan.amount)} XLM</>}
+                          : <><Banknote size={12} strokeWidth={2} /> Disburse {formatXlmAmount(loan.amount)}</>}
                       </button>
                     )}
                     {isOverdue(loan) && (
@@ -660,7 +660,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
             <h1 className="heading" style={{ fontSize: 24, color: 'var(--ink)', marginBottom: 24 }}>Reports</h1>
             <div className="reports-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               {[
-                { label: 'Portfolio Value',  value: formatPeso(totalDisbursed), Icon: Banknote,    color: 'var(--green)' },
+                { label: 'Portfolio Value',  value: formatXlmAmount(totalDisbursed), Icon: Banknote,    color: 'var(--green)' },
                 { label: 'Repayment Rate',   value: repaid.length + defaulted.length > 0 ? `${Math.round((repaid.length / (repaid.length + defaulted.length)) * 100)}%` : '—', Icon: TrendingUp, color: '#3B82F6' },
                 { label: 'Default Rate',     value: `${defaultRate}%`,           Icon: AlertCircle, color: defaultRate > 10 ? '#DC2626' : 'var(--ink)' },
                 { label: 'Total Borrowers',  value: String(new Set(loans.map(l => l.wallet)).size), Icon: Users, color: 'var(--ink)' },
@@ -706,9 +706,9 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
 
               {/* Lending preferences */}
               <div className="card" style={{ padding: 24 }}>
-                <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 18 }}>Max Loan Amount (₱)</h3>
-                <input className="input" type="number" value={maxLoan} onChange={e => setMaxLoan(Number(e.target.value))} min={500} max={100000} />
-                <p style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 6 }}>Maximum ₱ you're willing to lend per borrower</p>
+                <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 18 }}>Max Loan Amount (XLM)</h3>
+                <input className="input" type="number" value={maxLoan} onChange={e => setMaxLoan(Number(e.target.value))} min={5} max={1000} />
+                <p style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 6 }}>Maximum XLM you're willing to lend per borrower</p>
               </div>
 
               <div className="card" style={{ padding: 24 }}>

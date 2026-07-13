@@ -4,7 +4,7 @@ import {
   ArrowLeft, FileText, ArrowRight, Clock, CheckCircle, Zap,
   AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Users, Banknote, ChevronDown, Info, Trash2,
 } from 'lucide-react'
-import { formatPeso, scoreTier, scorePercent } from '../lib/stellar'
+import { formatXlmAmount, scoreTier, scorePercent } from '../lib/stellar'
 import {
   fetchLoans, updateLoanStatus, updateScoreOnRepay, updateScoreOnDefault, deleteLoan,
   computeLocalScore, getScoreCache, daysUntil, formatDate,
@@ -117,14 +117,14 @@ function RepayModal({ loan, wallet, onConfirm, onClose }: {
         <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24 }}>Confirm repayment. Your credit score will increase immediately.</p>
 
         <div style={{ background: 'var(--surface-2)', borderRadius: 14, padding: 16, marginBottom: 20, border: '1px solid var(--border-2)' }}>
-          {[['Principal', formatPeso(loan.amount)], ['Interest (5%)', formatPeso(loan.interest)]].map(([l, v]) => (
+          {[['Principal', formatXlmAmount(loan.amount)], ['Interest (5%)', formatXlmAmount(loan.interest)]].map(([l, v]) => (
             <div key={l} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
               <span style={{ color: 'var(--ink-3)' }}>{l}</span>
               <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{v}</span>
             </div>
           ))}
           <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: 10, display: 'flex', justifyContent: 'space-between', fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>
-            <span>Total to Pay</span><span style={{ color: 'var(--green)' }}>{formatPeso(loan.total)}</span>
+            <span>Total to Pay</span><span style={{ color: 'var(--green)' }}>{formatXlmAmount(loan.total)}</span>
           </div>
         </div>
 
@@ -155,7 +155,7 @@ function RepayModal({ loan, wallet, onConfirm, onClose }: {
         </div>
 
         <button onClick={onConfirm} style={{ width: '100%', padding: '15px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(22,163,74,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9 }}>
-          <CheckCircle size={17} strokeWidth={2} /> Confirm Repayment — {formatPeso(loan.total)}
+          <CheckCircle size={17} strokeWidth={2} /> Confirm Repayment — {formatXlmAmount(loan.total)}
         </button>
         <button onClick={onClose} style={{ width: '100%', marginTop: 10, padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
           Cancel
@@ -315,7 +315,7 @@ function CancelLoanModal({ loan, onConfirm, onClose }: { loan: LocalLoan; onConf
         </div>
         <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}>Remove this loan?</h2>
         <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24, lineHeight: 1.6 }}>
-          This cancels your application for <strong style={{ color: 'var(--ink)' }}>{formatPeso(loan.amount)}</strong>. Since it hasn't been disbursed yet, this won't affect your credit score.
+          This cancels your application for <strong style={{ color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</strong>. Since it hasn't been disbursed yet, this won't affect your credit score.
         </p>
         <button onClick={onConfirm} style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: '#fff', background: '#DC2626', border: 'none', cursor: 'pointer', marginBottom: 10 }}>
           Yes, remove it
@@ -519,7 +519,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
         {loans.length > 0 && (
           <div className="loan-summary-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 24 }}>
             {[
-              { label: 'Total Applied', value: formatPeso(loans.reduce((s, l) => s + l.amount, 0)), color: 'var(--ink)' },
+              { label: 'Total Applied', value: formatXlmAmount(loans.reduce((s, l) => s + l.amount, 0)), color: 'var(--ink)' },
               { label: 'Active Loans',  value: String(counts['Disbursed'] ?? 0), color: 'var(--green)' },
               { label: 'Pending',       value: String(counts['Pending'] ?? 0),   color: '#F59E0B' },
               { label: 'Loans Repaid',  value: String(counts['Repaid'] ?? 0),    color: 'var(--ink-3)' },
@@ -606,7 +606,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                          <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.amount)}</span>
+                          <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</span>
                           <span style={{ padding: '3px 10px', borderRadius: 999, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700 }}>{cfg.label}</span>
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: 'var(--ink-3)' }}>
@@ -618,8 +618,8 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: 12, color: 'var(--ink-4)', marginBottom: 2 }}>Total repayment</div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)' }}>{formatPeso(loan.total)}</div>
-                        <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>+{formatPeso(loan.interest)} interest</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.total)}</div>
+                        <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>+{formatXlmAmount(loan.interest)} interest</div>
                       </div>
                     </div>
 
@@ -651,7 +651,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                       {isActive && (
                         <button onClick={() => wallet.isGuest ? setShowGuestModal(true) : setRepayingLoan(loan)}
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 11, fontSize: 14, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', cursor: 'pointer', boxShadow: '0 3px 12px rgba(22,163,74,.28)' }}>
-                          <CheckCircle size={16} strokeWidth={2} /> Repay Loan — {formatPeso(loan.total)}
+                          <CheckCircle size={16} strokeWidth={2} /> Repay Loan — {formatXlmAmount(loan.total)}
                         </button>
                       )}
 

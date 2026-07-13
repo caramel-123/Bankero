@@ -51,7 +51,7 @@ export function unlinkAccount(wallet: string, providerId: string): void {
 export interface AnchorTx {
   id: string
   provider: string    // provider id
-  amount: number      // ₱ amount
+  amount: number      // XLM amount
   merchant: string
   type: 'purchase' | 'send' | 'receive' | 'bills'
   date: string        // ISO
