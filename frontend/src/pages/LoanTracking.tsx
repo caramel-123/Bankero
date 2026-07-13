@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, FileText, ArrowRight, Clock, CheckCircle, Zap,
-  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Users, Banknote, ChevronDown, Info, Trash2,
+  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Users, Banknote, Info, Trash2,
 } from 'lucide-react'
 import { formatXlmAmount, scoreTier, scorePercent } from '../lib/stellar'
 import {
@@ -344,7 +344,6 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [successInfo, setSuccessInfo] = useState<{ newScore: number; diff: number } | null>(null)
   const [defaultedInfo, setDefaultedInfo] = useState<{ count: number } | null>(null)
   const [showGuestModal, setShowGuestModal] = useState(false)
-  const [expandedFactor, setExpandedFactor] = useState<string | null>(null)
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [cancelingLoan, setCancelingLoan] = useState<LocalLoan | null>(null)
 
@@ -465,23 +464,15 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
         {/* How your score is calculated */}
         <div className="card" style={{ padding: '20px 24px', marginBottom: 24 }}>
           <h3 className="heading" style={{ fontSize: 15, color: 'var(--ink)', marginBottom: 4 }}>How your score is calculated</h3>
-          <p style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 18 }}>Tap any factor for details on how it's measured.</p>
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 18 }}>Tap the info button above for full formulas and examples.</p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {SCORE_FACTORS.map(f => {
               const Icon = f.Icon
               const value = (scoreRecord?.[f.key] ?? 0) as number
-              const isOpen = expandedFactor === f.key
               return (
-                <div key={f.key} style={{ borderRadius: 'var(--r-lg)', border: '1px solid var(--border-2)', overflow: 'hidden' }}>
-                  <button
-                    onClick={() => setExpandedFactor(isOpen ? null : f.key)}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '14px 16px', border: 'none', background: 'var(--surface)',
-                      cursor: 'pointer', textAlign: 'left',
-                    }}
-                  >
+                <div key={f.key} style={{ borderRadius: 'var(--r-lg)', border: '1px solid var(--border-2)', overflow: 'hidden', background: 'var(--surface)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' }}>
                     <div style={{ width: 32, height: 32, borderRadius: 'var(--r-md)', background: f.color + '18', display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
                       <Icon size={15} strokeWidth={2} />
                     </div>
@@ -500,14 +491,9 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                     <span className="score-num" style={{ fontSize: 15, color: 'var(--ink-2)', flexShrink: 0 }}>
                       {scoreLoading ? '—' : value}<span style={{ fontSize: 11, color: 'var(--ink-4)' }}>/100</span>
                     </span>
-                    <ChevronDown size={16} strokeWidth={2} color="var(--ink-4)" style={{ flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
-                  </button>
-                  <div style={{
-                    maxHeight: isOpen ? 80 : 0, opacity: isOpen ? 1 : 0,
-                    overflow: 'hidden', transition: 'max-height 220ms ease, opacity 200ms ease',
-                    background: 'var(--surface-2)',
-                  }}>
-                    <p style={{ margin: 0, padding: '12px 16px 14px 60px', fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.55 }}>{f.desc}</p>
+                  </div>
+                  <div style={{ background: 'var(--surface-2)' }}>
+                    <p style={{ margin: 0, padding: '0 16px 14px 60px', fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.55 }}>{f.desc}</p>
                   </div>
                 </div>
               )
