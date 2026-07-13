@@ -1,11 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, CheckCircle, XCircle, Loader, Camera } from 'lucide-react'
+import { ArrowLeft, Upload, CheckCircle, XCircle, Loader, Camera, Clock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import {
-  uploadEpaymentImage, extractEpaymentData, validateEpaymentScan, recordEpaymentScan, MAX_SCAN_BONUS,
+  uploadEpaymentImage, extractEpaymentData, validateEpaymentScan, recordEpaymentScan, getEpaymentScans, MAX_SCAN_BONUS,
 } from '../services/epaymentScan'
-import type { EpaymentValidationResult } from '../types/epaymentScan'
+import type { EpaymentValidationResult, EpaymentScan } from '../types/epaymentScan'
 import GuestActionModal from '../components/GuestActionModal'
 import BottomNav from '../components/BottomNav'
 import type { useWallet } from '../hooks/useWallet'
@@ -49,6 +49,55 @@ function ReceiptDetails({ data }: { data: EpaymentValidationResult['data'] }) {
   )
 }
 
+const STATUS_STYLE: Record<EpaymentScan['validation_status'], { bg: string; color: string; label: string }> = {
+  passed:  { bg: 'rgba(22,163,74,.1)', color: '#16A34A', label: 'Passed' },
+  failed:  { bg: 'rgba(239,68,68,.1)', color: '#DC2626', label: 'Failed' },
+  pending: { bg: 'rgba(148,163,184,.15)', color: '#64748B', label: 'Pending' },
+}
+
+/** Same fixed field order as ReceiptDetails, so a past scan reads the same way a fresh one does. */
+function ScanHistoryRow({ scan }: { scan: EpaymentScan }) {
+  const status = STATUS_STYLE[scan.validation_status]
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {scan.extracted_amount != null ? `₱${scan.extracted_amount.toFixed(2)}` : 'Amount not detected'}
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 2 }}>
+          {new Date(scan.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+          {scan.extracted_reference ? ` · Ref ${scan.extracted_reference}` : ''}
+        </div>
+      </div>
+      <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: status.bg, color: status.color, flexShrink: 0 }}>
+        {status.label}
+      </span>
+    </div>
+  )
+}
+
+function ScanHistory({ scans, loading }: { scans: EpaymentScan[]; loading: boolean }) {
+  return (
+    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 18px 12px' }}>
+        <Clock size={15} color="var(--ink-3)" strokeWidth={2} />
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)' }}>
+          Scan History
+        </span>
+      </div>
+      {loading ? (
+        <p style={{ fontSize: 13, color: 'var(--ink-4)', textAlign: 'center', padding: '4px 0 20px' }}>Loading…</p>
+      ) : scans.length === 0 ? (
+        <p style={{ fontSize: 13, color: 'var(--ink-4)', textAlign: 'center', padding: '4px 0 20px' }}>No scans yet — your verified receipts will show up here.</p>
+      ) : (
+        <div>
+          {scans.map(scan => <ScanHistoryRow key={scan.id} scan={scan} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function UploadZone({ file, onFile }: { file: File | null; onFile: (f: File) => void }) {
   const ref = useRef<HTMLInputElement>(null)
   return (
@@ -84,6 +133,22 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
   const [showGuestModal, setShowGuestModal] = useState(false)
+  const [history, setHistory] = useState<EpaymentScan[]>([])
+  const [historyLoading, setHistoryLoading] = useState(true)
+
+  const loadHistory = useCallback(async (uid: string) => {
+    setHistoryLoading(true)
+    setHistory(await getEpaymentScans(uid, 20))
+    setHistoryLoading(false)
+  }, [])
+
+  useEffect(() => {
+    if (wallet.isGuest || !wallet.publicKey) { setHistoryLoading(false); return }
+    supabase.from('users').select('id').eq('wallet_address', wallet.publicKey).maybeSingle().then(({ data: user }) => {
+      if (!user) { setHistoryLoading(false); return }
+      loadHistory(user.id)
+    })
+  }, [wallet.publicKey, wallet.isGuest, loadHistory])
 
   async function handleSubmit() {
     if (wallet.isGuest) { setShowGuestModal(true); return }
@@ -107,6 +172,7 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
 
       setStep(3)
       await recordEpaymentScan(user.id, wallet.publicKey, imageUrl, validation)
+      loadHistory(user.id)
       setDone(true)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.')
@@ -208,6 +274,8 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
             <Upload size={16} strokeWidth={2} />
             {step >= 0 ? 'Processing...' : 'Verify Transaction'}
           </button>
+
+          {!wallet.isGuest && <ScanHistory scans={history} loading={historyLoading} />}
         </div>
       </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
