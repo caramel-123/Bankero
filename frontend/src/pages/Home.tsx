@@ -252,27 +252,29 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
                 { label: 'Community Trust',   weight: '20%', score: record?.vouch_score ?? 0,      color: '#FBBF24',           hint: 'Get vouched by peers', Icon: Users },
                 { label: 'Remittance',        weight: '15%', score: record?.anchor_score ?? 0,     color: '#A78BFA',           hint: 'Scan a verified e-payment', Icon: Banknote },
               ].map(f => (
-                <div key={f.label}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 7, background: f.color.startsWith('#') ? f.color + '18' : 'var(--green-tint)', display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
-                        <f.Icon size={12} strokeWidth={2.25} />
+                <div key={f.label} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 9, background: f.color.startsWith('#') ? f.color + '18' : 'var(--green-tint)', display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
+                    <f.Icon size={15} strokeWidth={2.25} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{f.label}</span>
+                        <span style={{ fontSize: 12, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '1px 7px', borderRadius: 'var(--r-full)' }}>{f.weight}</span>
                       </div>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{f.label}</span>
-                      <span style={{ fontSize: 12, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '1px 7px', borderRadius: 'var(--r-full)' }}>{f.weight}</span>
+                      <span className="score-num" style={{ fontSize: 15, color: 'var(--ink-2)' }}>
+                        {isLoading ? '—' : f.score}
+                        <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>/100</span>
+                      </span>
                     </div>
-                    <span className="score-num" style={{ fontSize: 15, color: 'var(--ink-2)' }}>
-                      {isLoading ? '—' : f.score}
-                      <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>/100</span>
-                    </span>
+                    <div className="progress-track">
+                      {isLoading
+                        ? <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: 'var(--r-full)' }} />
+                        : <div className="progress-fill" style={{ width: `${f.score}%`, background: f.color }} />
+                      }
+                    </div>
+                    <p style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 4 }}>{f.hint}</p>
                   </div>
-                  <div className="progress-track">
-                    {isLoading
-                      ? <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: 'var(--r-full)' }} />
-                      : <div className="progress-fill" style={{ width: `${f.score}%`, background: f.color }} />
-                    }
-                  </div>
-                  <p style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 4 }}>{f.hint}</p>
                 </div>
               ))}
             </div>
