@@ -1,13 +1,9 @@
-// Vercel serverless function — proxies e-payment screenshot OCR to a
-// self-hosted Ollama vision model. Runs server-side (not called
-// directly from the browser) so the Ollama server's address doesn't
-// need public CORS/CSP exceptions and so this can later be swapped
-// for another backend without touching the frontend.
-//
-// Requires OLLAMA_URL to point at a publicly reachable Ollama
-// instance — "localhost" only works if this function and Ollama run
-// on the same machine, which isn't the case on Vercel. Optionally set
-// OLLAMA_MODEL (defaults to "llava").
+// Vercel serverless function — proxies e-payment screenshot OCR to
+// Ollama's hosted cloud API (ollama.com), authenticated with an API
+// key created at ollama.com/settings/keys. Runs server-side so the
+// key never reaches the browser. Uses a "-cloud" tagged vision model
+// (see OLLAMA_MODEL below) since ollama.com only serves cloud-tagged
+// models, not the plain local model names.
 
 const PROMPT = `Extract the following fields from this e-wallet (GCash, Maya, ShopeePay, etc.) transaction screenshot and return ONLY a JSON object with no explanation:
 {
@@ -31,12 +27,12 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  const ollamaUrl = process.env.OLLAMA_URL
-  if (!ollamaUrl) {
+  const apiKey = process.env.OLLAMA_API_KEY
+  if (!apiKey) {
     res.status(500).json({ error: 'AI verification is not configured on the server yet.' })
     return
   }
-  const model = process.env.OLLAMA_MODEL || 'llava'
+  const model = process.env.OLLAMA_MODEL || 'qwen3-vl:235b-cloud'
 
   try {
     const imageRes = await fetch(imageUrl)
@@ -47,14 +43,17 @@ export default async function handler(req: any, res: any) {
     const buffer = Buffer.from(await imageRes.arrayBuffer())
     const base64 = buffer.toString('base64')
 
-    const ollamaRes = await fetch(`${ollamaUrl.replace(/\/$/, '')}/api/generate`, {
+    const ollamaRes = await fetch('https://ollama.com/api/generate', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({ model, prompt: PROMPT, images: [base64], stream: false }),
     })
 
     if (!ollamaRes.ok) {
-      console.error('[verify-epayment] Ollama error:', ollamaRes.status, await ollamaRes.text())
+      console.error('[verify-epayment] Ollama Cloud error:', ollamaRes.status, await ollamaRes.text())
       res.status(502).json({ error: 'The AI verifier could not process this image. Try again.' })
       return
     }
