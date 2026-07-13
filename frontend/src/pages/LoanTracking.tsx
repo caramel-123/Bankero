@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, FileText, ArrowRight, Clock, CheckCircle, Zap,
-  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Users, Banknote, Info, Trash2,
+  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Users, Banknote, Info, Trash2, ChevronDown,
 } from 'lucide-react'
 import { formatXlmAmount, scoreTier, scorePercent } from '../lib/stellar'
 import {
@@ -346,6 +346,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [showGuestModal, setShowGuestModal] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [cancelingLoan, setCancelingLoan] = useState<LocalLoan | null>(null)
+  const [showBreakdown, setShowBreakdown] = useState(false)
 
   const { record: liveRecord, isLoading: scoreLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
   const scoreRecord = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
@@ -463,39 +464,51 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
 
         {/* How your score is calculated */}
         <div className="card" style={{ padding: '24px 28px', marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+          <button
+            onClick={() => setShowBreakdown(s => !s)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              border: 'none', background: 'none', cursor: 'pointer', padding: 0,
+              marginBottom: showBreakdown ? 22 : 0,
+            }}
+          >
             <h3 className="heading" style={{ fontSize: 16, color: 'var(--ink)' }}>How your score is calculated</h3>
-            {!scoreLoading && (
-              <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>Live · Stellar testnet</span>
-            )}
-          </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {!scoreLoading && (
+                <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>Live · Stellar testnet</span>
+              )}
+              <ChevronDown size={18} strokeWidth={2} color="var(--ink-4)" style={{ transform: showBreakdown ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+            </div>
+          </button>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-            {SCORE_FACTORS.map(f => {
-              const value = (scoreRecord?.[f.key] ?? 0) as number
-              return (
-                <div key={f.key}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{f.label}</span>
-                      <span style={{ fontSize: 12, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '1px 7px', borderRadius: 'var(--r-full)' }}>{f.weight}%</span>
+          {showBreakdown && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+              {SCORE_FACTORS.map(f => {
+                const value = (scoreRecord?.[f.key] ?? 0) as number
+                return (
+                  <div key={f.key}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{f.label}</span>
+                        <span style={{ fontSize: 12, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '1px 7px', borderRadius: 'var(--r-full)' }}>{f.weight}%</span>
+                      </div>
+                      <span className="score-num" style={{ fontSize: 15, color: 'var(--ink-2)' }}>
+                        {scoreLoading ? '—' : value}
+                        <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>/100</span>
+                      </span>
                     </div>
-                    <span className="score-num" style={{ fontSize: 15, color: 'var(--ink-2)' }}>
-                      {scoreLoading ? '—' : value}
-                      <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>/100</span>
-                    </span>
+                    <div className="progress-track">
+                      {scoreLoading
+                        ? <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: 'var(--r-full)' }} />
+                        : <div className="progress-fill" style={{ width: `${value}%`, background: f.color }} />
+                      }
+                    </div>
+                    <p style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.55, marginTop: 6 }}>{f.desc}</p>
                   </div>
-                  <div className="progress-track">
-                    {scoreLoading
-                      ? <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: 'var(--r-full)' }} />
-                      : <div className="progress-fill" style={{ width: `${value}%`, background: f.color }} />
-                    }
-                  </div>
-                  <p style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.55, marginTop: 6 }}>{f.desc}</p>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Summary strip */}
