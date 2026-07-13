@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Home as HomeIcon, CreditCard, Users, UserCircle, FileText, LogOut,
   ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, MessageSquare, PiggyBank, Flame, Camera, Wallet, Info,
+  TrendingUp, Banknote,
 } from 'lucide-react'
 import { stellarExplorerUrl } from '../lib/stellar'
 import { scoreTier, scorePercent, formatWallet, formatXlmAmount, xlmToPesoEstimate } from '../lib/stellar'
@@ -246,14 +247,17 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {[
-                { label: 'Repayment History', weight: '40%', score: record?.repayment_score ?? 0, color: 'var(--green-soft)', hint: 'Repay loans on time' },
-                { label: 'Transactions',      weight: '25%', score: record?.tx_score ?? 0,         color: '#60A5FA',           hint: 'Stay active on Stellar' },
-                { label: 'Community Trust',   weight: '20%', score: record?.vouch_score ?? 0,      color: '#FBBF24',           hint: 'Get vouched by peers' },
-                { label: 'Remittance',        weight: '15%', score: record?.anchor_score ?? 0,     color: '#A78BFA',           hint: 'Scan a verified e-payment' },
+                { label: 'Repayment History', weight: '40%', score: record?.repayment_score ?? 0, color: 'var(--green-soft)', hint: 'Repay loans on time', Icon: TrendingUp },
+                { label: 'Transactions',      weight: '25%', score: record?.tx_score ?? 0,         color: '#60A5FA',           hint: 'Stay active on Stellar', Icon: RefreshCw },
+                { label: 'Community Trust',   weight: '20%', score: record?.vouch_score ?? 0,      color: '#FBBF24',           hint: 'Get vouched by peers', Icon: Users },
+                { label: 'Remittance',        weight: '15%', score: record?.anchor_score ?? 0,     color: '#A78BFA',           hint: 'Scan a verified e-payment', Icon: Banknote },
               ].map(f => (
                 <div key={f.label}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ width: 22, height: 22, borderRadius: 7, background: f.color.startsWith('#') ? f.color + '18' : 'var(--green-tint)', display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
+                        <f.Icon size={12} strokeWidth={2.25} />
+                      </div>
                       <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{f.label}</span>
                       <span style={{ fontSize: 12, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '1px 7px', borderRadius: 'var(--r-full)' }}>{f.weight}</span>
                     </div>
