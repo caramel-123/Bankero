@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { ArrowLeft, Download, Shield, CheckCircle, Star, User, Check } from 'lucide-react'
+import { ArrowLeft, Download, Shield, CheckCircle, Star, User, Check, Share2, Loader2 } from 'lucide-react'
 import { scoreTier, scorePercent, SCORE_TIERS } from '../lib/stellar'
 import { fetchLoans, type LocalLoan } from '../lib/loanStore'
 import { getUser, type User as BorrowerUser } from '../lib/supabase'
@@ -23,6 +23,8 @@ export default function CreditCertificate({ wallet, onBack }: { wallet: WalletHo
   const [profile, setProfile] = useState<BorrowerUser | null>(null)
   const [loans, setLoans] = useState<LocalLoan[]>([])
   const [loansLoading, setLoansLoading] = useState(true)
+  const [sharing, setSharing] = useState(false)
+  const [shareError, setShareError] = useState<string | null>(null)
 
   const { record: liveRecord, isLoading: scoreLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
   const record = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
@@ -61,6 +63,53 @@ export default function CreditCertificate({ wallet, onBack }: { wallet: WalletHo
     window.print()
   }
 
+  /**
+   * Renders the certificate to a PNG and opens the device's native share
+   * sheet (Web Share API) so it can be sent directly to Messenger, WhatsApp,
+   * email, etc. Falls back to just downloading the image on browsers that
+   * don't support sharing files (mainly desktop) — that's most of them
+   * outside of mobile Chrome/Safari/Edge, so the fallback is the common path
+   * on desktop, not an edge case.
+   */
+  async function handleShare() {
+    if (!printRef.current || sharing) return
+    setSharing(true)
+    setShareError(null)
+    try {
+      const { default: html2canvas } = await import('html2canvas')
+      const canvas = await html2canvas(printRef.current, { scale: 2, backgroundColor: '#ffffff', useCORS: true })
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'))
+      if (!blob) throw new Error('Could not render the certificate image.')
+
+      const file = new File([blob], `bankero-certificate-${id}.png`, { type: 'image/png' })
+      const shareData = {
+        files: [file],
+        title: 'My Bankero Credit Certificate',
+        text: `I've built a verified ${score} credit score on Bankero — a decentralized credit platform on Stellar.`,
+      }
+
+      if (navigator.canShare?.(shareData)) {
+        await navigator.share(shareData)
+      } else {
+        // No file-sharing support (most desktop browsers) — download instead,
+        // then the certificate can be attached manually in Messenger.
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = file.name
+        a.click()
+        URL.revokeObjectURL(url)
+        setShareError('Your browser can\'t open the share sheet directly, so the certificate image downloaded instead — attach it in Messenger manually.')
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') { // user closing the share sheet isn't an error
+        setShareError(err?.message ?? 'Could not share the certificate. Please try again.')
+      }
+    } finally {
+      setSharing(false)
+    }
+  }
+
   if (!wallet.publicKey && !wallet.isGuest) return null
   if (loading) return (
     <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: 'var(--surface-2)' }}>
@@ -80,11 +129,31 @@ export default function CreditCertificate({ wallet, onBack }: { wallet: WalletHo
           <ArrowLeft size={15} strokeWidth={2} /> Back
         </button>
         <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={handleShare}
+            disabled={sharing}
+            className="btn"
+            style={{ borderRadius: 'var(--r-lg)', padding: '10px 20px', fontSize: 14, background: 'var(--surface)', color: 'var(--ink-2)', border: '1.5px solid var(--border-2)', opacity: sharing ? 0.65 : 1 }}
+          >
+            {sharing
+              ? <><Loader2 size={15} strokeWidth={2} style={{ animation: 'spin 0.8s linear infinite' }} /> Preparing…</>
+              : <><Share2 size={15} strokeWidth={2} /> Share</>
+            }
+          </button>
           <button onClick={handlePrint} className="btn btn-primary" style={{ borderRadius: 'var(--r-lg)', padding: '10px 20px', fontSize: 14 }}>
             <Download size={15} strokeWidth={2} /> Download / Print PDF
           </button>
         </div>
       </div>
+
+      {/* Share error/fallback notice */}
+      {shareError && (
+        <div className="no-print" style={{ maxWidth: 760, margin: '0 auto 20px', display: 'flex', gap: 10, padding: '14px 18px', borderRadius: 'var(--r-lg)', background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+          <Share2 size={16} strokeWidth={2} color="#1D4ED8" style={{ flexShrink: 0, marginTop: 1 }} />
+          <p style={{ fontSize: 13, color: '#1D4ED8', margin: 0, lineHeight: 1.5, flex: 1 }}>{shareError}</p>
+          <button onClick={() => setShareError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1D4ED8', padding: 0 }}>✕</button>
+        </div>
+      )}
 
       {/* Eligibility notice */}
       {!qualifies && (
@@ -323,7 +392,7 @@ export default function CreditCertificate({ wallet, onBack }: { wallet: WalletHo
       <div className="no-print" style={{ maxWidth: 760, margin: '20px auto 0', display: 'flex', gap: 10, padding: '14px 18px', borderRadius: 'var(--r-lg)', background: 'var(--surface)', border: '1px solid var(--border-2)' }}>
         <Shield size={15} strokeWidth={2} color="var(--green)" style={{ flexShrink: 0, marginTop: 1 }} />
         <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0, lineHeight: 1.6 }}>
-          <strong style={{ color: 'var(--ink)' }}>How to use this certificate:</strong> Click "Download / Print PDF", then save as PDF. You can email or present this to rural banks, cooperatives, or any lending institution as proof of your responsible borrowing history on the Bankero platform.
+          <strong style={{ color: 'var(--ink)' }}>How to use this certificate:</strong> Tap "Share" to send it straight to Messenger, WhatsApp, or email from your phone's share sheet, or click "Download / Print PDF" to save it. You can present this to rural banks, cooperatives, or any lending institution as proof of your responsible borrowing history on the Bankero platform.
         </p>
       </div>
 
