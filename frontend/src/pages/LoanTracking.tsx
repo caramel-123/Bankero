@@ -218,7 +218,58 @@ function ScoreInfoModal({ onClose }: { onClose: () => void }) {
           })}
         </div>
 
-        <button onClick={onClose} style={{ width: '100%', marginTop: 24, padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
+        {/* Overall score formula */}
+        <div style={{ marginTop: 20, borderRadius: 'var(--r-lg)', border: '1.5px solid #BBF7D0', padding: '18px 20px', background: 'var(--green-tint)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 'var(--r-md)', background: 'rgba(22,163,74,.15)', display: 'grid', placeItems: 'center', color: '#16A34A', flexShrink: 0 }}>
+              <TrendingUp size={14} strokeWidth={2} />
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>Putting it together — your overall 300–850 score</span>
+          </div>
+
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.6, marginBottom: 12 }}>
+            Each factor above (0–100) is multiplied by its weight and added up, then that total is rescaled onto the 300–850 range every lender sees. It happens in two steps.
+          </p>
+
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#15803D', marginBottom: 6 }}>Step 1 — weighted raw score</div>
+          <div style={{ background: 'var(--ink)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, overflowX: 'auto' }}>
+            <code style={{ fontSize: 12, color: '#4ADE80', fontFamily: 'monospace', whiteSpace: 'pre' }}>
+              score_raw = (repayment_score × 40) + (tx_score × 25) + (vouch_score × 20) + (anchor_score × 15)
+            </code>
+          </div>
+
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#15803D', marginBottom: 6 }}>Step 2 — rescale to 300–850</div>
+          <div style={{ background: 'var(--ink)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, overflowX: 'auto' }}>
+            <code style={{ fontSize: 12, color: '#4ADE80', fontFamily: 'monospace', whiteSpace: 'pre' }}>
+              final_score = round( 300 + (score_raw × 550 ÷ 10,000) )
+            </code>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+            {[
+              ['score_raw', 'The weighted sum from Step 1. Since each factor tops out at 100 and the weights add up to 100, the highest score_raw can ever be is 100 × 100 = 10,000.'],
+              ['300', 'The floor — every borrower starts here, even with a score_raw of 0.'],
+              ['550', 'The full width of the score range (850 − 300), spread across score_raw\'s 0–10,000 range.'],
+              ['÷ 10,000', 'Converts score_raw down to a 0–1 fraction of that 550-point range before adding it to the 300 floor.'],
+            ].map(([term, meaning]) => (
+              <div key={term} style={{ display: 'flex', gap: 8, fontSize: 12.5, lineHeight: 1.5 }}>
+                <code style={{ color: '#16A34A', fontFamily: 'monospace', fontWeight: 700, flexShrink: 0 }}>{term}</code>
+                <span style={{ color: 'var(--ink-3)' }}>{meaning}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '12px 14px', border: '1px solid #BBF7D0' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>Example</div>
+            <p style={{ fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.6, margin: 0 }}>
+              Repayment 80, Transactions 65, Vouches 50, Remittance 20 →<br />
+              score_raw = (80×40)+(65×25)+(50×20)+(20×15) = 3,200+1,625+1,000+300 = <strong style={{ color: 'var(--ink)' }}>6,125</strong><br />
+              final_score = 300 + (6,125 × 550 ÷ 10,000) = 300 + 337 = <strong style={{ color: '#16A34A' }}>637</strong>
+            </p>
+          </div>
+        </div>
+
+        <button onClick={onClose} style={{ width: '100%', marginTop: 20, padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
           Got it
         </button>
       </div>
