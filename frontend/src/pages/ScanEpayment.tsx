@@ -76,7 +76,7 @@ function ScanHistoryRow({ scan }: { scan: EpaymentScan }) {
   )
 }
 
-function ScanHistory({ scans, loading }: { scans: EpaymentScan[]; loading: boolean }) {
+function ScanHistory({ scans, loading, isGuest }: { scans: EpaymentScan[]; loading: boolean; isGuest: boolean }) {
   return (
     <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 18px 12px' }}>
@@ -85,7 +85,9 @@ function ScanHistory({ scans, loading }: { scans: EpaymentScan[]; loading: boole
           Scan History
         </span>
       </div>
-      {loading ? (
+      {isGuest ? (
+        <p style={{ fontSize: 13, color: 'var(--ink-4)', textAlign: 'center', padding: '4px 0 20px' }}>Connect a wallet to submit scans and see your history here.</p>
+      ) : loading ? (
         <p style={{ fontSize: 13, color: 'var(--ink-4)', textAlign: 'center', padding: '4px 0 20px' }}>Loading…</p>
       ) : scans.length === 0 ? (
         <p style={{ fontSize: 13, color: 'var(--ink-4)', textAlign: 'center', padding: '4px 0 20px' }}>No scans yet — your verified receipts will show up here.</p>
@@ -275,7 +277,7 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
             {step >= 0 ? 'Processing...' : 'Verify Transaction'}
           </button>
 
-          {!wallet.isGuest && <ScanHistory scans={history} loading={historyLoading} />}
+          <ScanHistory scans={history} loading={historyLoading} isGuest={wallet.isGuest} />
         </div>
       </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
