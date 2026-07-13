@@ -1,4 +1,5 @@
-import { TrendingUp, RefreshCw, Users, Banknote, X, Info } from 'lucide-react'
+import { useState } from 'react'
+import { TrendingUp, RefreshCw, Users, Banknote, X, Info, ChevronDown } from 'lucide-react'
 
 export const SCORE_FACTORS = [
   {
@@ -65,6 +66,8 @@ export const SCORE_FACTORS = [
 ] as const
 
 export default function ScoreInfoModal({ onClose }: { onClose: () => void }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(11,31,58,.5)', backdropFilter: 'blur(6px)', padding: 20 }}>
       <div style={{ width: 560, maxHeight: '85vh', overflowY: 'auto', background: 'var(--surface)', borderRadius: 24, padding: 32, boxShadow: '0 24px 64px rgba(11,31,58,.24)', position: 'relative' }}>
@@ -79,40 +82,52 @@ export default function ScoreInfoModal({ onClose }: { onClose: () => void }) {
           Your 300–850 credit score is built from four factors, each measured 0–100 and weighted differently. Here's exactly how each one is computed.
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {SCORE_FACTORS.map(f => {
             const Icon = f.Icon
+            const isOpen = expanded === f.key
             return (
-              <div key={f.key} style={{ borderRadius: 'var(--r-lg)', border: '1px solid var(--border-2)', padding: '18px 20px', background: 'var(--surface-2)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div key={f.key} style={{ borderRadius: 'var(--r-lg)', border: '1px solid var(--border-2)', overflow: 'hidden', background: 'var(--surface-2)' }}>
+                <button
+                  onClick={() => setExpanded(isOpen ? null : f.key)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '14px 16px', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left',
+                  }}
+                >
                   <div style={{ width: 30, height: 30, borderRadius: 'var(--r-md)', background: f.color + '18', display: 'grid', placeItems: 'center', color: f.color, flexShrink: 0 }}>
                     <Icon size={14} strokeWidth={2} />
                   </div>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{f.label}</span>
-                  <span style={{ fontSize: 11, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '2px 8px', borderRadius: 'var(--r-full)' }}>{f.weight}% of score</span>
-                </div>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', flex: 1 }}>{f.label}</span>
+                  <span style={{ fontSize: 11, color: 'var(--ink-4)', background: 'var(--surface-3)', padding: '2px 8px', borderRadius: 'var(--r-full)', flexShrink: 0 }}>{f.weight}% of score</span>
+                  <ChevronDown size={16} strokeWidth={2} color="var(--ink-4)" style={{ flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+                </button>
 
-                <p style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.6, marginBottom: 12 }}>{f.desc}</p>
+                {isOpen && (
+                  <div style={{ padding: '0 20px 20px' }}>
+                    <p style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.6, marginBottom: 12 }}>{f.desc}</p>
 
-                <div style={{ background: 'var(--ink)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, overflowX: 'auto' }}>
-                  <code style={{ fontSize: 12, color: '#4ADE80', fontFamily: 'monospace', whiteSpace: 'pre' }}>{f.formula}</code>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-                  {f.variables.map(([term, meaning]) => (
-                    <div key={term} style={{ display: 'flex', gap: 8, fontSize: 12.5, lineHeight: 1.5 }}>
-                      <code style={{ color: f.color, fontFamily: 'monospace', fontWeight: 700, flexShrink: 0 }}>{term}</code>
-                      <span style={{ color: 'var(--ink-3)' }}>{meaning}</span>
+                    <div style={{ background: 'var(--ink)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, overflowX: 'auto' }}>
+                      <code style={{ fontSize: 12, color: '#4ADE80', fontFamily: 'monospace', whiteSpace: 'pre' }}>{f.formula}</code>
                     </div>
-                  ))}
-                </div>
 
-                <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '12px 14px', border: '1px solid var(--border-2)' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>Example</div>
-                  {f.example.map((line, i) => (
-                    <p key={i} style={{ fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.6, margin: 0, fontFamily: i > 0 ? 'monospace' : 'inherit' }}>{line}</p>
-                  ))}
-                </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                      {f.variables.map(([term, meaning]) => (
+                        <div key={term} style={{ display: 'flex', gap: 8, fontSize: 12.5, lineHeight: 1.5 }}>
+                          <code style={{ color: f.color, fontFamily: 'monospace', fontWeight: 700, flexShrink: 0 }}>{term}</code>
+                          <span style={{ color: 'var(--ink-3)' }}>{meaning}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '12px 14px', border: '1px solid var(--border-2)' }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>Example</div>
+                      {f.example.map((line, i) => (
+                        <p key={i} style={{ fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.6, margin: 0, fontFamily: i > 0 ? 'monospace' : 'inherit' }}>{line}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
