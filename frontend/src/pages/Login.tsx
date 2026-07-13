@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Wallet, TrendingUp, Lock, Users, Banknote, ShieldCheck,
-  AlertCircle, Eye, EyeOff, UserPlus, Globe,
+  AlertCircle, Eye, EyeOff, UserPlus, Globe, ArrowLeft,
 } from 'lucide-react'
 import { supabase, signInLender, signUpLender, signInBorrower, signUpBorrower } from '../lib/supabase'
 import { useAuthUser } from '../hooks/useAuthUser'
@@ -26,10 +26,13 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const auth = useAuthUser()
 
-  // Already logged in — no need to see the login screen again
+  // Already logged in — no need to see the login screen again.
+  // Scoped to the borrower tab only: signing in as a lender also creates a
+  // Supabase Auth session, which would otherwise race this redirect against
+  // handleLenderSignIn's own nav() and bounce the lender into borrower Home.
   useEffect(() => {
-    if (auth.isAuthed) nav('/home')
-  }, [auth.isAuthed])
+    if (tab === 'borrower' && auth.isAuthed) nav('/home')
+  }, [auth.isAuthed, tab])
 
   async function handleBorrowerSignIn() {
     if (!email || !password) return
@@ -62,6 +65,12 @@ export default function Login() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true)
     const redirectTo = `${window.location.origin}/home`
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })
+  }
+
+  async function handleLenderGoogleSignIn() {
+    setGoogleLoading(true)
+    const redirectTo = `${window.location.origin}/lender`
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })
   }
 
@@ -181,6 +190,14 @@ export default function Login() {
       {/* ── RIGHT panel ───────────────────────────────────── */}
       <div className="login-right" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', padding: 48, overflowY: 'auto' }}>
         <div style={{ width: '100%', maxWidth: 380 }}>
+          <button
+            onClick={() => nav('/')}
+            className="btn btn-ghost btn-sm"
+            style={{ marginBottom: 20, paddingLeft: 0 }}
+          >
+            <ArrowLeft size={15} strokeWidth={2} /> Back to landing page
+          </button>
+
           <h2 className="heading" style={{ fontSize: 30, color: 'var(--ink)', marginBottom: 6 }}>
             Welcome to Bankero
           </h2>
@@ -335,6 +352,32 @@ export default function Login() {
                 </div>
               ) : (
                 <>
+                  <button
+                    type="button"
+                    onClick={handleLenderGoogleSignIn}
+                    disabled={googleLoading}
+                    style={{
+                      width: '100%', padding: '13px 0', borderRadius: 'var(--r-lg)',
+                      background: '#fff', border: '1.5px solid #E2E8F0',
+                      color: '#334155', fontSize: 15, fontWeight: 600,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                      opacity: googleLoading ? 0.65 : 1,
+                    }}
+                  >
+                    {googleLoading ? (
+                      <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(0,0,0,.15)', borderTopColor: '#4285F4', animation: 'spin 0.8s linear infinite' }} />
+                    ) : (
+                      <Globe size={18} strokeWidth={2} color="#4285F4" />
+                    )}
+                    Continue with Google
+                  </button>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+                    <span style={{ fontSize: 12, color: '#94A3B8', whiteSpace: 'nowrap' }}>or</span>
+                    <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+                  </div>
+
                   {lenderError && (
                     <div style={{ display: 'flex', gap: 10, padding: '12px 16px', borderRadius: 'var(--r-lg)', background: 'var(--red-tint)', border: '1px solid #FECACA', fontSize: 13, color: 'var(--red)' }}>
                       <AlertCircle size={14} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />

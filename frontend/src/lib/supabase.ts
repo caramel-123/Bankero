@@ -283,6 +283,40 @@ export async function getCurrentLenderSession(): Promise<Lender | null> {
   return data as Lender | null
 }
 
+/** Ensure a `lenders` row exists for the current auth session (covers Google sign-in, which has no explicit signUp step). */
+export async function ensureLenderProfile(): Promise<Lender | null> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const authUser = session?.user
+  if (!authUser) return null
+
+  const { data: existing } = await supabase
+    .from('lenders')
+    .select('*')
+    .eq('auth_user_id', authUser.id)
+    .maybeSingle()
+  if (existing) return existing as Lender
+
+  const meta = authUser.user_metadata ?? {}
+  const fullName: string = meta.full_name ?? meta.name ?? ''
+
+  const { data: created, error } = await supabase
+    .from('lenders')
+    .insert({
+      auth_user_id: authUser.id,
+      wallet_address: `lender_${authUser.id.slice(0, 8)}`,
+      display_name: fullName || authUser.email?.split('@')[0] || 'Lender',
+      contact_email: authUser.email ?? null,
+      max_loan_xlm: 10000,
+      interest_rate: 5,
+      min_credit_score: 300,
+      is_active: true,
+    })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return created as Lender
+}
+
 export async function updateLenderSettings(
   authUserId: string,
   settings: { max_loan_xlm?: number; interest_rate?: number; min_credit_score?: number; display_name?: string; bio?: string }

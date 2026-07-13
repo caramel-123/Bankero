@@ -11,7 +11,7 @@ import {
 } from '../lib/stellar'
 import { fetchAllLoans, updateLoanStatus, computeLocalScore, type LocalLoan } from '../lib/loanStore'
 import {
-  getCurrentLenderSession, signOutLender, updateLenderSettings,
+  ensureLenderProfile, signOutLender, updateLenderSettings,
   getScoreCacheFromSupabase, type Lender,
 } from '../lib/supabase'
 import type { useWallet } from '../hooks/useWallet'
@@ -179,9 +179,10 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   const [settingsSaving, setSaving] = useState(false)
   const [settingsSaved, setSaved]   = useState(false)
 
-  // ── Auth gate: check Supabase session ──────────────────
+  // ── Auth gate: check Supabase session, auto-creating a lender row for
+  // fresh Google sign-ins (no explicit signUp step to create one) ──────
   useEffect(() => {
-    getCurrentLenderSession().then(l => {
+    ensureLenderProfile().then(l => {
       setLender(l)
       setAuthLoading(false)
       if (l) {
@@ -190,7 +191,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
         setMinScore(l.min_credit_score)
         setBio(l.bio ?? '')
       }
-    })
+    }).catch(() => setAuthLoading(false))
   }, [])
 
   async function refreshLoans() {
@@ -393,7 +394,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
         ))}
 
         <div style={{ marginTop: 'auto' }}>
-          <button onClick={() => nav('/account')} className="sidenav-btn">
+          <button onClick={() => setPage('Settings')} className={`sidenav-btn${page === 'Settings' ? ' active' : ''}`}>
             <UserCircle size={16} strokeWidth={2} /> My Account
           </button>
           <button onClick={handleSignOut} className="sidenav-btn">
