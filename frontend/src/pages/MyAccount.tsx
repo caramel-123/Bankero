@@ -57,13 +57,17 @@ export default function MyAccount({ wallet }: { wallet: WalletHook }) {
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}>
             Name
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'var(--surface-2)', border: '1.5px solid var(--border)' }}>
-            <User size={16} color="var(--ink-4)" strokeWidth={2} />
-            <span style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 600 }}>{name}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EEF2FF', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+              <User size={18} color="#4F46E5" strokeWidth={2} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {name}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>Signed-in name · can't be changed here</div>
+            </div>
           </div>
-          <p style={{ fontSize: 12, color: 'var(--ink-4)', lineHeight: 1.6, margin: '10px 0 0' }}>
-            This is the name you signed in with — it's shown on public feedback and can't be changed here.
-          </p>
         </div>
 
         {/* Wallet card */}

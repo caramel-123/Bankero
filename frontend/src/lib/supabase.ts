@@ -126,6 +126,28 @@ export async function getBorrowerNames(walletAddresses: string[]): Promise<Recor
   return names
 }
 
+/**
+ * A single person can hold both a `users` (borrower) row and a `lenders` row
+ * under the same `auth_user_id`, created independently by different entry
+ * points (email/password signup, Google auto-create, lender auto-create on
+ * first login). Look up whichever of the two already has a name so the
+ * other role can reuse it instead of deriving its own — keeps "name as
+ * borrower" and "name as lender" identical for the same person.
+ */
+async function getExistingCrossRoleName(authUserId: string): Promise<{
+  display_name: string | null
+  first_name: string | null
+  last_name: string | null
+} | null> {
+  const [{ data: borrowerRow }, { data: lenderRow }] = await Promise.all([
+    supabase.from('users').select('display_name, first_name, last_name').eq('auth_user_id', authUserId).maybeSingle(),
+    supabase.from('lenders').select('display_name, first_name, last_name').eq('auth_user_id', authUserId).maybeSingle(),
+  ])
+  const row = borrowerRow ?? lenderRow
+  if (!row?.display_name) return null
+  return row
+}
+
 // ── Borrower Auth ──────────────────────────────────────────────────────────────
 // Identity now exists independently of a wallet — a `users` row is created at
 // signup (email/password or Google) and a wallet is linked to it later, once
@@ -185,8 +207,9 @@ export async function ensureBorrowerProfile(): Promise<User | null> {
     .maybeSingle()
   if (existing) return existing as User
 
+  const crossRole = await getExistingCrossRoleName(authUser.id)
   const meta = authUser.user_metadata ?? {}
-  const fullName: string = meta.full_name ?? meta.name ?? ''
+  const fullName: string = crossRole?.display_name ?? meta.full_name ?? meta.name ?? ''
   const [firstName, ...rest] = fullName.trim().split(/\s+/)
 
   const { data: created, error } = await supabase
@@ -195,8 +218,8 @@ export async function ensureBorrowerProfile(): Promise<User | null> {
       auth_user_id: authUser.id,
       email: authUser.email ?? null,
       display_name: fullName || authUser.email || null,
-      first_name: firstName || null,
-      last_name: rest.join(' ') || null,
+      first_name: crossRole?.first_name ?? (firstName || null),
+      last_name: crossRole?.last_name ?? (rest.join(' ') || null),
     })
     .select()
     .single()
@@ -256,12 +279,15 @@ export async function signInLender(email: string, password: string): Promise<Len
 
   if (!lenderData) {
     // First login — create lender profile
+    const crossRole = await getExistingCrossRoleName(userId)
     const { data: newLender, error: createError } = await supabase
       .from('lenders')
       .insert({
         auth_user_id: userId,
         wallet_address: `lender_${userId.slice(0, 8)}`,
-        display_name: email.split('@')[0],
+        display_name: crossRole?.display_name || email.split('@')[0],
+        first_name: crossRole?.first_name ?? null,
+        last_name: crossRole?.last_name ?? null,
         contact_email: email,
         max_loan_xlm: 200,
         interest_rate: 5,
@@ -315,8 +341,9 @@ export async function ensureLenderProfile(): Promise<Lender | null> {
     .maybeSingle()
   if (existing) return existing as Lender
 
+  const crossRole = await getExistingCrossRoleName(authUser.id)
   const meta = authUser.user_metadata ?? {}
-  const fullName: string = meta.full_name ?? meta.name ?? ''
+  const fullName: string = crossRole?.display_name ?? meta.full_name ?? meta.name ?? ''
 
   const { data: created, error } = await supabase
     .from('lenders')
@@ -324,6 +351,8 @@ export async function ensureLenderProfile(): Promise<Lender | null> {
       auth_user_id: authUser.id,
       wallet_address: `lender_${authUser.id.slice(0, 8)}`,
       display_name: fullName || authUser.email?.split('@')[0] || 'Lender',
+      first_name: crossRole?.first_name ?? null,
+      last_name: crossRole?.last_name ?? null,
       contact_email: authUser.email ?? null,
       max_loan_xlm: 200,
       interest_rate: 5,
