@@ -353,7 +353,7 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
         </div>
       </main>
 
-      <BottomNav active="home" />
+      <BottomNav active="home" walletAddress={wallet.isGuest ? null : wallet.publicKey} />
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }

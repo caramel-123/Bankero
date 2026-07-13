@@ -528,7 +528,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
       </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-      <BottomNav active="transaction" />
+      <BottomNav active="transaction" walletAddress={wallet.isGuest ? null : wallet.publicKey} />
     </div>
   )
 }

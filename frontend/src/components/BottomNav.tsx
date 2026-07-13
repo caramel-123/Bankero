@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Home, CreditCard, Camera, FileText, UserCircle } from 'lucide-react'
+import { useBorrowerLoanAlert } from '../hooks/useLoanAlerts'
 
 export type NavTab = 'home' | 'loan' | 'scan' | 'transaction' | 'profile'
 
@@ -11,9 +12,25 @@ const ITEMS: { tab: NavTab; icon: typeof Home; label: string; path: string }[] =
   { tab: 'profile',     icon: UserCircle, label: 'Profile',      path: '/account' },
 ]
 
-/** Persistent bottom navigation for the 5 primary destinations, with a highlighted circular camera button in the middle. */
-export default function BottomNav({ active }: { active: NavTab }) {
+/** Small red dot badge — flags a nav tab that has something needing the user's attention. */
+function AlertDot() {
+  return (
+    <span style={{
+      position: 'absolute', top: -1, right: -2, width: 9, height: 9, borderRadius: '50%',
+      background: '#EF4444', border: '2px solid var(--panel)',
+    }} />
+  )
+}
+
+/**
+ * Persistent bottom navigation for the 5 primary destinations, with a
+ * highlighted circular camera button in the middle. Pass `walletAddress`
+ * so the Transaction tab can show a red dot when a loan needs attention
+ * (approved, awaiting disbursement, or disbursed and awaiting repayment).
+ */
+export default function BottomNav({ active, walletAddress }: { active: NavTab; walletAddress?: string | null }) {
   const nav = useNavigate()
+  const hasLoanAlert = useBorrowerLoanAlert(walletAddress)
 
   return (
     <nav className="mobile-bottom-nav" style={{ alignItems: 'flex-end' }}>
@@ -58,7 +75,10 @@ export default function BottomNav({ active }: { active: NavTab }) {
               color: isActive ? 'var(--green)' : 'rgba(255,255,255,.4)', fontSize: 9, fontWeight: 700,
             }}
           >
-            <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+            <span style={{ position: 'relative', display: 'inline-flex' }}>
+              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+              {item.tab === 'transaction' && hasLoanAlert && <AlertDot />}
+            </span>
             {item.label}
           </button>
         )

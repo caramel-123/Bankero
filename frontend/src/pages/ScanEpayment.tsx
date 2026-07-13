@@ -114,7 +114,7 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
           <button onClick={() => nav('/home')} className="btn btn-ghost" style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 15, fontWeight: 700 }}>Back to Home</button>
         </div>
       </div>
-      <BottomNav active="scan" />
+      <BottomNav active="scan" walletAddress={wallet.isGuest ? null : wallet.publicKey} />
     </div>
   )
 
@@ -170,7 +170,7 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
         </div>
       </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-      <BottomNav active="scan" />
+      <BottomNav active="scan" walletAddress={wallet.isGuest ? null : wallet.publicKey} />
     </div>
   )
 }

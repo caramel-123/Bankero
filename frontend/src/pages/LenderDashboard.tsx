@@ -274,6 +274,12 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   const [settingsSaving, setSaving] = useState(false)
   const [settingsSaved, setSaved]   = useState(false)
 
+  // Repaid loans this lender has already been shown, so the "Loans" nav
+  // badge clears once they've viewed the tab instead of staying lit
+  // forever (unlike Pending, "Repaid" is a terminal status that never
+  // naturally clears on its own).
+  const [seenRepaidIds, setSeenRepaidIds] = useState<Set<string>>(new Set())
+
   // ── Auth gate: check Supabase session, auto-creating a lender row for
   // fresh Google sign-ins (no explicit signUp step to create one) ──────
   useEffect(() => {
@@ -298,6 +304,29 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   useEffect(() => {
     if (lender) refreshLoans()
   }, [lender])
+
+  // Load which repaid loans this lender has already seen.
+  useEffect(() => {
+    if (!lender) return
+    try {
+      const raw = localStorage.getItem(`bankero_lender_seen_repaid_${lender.wallet_address}`)
+      setSeenRepaidIds(new Set(raw ? JSON.parse(raw) : []))
+    } catch { setSeenRepaidIds(new Set()) }
+  }, [lender])
+
+  // Mark this lender's currently-repaid loans as seen once they open the Loans tab.
+  useEffect(() => {
+    if (!lender || page !== 'Loans') return
+    const myRepaidIds = loans.filter(l => l.status === 'Repaid' && l.lenderWallet === lender.wallet_address).map(l => l.id)
+    if (myRepaidIds.length === 0) return
+    setSeenRepaidIds(prev => {
+      if (myRepaidIds.every(id => prev.has(id))) return prev
+      const next = new Set(prev)
+      myRepaidIds.forEach(id => next.add(id))
+      try { localStorage.setItem(`bankero_lender_seen_repaid_${lender.wallet_address}`, JSON.stringify([...next])) } catch { /* ignore */ }
+      return next
+    })
+  }, [page, loans, lender])
 
   // Borrower names for the loan lists — wallets are pseudonymous, but a
   // borrower's real name is known once they've signed up (see PATCH
@@ -458,6 +487,11 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   const active    = loans.filter(l => l.status === 'Disbursed')
   const repaid    = loans.filter(l => l.status === 'Repaid')
   const defaulted = loans.filter(l => l.status === 'Defaulted')
+
+  // "Loans" nav badge: a new request is awaiting your decision, or a
+  // borrower you lent to has repaid and you haven't seen it yet.
+  const unseenRepaid = repaid.filter(l => l.lenderWallet === lender?.wallet_address && !seenRepaidIds.has(l.id))
+  const loansNeedAttention = pending.length > 0 || unseenRepaid.length > 0
   const totalDisbursed = [...active, ...repaid, ...defaulted].reduce((s, l) => s + l.amount, 0)
   const defaultRate = [...repaid, ...defaulted].length > 0
     ? Math.round((defaulted.length / (repaid.length + defaulted.length)) * 100)
@@ -519,7 +553,13 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
 
         {PAGES.map(({ id, Icon }) => (
           <button key={id} onClick={() => setPage(id)} className={`sidenav-btn${page === id ? ' active' : ''}`}>
-            <Icon size={16} strokeWidth={2} /> {id}
+            <span style={{ position: 'relative', display: 'inline-flex' }}>
+              <Icon size={16} strokeWidth={2} />
+              {id === 'Loans' && loansNeedAttention && (
+                <span style={{ position: 'absolute', top: -2, right: -3, width: 8, height: 8, borderRadius: '50%', background: '#EF4444', border: '2px solid var(--panel)' }} />
+              )}
+            </span>
+            {id}
           </button>
         ))}
 
@@ -862,7 +902,12 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
           return (
             <button key={n.pageId} onClick={() => setPage(n.pageId)}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer', color: active ? 'var(--green)' : 'rgba(255,255,255,.4)', fontSize: 9, fontWeight: 700 }}>
-              <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+              <span style={{ position: 'relative', display: 'inline-flex' }}>
+                <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+                {n.pageId === 'Loans' && loansNeedAttention && (
+                  <span style={{ position: 'absolute', top: -1, right: -2, width: 9, height: 9, borderRadius: '50%', background: '#EF4444', border: '2px solid var(--panel)' }} />
+                )}
+              </span>
               {n.label}
             </button>
           )

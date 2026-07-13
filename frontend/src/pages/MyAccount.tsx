@@ -150,7 +150,7 @@ export default function MyAccount({ wallet }: { wallet: WalletHook }) {
         </div>
 
       </div>
-      <BottomNav active="profile" />
+      <BottomNav active="profile" walletAddress={wallet.isGuest ? null : wallet.publicKey} />
     </div>
   )
 }
