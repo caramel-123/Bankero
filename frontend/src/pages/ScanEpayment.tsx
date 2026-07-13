@@ -13,6 +13,42 @@ type WalletHook = ReturnType<typeof useWallet>
 
 const STEPS = ['Uploading image...', 'Reading transaction with AI...', 'Verifying...', 'Saving results...']
 
+// Fixed field set shown after every scan, regardless of which e-wallet
+// app the screenshot came from — same labels/order every time so the
+// user can see exactly what the AI read off the receipt.
+const RECEIPT_FIELDS: { key: keyof EpaymentValidationResult['data']; label: string }[] = [
+  { key: 'provider', label: 'Provider' },
+  { key: 'amount', label: 'Amount' },
+  { key: 'reference_number', label: 'Reference No.' },
+  { key: 'transaction_date', label: 'Date' },
+  { key: 'transaction_status', label: 'Status' },
+]
+
+function ReceiptDetails({ data }: { data: EpaymentValidationResult['data'] }) {
+  return (
+    <div style={{ textAlign: 'left', marginBottom: 20, borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+      {RECEIPT_FIELDS.map(({ key, label }, i) => {
+        const raw = data[key]
+        const value = key === 'amount' && typeof raw === 'number' ? `₱${raw.toFixed(2)}` : raw
+        return (
+          <div
+            key={key}
+            style={{
+              display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 14px',
+              background: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)',
+            }}
+          >
+            <span style={{ fontSize: 13, color: 'var(--ink-3)', fontWeight: 600 }}>{label}</span>
+            <span style={{ fontSize: 13, color: value ? 'var(--ink)' : 'var(--ink-4)', fontWeight: 600, textAlign: 'right' }}>
+              {value || 'Not detected'}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function UploadZone({ file, onFile }: { file: File | null; onFile: (f: File) => void }) {
   const ref = useRef<HTMLInputElement>(null)
   return (
@@ -100,6 +136,11 @@ export default function ScanEpayment({ wallet }: { wallet: WalletHook }) {
               ? `This transaction has been recorded and added +${2} points toward your Remittance score (capped at +${MAX_SCAN_BONUS}).`
               : 'There were issues reading this transaction. See details below.'}
           </p>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 8, textAlign: 'left' }}>
+            What the AI read from your receipt
+          </div>
+          <ReceiptDetails data={result.data} />
+
           {result.errors.length > 0 && (
             <div style={{ textAlign: 'left', marginBottom: 20 }}>
               {result.errors.map((e, i) => (
