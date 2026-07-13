@@ -48,7 +48,7 @@ export default function SavingsBank({ wallet }: { wallet: WalletHook }) {
       setLoadState('loaded')
     } catch (e) {
       console.error('Failed to load savings bank data:', e)
-      setErrorMsg(e instanceof Error ? e.message : 'Something went wrong.')
+      setErrorMsg(e instanceof Error ? e.message : (e as { message?: string })?.message || 'Something went wrong.')
       setLoadState('error')
     }
   }
@@ -82,7 +82,7 @@ export default function SavingsBank({ wallet }: { wallet: WalletHook }) {
       setTransactions(txs)
     } catch (e) {
       console.error(`Savings bank ${mode} failed:`, e)
-      setFormError(e instanceof Error ? e.message : `Couldn’t complete the ${mode}.`)
+      setFormError(e instanceof Error ? e.message : (e as { message?: string })?.message || `Couldn’t complete the ${mode}.`)
     } finally {
       setSubmitting(false)
     }

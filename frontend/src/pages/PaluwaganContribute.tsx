@@ -88,7 +88,8 @@ export default function PaluwaganContribute({ wallet }: { wallet: WalletHook }) 
       setScoreBonus(newBonus)
       setStage('success')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
+      const message = e instanceof Error ? e.message : (e as { message?: string })?.message
+      setError(message || 'An error occurred. Please try again.')
       setStage('error')
     }
   }

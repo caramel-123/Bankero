@@ -115,7 +115,8 @@ export default function PaluwaganCreate({ wallet }: { wallet: WalletHook }) {
 
       setDone(true)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'An error occurred. Please try again.')
+      const message = e instanceof Error ? e.message : (e as { message?: string })?.message
+      setError(message || 'An error occurred. Please try again.')
     } finally {
       setSubmitting(false)
     }
