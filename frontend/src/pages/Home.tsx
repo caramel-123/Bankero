@@ -5,7 +5,7 @@ import {
   ArrowRight, ChevronRight, RefreshCw, Copy, Check, Globe, MessageSquare, PiggyBank, Flame, Camera, Wallet,
 } from 'lucide-react'
 import { stellarExplorerUrl } from '../lib/stellar'
-import { scoreTier, scorePercent, formatWallet, formatXlmAmount } from '../lib/stellar'
+import { scoreTier, scorePercent, formatWallet, formatXlmAmount, xlmToPesoEstimate } from '../lib/stellar'
 import { useScore } from '../hooks/useScore'
 import GuestBanner from '../components/GuestBanner'
 import FeedbackModal from '../components/FeedbackModal'
@@ -272,7 +272,7 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
         {/* ── DATA ROW ───────────────────────────────────────── */}
         <div className="card data-strip" style={{ display: 'flex', marginBottom: 20 }}>
           {[
-            { label: 'Loan Limit',      value: isLoading ? '—' : formatXlmAmount(tier.max),                color: 'var(--green)',   sub: 'Based on your score' },
+            { label: 'Loan Limit',      value: isLoading ? '—' : formatXlmAmount(tier.max),                color: 'var(--green)',   sub: isLoading ? 'Based on your score' : `${xlmToPesoEstimate(tier.max)} · Based on your score` },
             { label: 'Total Loans',     value: isLoading ? '—' : String(record?.total_loans ?? 0),    color: 'var(--ink)',     sub: 'Lifetime on-chain' },
             { label: 'Loans Repaid',    value: isLoading ? '—' : String(record?.loans_repaid ?? 0),   color: 'var(--ink)',     sub: 'On-time repayments' },
             { label: 'Vouches Received',value: '0',                                                   color: 'var(--amber)',   sub: 'Get vouched to boost score' },
@@ -290,7 +290,7 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
         {/* ── ACTIONS — flat list ───────────────────────────── */}
         <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
           {([
-            { Icon: CreditCard, title: 'Apply for a Loan',      desc: `Borrow up to ${formatXlmAmount(tier.max)} at a flat 5% rate`,     action: () => nav('/apply'),       accent: '#16A34A', tint: 'var(--green-tint)' },
+            { Icon: CreditCard, title: 'Apply for a Loan',      desc: `Borrow up to ${formatXlmAmount(tier.max)} (${xlmToPesoEstimate(tier.max)}) at a flat 5% rate`,     action: () => nav('/apply'),       accent: '#16A34A', tint: 'var(--green-tint)' },
             { Icon: Users,      title: 'Vouch for Someone',     desc: 'Stake XLM to help a friend build their credit score',        action: () => nav('/vouch'),       accent: '#D97706', tint: 'var(--amber-tint)' },
             { Icon: Users,      title: 'Community Paluwagan',   desc: 'Join a rotating savings group to boost your score',          action: () => nav('/paluwagan'),   accent: '#7C3AED', tint: 'rgba(124,58,237,.1)' },
             { Icon: PiggyBank,  title: 'Savings',               desc: 'Deposit XLM and grow a real on-chain balance',               action: () => nav('/savings-bank'), accent: '#0EA5E9', tint: 'rgba(14,165,233,.1)' },
