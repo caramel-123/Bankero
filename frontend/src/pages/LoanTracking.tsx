@@ -12,6 +12,7 @@ import {
 } from '../lib/loanStore'
 import { DEMO_LOANS, DEMO_SCORE_RECORD } from '../lib/demoData'
 import { useScore } from '../hooks/useScore'
+import { markLoansSeen } from '../hooks/useLoanAlerts'
 import GuestActionModal from '../components/GuestActionModal'
 import BottomNav from '../components/BottomNav'
 import ScoreInfoModal, { SCORE_FACTORS } from '../components/ScoreInfoModal'
@@ -194,6 +195,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
     }
     if (defaultCount > 0) setDefaultedInfo({ count: defaultCount })
     setLoans(all)
+    markLoansSeen(wallet.publicKey, all)
     setLoading(false)
   }
 

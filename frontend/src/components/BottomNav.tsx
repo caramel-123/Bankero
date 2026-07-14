@@ -26,7 +26,8 @@ function AlertDot() {
  * Persistent bottom navigation for the 5 primary destinations, with a
  * highlighted circular camera button in the middle. Pass `walletAddress`
  * so the Transaction tab can show a red dot when a loan needs attention
- * (approved, awaiting disbursement, or disbursed and awaiting repayment).
+ * (approved / disbursed) or has a new terminal update to see (repaid /
+ * rejected / defaulted) — see hooks/useLoanAlerts.ts.
  */
 export default function BottomNav({ active, walletAddress }: { active: NavTab; walletAddress?: string | null }) {
   const nav = useNavigate()
