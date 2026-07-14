@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Flame, TrendingUp, Zap, RefreshCw, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Flame, TrendingUp, Zap, RefreshCw, CheckCircle, Info, AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { DEMO_SAVINGS_STREAK, DEMO_WEEKLY_DEPOSITS } from '../lib/demoData'
 import {
@@ -53,6 +53,7 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null)
 
   useEffect(() => {
     if (wallet.isGuest) {
@@ -81,12 +82,23 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
     if (wallet.isGuest) return
     if (!userId || !wallet.publicKey) return
     setRefreshing(true)
+    setFeedback(null)
     try {
+      const prevWeek = streak?.last_deposit_week
       const updated = await updateSavingsStreak(userId, wallet.publicKey)
       setStreak(updated)
       setDeposits(await getWeeklyDeposits(userId, 8))
+
+      const currentWeek = getCurrentWeekIdentifier()
+      if (updated.last_deposit_week === currentWeek && prevWeek !== currentWeek) {
+        setFeedback({ type: 'success', message: `Deposit found! Your streak is now ${updated.current_streak} week${updated.current_streak !== 1 ? 's' : ''}.` })
+      } else if (updated.last_deposit_week === currentWeek) {
+        setFeedback({ type: 'info', message: "You've already been credited for this week." })
+      } else {
+        setFeedback({ type: 'info', message: 'No qualifying deposit found yet this week. Deposit at least 1 XLM in the Savings Bank, then check again.' })
+      }
     } catch (e) {
-      console.error(e)
+      setFeedback({ type: 'error', message: e instanceof Error ? e.message : 'Could not check your deposit. Please try again.' })
     } finally {
       setRefreshing(false)
     }
@@ -212,6 +224,25 @@ export default function SavingsTrackerPage({ wallet }: { wallet: WalletHook }) {
               <RefreshCw size={15} strokeWidth={2} style={refreshing ? { animation: 'spin 0.8s linear infinite' } : {}} />
               {refreshing ? 'Checking...' : 'Check My Deposit'}
             </button>
+
+            {feedback && (
+              <div style={{
+                display: 'flex', gap: 8, padding: '12px 14px', borderRadius: 12, alignItems: 'flex-start',
+                background: feedback.type === 'success' ? 'rgba(22,163,74,.08)' : feedback.type === 'error' ? 'rgba(239,68,68,.08)' : 'rgba(59,130,246,.08)',
+                border: `1px solid ${feedback.type === 'success' ? 'rgba(22,163,74,.2)' : feedback.type === 'error' ? 'rgba(239,68,68,.2)' : 'rgba(59,130,246,.2)'}`,
+              }}>
+                {feedback.type === 'success' && <CheckCircle size={16} color="#16A34A" style={{ flexShrink: 0, marginTop: 1 }} />}
+                {feedback.type === 'error' && <AlertCircle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />}
+                {feedback.type === 'info' && <Info size={16} color="#3B82F6" style={{ flexShrink: 0, marginTop: 1 }} />}
+                <span style={{
+                  fontSize: 13, lineHeight: 1.5,
+                  color: feedback.type === 'success' ? '#16A34A' : feedback.type === 'error' ? '#DC2626' : '#3B82F6',
+                }}>
+                  {feedback.message}
+                </span>
+              </div>
+            )}
+
             <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-4)', marginTop: 8 }}>
               Minimum deposit is 1 XLM per week.
             </p>
