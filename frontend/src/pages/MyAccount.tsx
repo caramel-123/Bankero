@@ -53,7 +53,7 @@ export default function MyAccount({ wallet }: { wallet: WalletHook }) {
         </p>
 
         {/* Name card — set at signup, not editable */}
-        <div className="card" style={{ marginBottom: 14 }}>
+        <div className="card" style={{ marginBottom: 14, padding: 18 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}>
             Name
           </div>
@@ -71,7 +71,7 @@ export default function MyAccount({ wallet }: { wallet: WalletHook }) {
         </div>
 
         {/* Wallet card */}
-        <div className="card" style={{ marginBottom: 14 }}>
+        <div className="card" style={{ marginBottom: 14, padding: 18 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}>
             Connected Wallet
           </div>
@@ -86,17 +86,17 @@ export default function MyAccount({ wallet }: { wallet: WalletHook }) {
               </div>
             </div>
           ) : wallet.publicKey ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#DCFCE7', display: 'grid', placeItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', rowGap: 10, columnGap: 10 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#DCFCE7', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                 <Wallet size={18} color="#16A34A" strokeWidth={2} />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ flex: 1, minWidth: 120 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {formatWallet(wallet.publicKey)}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 1 }}>Stellar Testnet</div>
               </div>
-              <button onClick={copyAddress} className="btn btn-ghost btn-sm" style={{ flexShrink: 0, padding: '6px 10px', fontSize: 12 }}>
+              <button onClick={copyAddress} className="btn btn-ghost btn-sm" style={{ flexShrink: 0, padding: '6px 10px', fontSize: 12, marginLeft: 'auto' }}>
                 {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
               </button>
             </div>
