@@ -62,35 +62,42 @@ The long-term goal is a world where any person with a smartphone can walk up to 
 ## Features
 
 ### Platform
-- 📱 **Installable PWA** — add Bankero to your phone's home screen like a native app (works on Android and iOS); the app shell loads instantly offline, while live data (score, balances, loans) always comes fresh from the network, never from cache
+- 📱 **Installable PWA** — add Bankero to your phone's home screen like a native app (works on Android and iOS); the app shell loads instantly offline, while live data (score, balances, loans) always comes fresh from the network, never from cache, with a 5-tab bottom navigation (Home, Loan, Scan, Transaction, Profile)
 
 ### For Borrowers
-- 🔐 **Connect with Freighter** — wallet-based identity, no username/password needed
-- 📊 **Live credit score** — real-time 300–850 score with breakdown by factor
-- 💸 **Apply for micro-loans** — loan limits unlock as your score grows (₱500 → ₱50,000)
-- 🔗 **Link GCash / Maya / remittance** accounts to boost anchor score
+- 🔐 **Login-first auth** — email/password or Google sign-in creates your identity before any wallet is connected; connect Freighter afterward as a secondary step
+- 📊 **Live credit score** — real-time 300–850 score with breakdown by factor, collapsible per-factor explanations
+- 💸 **Apply for micro-loans** — loan limits unlock as your score grows (10 → 1,000 XLM across 7 tiers)
+- 📷 **AI-verified e-payment scanning** — snap a photo of a GCash/Maya/e-wallet receipt; an AI vision model (Groq) reads the transaction and boosts your Remittance score, with duplicate-receipt detection (image hashing + reference-number checks, enforced at the database level) so the same receipt can't be resubmitted for repeat bonuses
+- 🏦 **Savings Bank** — deposit/withdraw real on-chain XLM via a dedicated Soroban contract; a weekly **Savings Streak** rewards consistent deposits with a capped score bonus
+- 🐷 **Paluwagan (community savings circles)** — join or create a rotating-pot savings group with peers, contribution tracking, and score bonuses for on-time participation
 - 🤝 **Community vouching** — ask trusted peers to stake XLM for you
-- 📄 **Credit Certificate** — downloadable PDF proof of creditworthiness for banks
+- 🔔 **Action-needed notifications** — a red-dot indicator on the Transaction tab surfaces loans awaiting your attention (just approved, awaiting repayment) or with a new outcome to see (repaid, rejected, defaulted)
+- 📄 **Credit Certificate** — downloadable, shareable (Messenger, etc.) proof of creditworthiness for banks
 - 🔍 **Stellar Explorer** — one-click view of wallet on the blockchain
 
 ### For Lenders
 - 🏦 **Email/password dashboard** (Supabase Auth)
 - 📋 **Review borrower profiles** — full credit score, repayment history, tier
-- ✅ **Approve / Reject / Disburse** loans with real XLM payments via Freighter
+- ✅ **Approve / Disburse** with a confirmation modal showing the borrower's status and your projected XLM + peso gain before you commit, real XLM payments via Freighter
+- 💰 **Interest-gain indicators** — see projected or earned interest (XLM and peso equivalent) on every loan, at every status
 - ⚡ **Auto-default detection** — overdue loans flagged automatically, score adjusted
+- 🔔 **Action-needed notifications** — a red-dot indicator on the Loans tab flags new pending applications or a borrower who just repaid
 - 📈 **Portfolio analytics** — repayment rate, default rate, total disbursed
 
 ### Credit Score Tiers
 
+Loan limits are denominated in XLM (converted from an earlier peso-based model); the peso-equivalent conversion is shown throughout the UI at the current market rate (~₱12.20/XLM).
+
 | Score | Tier | Max Loan | Interest |
 |-------|------|----------|----------|
-| 300–449 | Starting Out | ₱500 | 8% |
-| 450–549 | Fair | ₱1,500 | 7% |
-| 550–649 | Developing | ₱3,000 | 6% |
-| 650–749 | Good | ₱7,500 | 5% |
-| 750–799 | Trusted | ₱15,000 | 4.5% |
-| 800–849 | Excellent | ₱25,000 | 4% |
-| 850 | Elite | ₱50,000 | 3.5% |
+| 300–449 | Starting Out | 10 XLM | 8% |
+| 450–549 | Fair | 30 XLM | 7% |
+| 550–649 | Developing | 60 XLM | 6% |
+| 650–749 | Good | 150 XLM | 5% |
+| 750–799 | Trusted | 300 XLM | 4.5% |
+| 800–849 | Excellent | 500 XLM | 4% |
+| 850 | Elite | 1,000 XLM | 3.5% |
 
 ---
 
@@ -163,7 +170,7 @@ Live visitor tracking via Vercel Analytics — installed and active on [bankero.
 |-------|-----------|
 | Blockchain | Stellar Testnet + Soroban Smart Contracts |
 | Wallet | Freighter ([@stellar/freighter-api](https://www.npmjs.com/package/@stellar/freighter-api)) |
-| Smart Contracts | Rust / Soroban (3 contracts) |
+| Smart Contracts | Rust / Soroban (4 contracts) |
 | Frontend | React + TypeScript + Vite |
 | Database | Supabase (Postgres + Auth + RLS) |
 | Payments | Stellar Horizon API (real XLM disbursement) |
@@ -173,13 +180,16 @@ Live visitor tracking via Vercel Analytics — installed and active on [bankero.
 
 ## Smart Contracts (Soroban)
 
-Three contracts deployed on **Stellar Testnet**:
+Four contracts deployed on **Stellar Testnet**:
 
 | Contract | ID | Purpose |
 |----------|-----|---------|
 | `credit_score` | `CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE` | Aggregate scores, store borrower records |
 | `loan_registry` | `CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI` | Loan lifecycle management |
 | `vouching` | `CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F` | Staked community vouches |
+| `savings_bank` | `CAOWTHTJRNWKRF6BLFWQKK3H5AGTZI6HGHRUGIY2R2MCS4RHH2FBTSKS` | Real on-chain XLM deposit/withdraw balance |
+
+`paluwagan` also exists as a contract crate in the workspace (`contracts/paluwagan`) but the shipped Paluwagan feature is currently Supabase-backed, not yet deployed on-chain.
 
 ---
 
@@ -199,20 +209,21 @@ Every push to `main` automatically runs tests and builds via **GitHub Actions**.
 
 ## Test Suite
 
-**38 tests — all passing** across 2 test files.
+**50 tests — all passing** across 3 test files.
 
 ```
  RUN  v4.1.9
 
- Test Files  2 passed (2)
-      Tests  38 passed (38)
-   Duration  421ms
+ Test Files  3 passed (3)
+      Tests  50 passed (50)
+   Duration  ~700ms
 ```
 
 | Test File | Coverage |
 |-----------|----------|
-| `stellar.test.ts` | `scoreTier()`, `scorePercent()`, `nextScoreTier()`, `SCORE_TIERS` array, `formatWallet()`, `formatPeso()`, `pesoToXlm()` |
+| `stellar.test.ts` | `scoreTier()`, `scorePercent()`, `nextScoreTier()`, `SCORE_TIERS` array, `formatWallet()`, `formatXlmAmount()`, `xlmToPesoEstimate()` |
 | `loanStore.test.ts` | `computeLocalScore()`, Laplace smoothing formula, `daysUntil()`, `formatDate()` |
+| `savingsTracker.test.ts` | `getCurrentWeekIdentifier()`, `getWeekBounds()` week-identifier logic |
 
 Run tests locally:
 
@@ -317,8 +328,7 @@ VITE_SOROBAN_RPC=https://soroban-testnet.stellar.org
 VITE_CREDIT_SCORE_CONTRACT_ID=CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE
 VITE_LOAN_REGISTRY_CONTRACT_ID=CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI
 VITE_VOUCHING_CONTRACT_ID=CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F
-# Not yet deployed — see "Deploying savings_bank" above
-VITE_SAVINGS_BANK_CONTRACT_ID=
+VITE_SAVINGS_BANK_CONTRACT_ID=CAOWTHTJRNWKRF6BLFWQKK3H5AGTZI6HGHRUGIY2R2MCS4RHH2FBTSKS
 
 # Supabase — create a free project at supabase.com
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -326,6 +336,8 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 > **Note:** For local development, create your own free Supabase project at [supabase.com](https://supabase.com) and run the migration below.
+
+> **Scan E-Payment (AI receipt verification)** needs one more variable, set as a **server-side** environment variable in Vercel (not `VITE_`-prefixed, never exposed to the browser) — `GROQ_API_KEY`, a free key from [console.groq.com/keys](https://console.groq.com/keys). This powers `frontend/api/verify-epayment.ts`, the serverless function that runs the OCR call so the key never reaches the client.
 
 ### 4. Set Up Supabase Database
 
@@ -455,33 +467,52 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ```
 bankero/
-├── contracts/               # Soroban smart contracts (Rust)
-│   ├── credit_score/        # Credit scoring logic
-│   ├── loan_registry/       # Loan lifecycle management
-│   └── vouching/            # Community stake & vouch
-├── frontend/                # React + TypeScript app
+├── contracts/                 # Soroban smart contracts (Rust)
+│   ├── credit_score/          # Credit scoring logic
+│   ├── loan_registry/         # Loan lifecycle management
+│   ├── vouching/               # Community stake & vouch
+│   ├── savings_bank/           # On-chain XLM deposit/withdraw balance
+│   └── paluwagan/               # Contract crate (not yet deployed — feature is Supabase-backed)
+├── frontend/                  # React + TypeScript app
+│   ├── api/
+│   │   └── verify-epayment.ts  # Vercel serverless fn — AI OCR for Scan E-Payment (Groq), keeps the API key off the client
 │   ├── src/
-│   │   ├── pages/           # All screens
+│   │   ├── pages/              # All screens
 │   │   │   ├── Landing.tsx
 │   │   │   ├── Login.tsx
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── ScoreDetails.tsx
+│   │   │   ├── Onboarding.tsx
+│   │   │   ├── Home.tsx              # Borrower home (formerly Dashboard.tsx)
 │   │   │   ├── LoanApply.tsx
-│   │   │   ├── LoanTracking.tsx
+│   │   │   ├── LoanTracking.tsx      # "My Loans" + score breakdown (merged ScoreDetails.tsx)
+│   │   │   ├── ScanEpayment.tsx      # AI-verified e-payment receipt scanner + history
 │   │   │   ├── Vouch.tsx
-│   │   │   ├── LenderDashboard.tsx
-│   │   │   └── CreditCertificate.tsx
+│   │   │   ├── SavingsBank.tsx       # Deposit/withdraw on-chain XLM
+│   │   │   ├── SavingsTracker.tsx    # Weekly Savings Streak
+│   │   │   ├── Paluwagan{List,Create,Contribute,Detail}.tsx
+│   │   │   ├── MyAccount.tsx         # Borrower profile + Credit Certificate
+│   │   │   ├── CreditCertificate.tsx
+│   │   │   └── LenderDashboard.tsx
+│   │   ├── components/
+│   │   │   ├── BottomNav.tsx         # Shared 5-tab borrower navigation
+│   │   │   └── ScoreInfoModal.tsx    # Shared score-factor explainer
 │   │   ├── lib/
-│   │   │   ├── stellar.ts      # Stellar SDK + Freighter helpers + XLM payment
+│   │   │   ├── stellar.ts      # Stellar SDK + Freighter helpers + XLM payment + SCORE_TIERS
 │   │   │   ├── supabase.ts     # Supabase client + auth + data layer
 │   │   │   ├── loanStore.ts    # Loan state + score updates
 │   │   │   └── anchorStore.ts  # GCash/Maya integration
+│   │   ├── services/
+│   │   │   ├── epaymentScan.ts     # Upload, hash, OCR call, duplicate checks, save
+│   │   │   ├── savingsBank.ts      # Deposit/withdraw contract calls
+│   │   │   ├── savingsTracker.ts   # Weekly streak logic
+│   │   │   └── paluwagaScoring.ts
 │   │   └── hooks/
-│   │       ├── useWallet.ts    # Freighter wallet hook
-│   │       └── useScore.ts     # Live credit score hook
+│   │       ├── useWallet.ts        # Freighter wallet hook
+│   │       ├── useAuthUser.ts      # Supabase Auth session hook
+│   │       ├── useScore.ts         # Live credit score hook
+│   │       └── useLoanAlerts.ts    # Nav-bar red-dot alert logic (borrower + lender)
 │   └── .env.example
 └── supabase/
-    └── migrations/             # SQL schema migrations
+    └── migrations/             # SQL schema migrations (17 as of this writing)
 ```
 
 ---
@@ -539,7 +570,7 @@ The following improvements are planned for Phase 2, informed directly by user fe
 Bankero is currently an MVP targeting the Stellar testnet. The roadmap ahead:
 
 ### Near-Term (Post-Hackathon)
-- **Mainnet deployment** — migrate all 3 contracts from testnet to Stellar mainnet with real XLM
+- **Mainnet deployment** — migrate all 4 contracts from testnet to Stellar mainnet with real XLM
 - **GCash / Maya anchor integration** — automate anchor score updates via Stellar SEP-6/24 instead of manual admin attestation
 - **Mobile app** — React Native wrapper using Lobstr wallet for users without desktop browsers
 - **SMS / USSD fallback** — for users without smartphones, enable loan status checks via text
