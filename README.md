@@ -61,6 +61,14 @@ The long-term goal is a world where any person with a smartphone can walk up to 
 
 ## Features
 
+### Main Features
+- 💸 **Micro-loan applications** — borrow 10 to 1,000 XLM depending on your score tier, backed by Community Vouch, Savings Collateral, or neither
+- 📷 **AI-verified e-payment scanning** — photograph a GCash/Maya receipt; AI reads and verifies it, boosting your Remittance score, with duplicate-receipt detection so you can't resubmit the same one
+- 🏦 **Savings Bank** — deposit/withdraw real XLM on-chain, with a weekly Savings Streak bonus for consistent deposits
+- 🐷 **Paluwagan (community savings circles)** — join or start a rotating-pot savings group with peers, with score bonuses for on-time participation
+- 🤝 **Community vouching** — trusted peers stake XLM behind your loan application, boosting approval odds
+- 📄 **Credit Certificate** — a downloadable, shareable proof-of-creditworthiness document, usable outside Bankero
+
 ### Platform
 - 📱 **Installable PWA** — add Bankero to your phone's home screen like a native app (works on Android and iOS); the app shell loads instantly offline, while live data (score, balances, loans) always comes fresh from the network, never from cache, with a 5-tab bottom navigation (Home, Loan, Scan, Transaction, Profile)
 
