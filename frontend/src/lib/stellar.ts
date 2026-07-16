@@ -35,11 +35,32 @@ export async function checkFreighterInstalled(): Promise<boolean> {
   }
 }
 
+/**
+ * Freighter's own API detects the extension via `window.postMessage` to its
+ * injected content script, with a 2s internal timeout — if that script
+ * hasn't finished attaching its listener yet (a real race right after a
+ * fresh page load/navigation, before the extension has "primed" for this
+ * specific page), the request times out and freighter-api reports it
+ * exactly the same as "not installed," even when it genuinely is. One
+ * retry after a short pause gives the content script time to attach and
+ * avoids a false "not installed" error for the common case of clicking
+ * Connect Wallet right as the page finishes loading.
+ */
+async function requestAccessWithRetry(): Promise<{ address: string; error?: { message?: string } | string }> {
+  const first = await requestAccess()
+  const firstMsg = typeof first.error === 'string' ? first.error : (first.error as any)?.message
+  const looksNotInstalled = !!firstMsg && (firstMsg.toLowerCase().includes('not installed') || firstMsg.toLowerCase().includes('not found'))
+  if (!looksNotInstalled || first.address) return first
+
+  await new Promise(resolve => setTimeout(resolve, 400))
+  return requestAccess()
+}
+
 export async function connectWallet(): Promise<string> {
   // requestAccess() does everything: checks if installed, shows popup, returns address
   let result: { address: string; error?: { message?: string } | string }
   try {
-    result = await requestAccess()
+    result = await requestAccessWithRetry()
   } catch (e: any) {
     // Extension not installed — no API to respond
     throw new Error('FREIGHTER_NOT_INSTALLED')
