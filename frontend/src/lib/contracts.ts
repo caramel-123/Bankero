@@ -253,12 +253,18 @@ export async function fetchBorrowerVouchers(borrowerAddress: string): Promise<On
 //   get_balance(user: Address) -> i128 (stroops)
 //   get_tx_count(user: Address) -> u32
 
-/** Simulate a read-only savings_bank call that takes a single Address arg. */
-async function fetchSavingsBankValue(walletAddress: string, functionName: string): Promise<number> {
+/**
+ * Simulate a read-only savings_bank call that takes a single Address arg.
+ * Returns `null` (not 0) when the call itself failed — no contract
+ * configured, or the simulation errored (e.g. the deployed contract
+ * predates this function and doesn't have it yet) — so callers can tell
+ * "this feature isn't live on-chain yet" apart from a genuine 0 balance.
+ */
+async function fetchSavingsBankValueOrNull(walletAddress: string, functionName: string): Promise<number | null> {
   try {
     const server = getServer()
     const contractId = CONTRACT_IDS.savingsBank
-    if (!contractId) return 0
+    if (!contractId) return null
 
     const { TransactionBuilder, Account, Operation, BASE_FEE } = await import('@stellar/stellar-sdk')
 
@@ -284,11 +290,16 @@ async function fetchSavingsBankValue(walletAddress: string, functionName: string
       .build()
 
     const result = await server.simulateTransaction(tx)
-    if (!rpc.Api.isSimulationSuccess(result) || !result.result) return 0
+    if (!rpc.Api.isSimulationSuccess(result) || !result.result) return null
     return Number(scValToNative(result.result.retval)) || 0
   } catch {
-    return 0
+    return null
   }
+}
+
+/** Same as fetchSavingsBankValueOrNull, but collapses a failed call to 0 — for the two functions (get_balance/get_tx_count) that have always existed on every deployed savings_bank contract, where a call failure realistically only means "never deposited" not "feature not live yet". */
+async function fetchSavingsBankValue(walletAddress: string, functionName: string): Promise<number> {
+  return (await fetchSavingsBankValueOrNull(walletAddress, functionName)) ?? 0
 }
 
 /** Fetch a user's saved balance from the savings_bank contract, in stroops. */
@@ -301,14 +312,24 @@ export async function fetchSavingsBankTxCount(walletAddress: string): Promise<nu
   return fetchSavingsBankValue(walletAddress, 'get_tx_count')
 }
 
-/** Fetch a user's currently locked (loan collateral) amount, in stroops. */
-export async function fetchSavingsBankLocked(walletAddress: string): Promise<number> {
-  return fetchSavingsBankValue(walletAddress, 'get_locked')
+/**
+ * Fetch a user's currently locked (loan collateral) amount, in stroops.
+ * Returns `null` if the deployed savings_bank contract doesn't have
+ * `get_locked` yet (i.e. the loan-backing redeploy hasn't happened) —
+ * see docs/loan-backing-deployment.md.
+ */
+export async function fetchSavingsBankLocked(walletAddress: string): Promise<number | null> {
+  return fetchSavingsBankValueOrNull(walletAddress, 'get_locked')
 }
 
-/** Fetch a user's freely withdrawable balance (balance minus locked collateral), in stroops. */
-export async function fetchSavingsBankAvailable(walletAddress: string): Promise<number> {
-  return fetchSavingsBankValue(walletAddress, 'get_available')
+/**
+ * Fetch a user's freely withdrawable balance (balance minus locked
+ * collateral), in stroops. Returns `null` if the deployed savings_bank
+ * contract doesn't have `get_available` yet — see the note on
+ * fetchSavingsBankLocked above.
+ */
+export async function fetchSavingsBankAvailable(walletAddress: string): Promise<number | null> {
+  return fetchSavingsBankValueOrNull(walletAddress, 'get_available')
 }
 
 // ── Generic write (state-changing) contract invocation ────
