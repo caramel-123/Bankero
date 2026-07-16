@@ -130,11 +130,17 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
               </p>
               <button
                 onClick={wallet.connect}
+                disabled={wallet.state === 'connecting'}
                 className="btn btn-sm"
-                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', width: '100%' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', width: '100%', opacity: wallet.state === 'connecting' ? 0.65 : 1, cursor: wallet.state === 'connecting' ? 'default' : 'pointer' }}
               >
-                <Wallet size={12} strokeWidth={2} /> Connect Wallet
+                {wallet.state === 'connecting'
+                  ? <><div style={{ width: 11, height: 11, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Connecting…</>
+                  : <><Wallet size={12} strokeWidth={2} /> Connect Wallet</>}
               </button>
+              {wallet.state === 'error' && wallet.error && (
+                <p style={{ fontSize: 11, color: '#FCA5A5', marginTop: 7, lineHeight: 1.5 }}>{wallet.error}</p>
+              )}
             </>
           )}
         </div>
@@ -174,9 +180,17 @@ export default function Home({ wallet, authUser }: { wallet: WalletHook; authUse
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>Connect your Stellar wallet</p>
               <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>Link a wallet to apply for loans, vouch for others, and save.</p>
+              {wallet.state === 'error' && wallet.error && (
+                <p style={{ fontSize: 12, color: '#DC2626', marginTop: 6, lineHeight: 1.5 }}>{wallet.error}</p>
+              )}
             </div>
-            <button onClick={wallet.connect} className="btn btn-primary" style={{ padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
-              Connect
+            <button
+              onClick={wallet.connect}
+              disabled={wallet.state === 'connecting'}
+              className="btn btn-primary"
+              style={{ padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, flexShrink: 0, opacity: wallet.state === 'connecting' ? 0.65 : 1 }}
+            >
+              {wallet.state === 'connecting' ? 'Connecting…' : 'Connect'}
             </button>
           </div>
         )}
