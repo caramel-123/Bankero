@@ -43,6 +43,7 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const [backingType, setBackingType] = useState<BackingType>('none')
   const [savingsAmount, setSavingsAmount] = useState(1)
   const [availableSavings, setAvailableSavings] = useState(0)
+  const [savingsFeatureUnavailable, setSavingsFeatureUnavailable] = useState(false)
   const [myVouchers, setMyVouchers] = useState<OnChainVouch[]>([])
   const [vouchersLoading, setVouchersLoading] = useState(true)
   const [showVouchInfo, setShowVouchInfo] = useState(false)
@@ -60,7 +61,10 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
     if (!wallet.publicKey) return
     fetchLoans(wallet.publicKey).then(l => { setMyLoans(l); setLoansLoading(false) })
     fetchBorrowerVouchers(wallet.publicKey).then(v => { setMyVouchers(v); setVouchersLoading(false) })
-    fetchSavingsBankAvailable(wallet.publicKey).then(stroops => setAvailableSavings(stroopsToXlm(stroops)))
+    fetchSavingsBankAvailable(wallet.publicKey).then(stroops => {
+      if (stroops === null) { setSavingsFeatureUnavailable(true); return }
+      setAvailableSavings(stroopsToXlm(stroops))
+    })
   }, [wallet.publicKey, wallet.isGuest])
 
   const totalVouchStake = myVouchers.reduce((s, v) => s + stroopsToXlm(v.stake_amount), 0)
@@ -81,6 +85,10 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   async function handleSubmit() {
     if (wallet.isGuest) { setShowGuestModal(true); return }
     if (activeLoan || submitting) return
+    if (backingType === 'savings' && (savingsFeatureUnavailable || safeSavingsAmount <= 0)) {
+      setSubmitError('Savings Collateral isn\'t available right now — pick a different backing option, or set an amount above 0.')
+      return
+    }
     setSubmitting(true)
     setSubmitError(null)
     if (wallet.publicKey) {
@@ -321,28 +329,36 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
 
             {backingType === 'savings' && (
               <div style={{ padding: '14px 16px', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-2)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>Amount to lock (XLM)</span>
-                  <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>{formatXlmAmount(availableSavings)} available</span>
-                </div>
-                {availableSavings > 0 ? (
-                  <>
-                    <input
-                      type="range" min={0} max={availableSavings} step={0.5}
-                      value={safeSavingsAmount}
-                      onChange={e => setSavingsAmount(Number(e.target.value))}
-                      style={{ width: '100%' }}
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--ink-3)' }}>
-                      <span>0 XLM</span>
-                      <span style={{ fontWeight: 800, color: 'var(--green)' }}>{formatXlmAmount(safeSavingsAmount)}</span>
-                      <span>{formatXlmAmount(availableSavings)}</span>
-                    </div>
-                  </>
-                ) : (
-                  <p style={{ fontSize: 12.5, color: 'var(--ink-4)', margin: 0, lineHeight: 1.5 }}>
-                    You don't have any available savings yet — deposit into the Savings Bank first to use this option.
+                {savingsFeatureUnavailable ? (
+                  <p style={{ fontSize: 12.5, color: '#B45309', margin: 0, lineHeight: 1.5 }}>
+                    Savings Collateral isn't live yet — this feature needs a contract update that hasn't been deployed. Check back soon, or pick a different backing option for now.
                   </p>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>Amount to lock (XLM)</span>
+                      <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>{formatXlmAmount(availableSavings)} available</span>
+                    </div>
+                    {availableSavings > 0 ? (
+                      <>
+                        <input
+                          type="range" min={0} max={availableSavings} step={0.5}
+                          value={safeSavingsAmount}
+                          onChange={e => setSavingsAmount(Number(e.target.value))}
+                          style={{ width: '100%' }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--ink-3)' }}>
+                          <span>0 XLM</span>
+                          <span style={{ fontWeight: 800, color: 'var(--green)' }}>{formatXlmAmount(safeSavingsAmount)}</span>
+                          <span>{formatXlmAmount(availableSavings)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <p style={{ fontSize: 12.5, color: 'var(--ink-4)', margin: 0, lineHeight: 1.5 }}>
+                        You don't have any available savings yet — deposit into the Savings Bank first to use this option.
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             )}
