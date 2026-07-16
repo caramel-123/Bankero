@@ -1,7 +1,14 @@
+/// <reference types="node" />
 // Vercel serverless function — proxies e-payment screenshot OCR to
 // Groq's hosted API (console.groq.com), authenticated with an API key
 // created at console.groq.com/keys. Runs server-side so the key never
 // reaches the browser. Free tier is rate-limited, not billed.
+//
+// The triple-slash directive above loads Node's ambient types (process,
+// Buffer) directly for this file, independent of which tsconfig Vercel's
+// function bundler resolves — adding "api" to tsconfig.node.json's
+// `include` fixed `tsc -b` locally but didn't fix Vercel's own separate
+// type-check of this file, which apparently doesn't follow that config.
 
 const PROMPT = `Extract the following fields from this e-wallet (GCash, Maya, ShopeePay, etc.) transaction screenshot and return ONLY a JSON object with no explanation:
 {
