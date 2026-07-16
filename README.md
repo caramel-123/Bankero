@@ -18,17 +18,17 @@
 | Contract | Address |
 |----------|---------|
 | `credit_score` | `CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE` |
-| `loan_registry` | `CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI` |
+| `loan_registry` | `CBZPSUDYA466LJPFWT5SAD2POVVFJBOPY7GNHVTHZ2HJSECYRMTMV45Q` |
 | `vouching` | `CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F` |
-| `savings_bank` | `CAOWTHTJRNWKRF6BLFWQKK3H5AGTZI6HGHRUGIY2R2MCS4RHH2FBTSKS` |
+| `savings_bank` | `CCBBSPPNCOIXQVZFZXXQGA7PWZLIO7D2753USRTHOR5DN2YUQPIMSVJX` |
 
 > See [`docs/savings-bank-deployment.md`](docs/savings-bank-deployment.md) for the full step-by-step deployment log (useful as a runbook for redeploying to a new environment, e.g. mainnet).
 
 > Verify on Stellar Explorer:
 > - [credit_score on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE)
-> - [loan_registry on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI)
+> - [loan_registry on stellar.expert](https://stellar.expert/explorer/testnet/contract/CBZPSUDYA466LJPFWT5SAD2POVVFJBOPY7GNHVTHZ2HJSECYRMTMV45Q)
 > - [vouching on stellar.expert](https://stellar.expert/explorer/testnet/contract/CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F)
-> - [savings_bank on stellar.expert](https://stellar.expert/explorer/testnet/contract/CAOWTHTJRNWKRF6BLFWQKK3H5AGTZI6HGHRUGIY2R2MCS4RHH2FBTSKS)
+> - [savings_bank on stellar.expert](https://stellar.expert/explorer/testnet/contract/CCBBSPPNCOIXQVZFZXXQGA7PWZLIO7D2753USRTHOR5DN2YUQPIMSVJX)
 
 ---
 
@@ -185,9 +185,9 @@ Four contracts deployed on **Stellar Testnet**:
 | Contract | ID | Purpose |
 |----------|-----|---------|
 | `credit_score` | `CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE` | Aggregate scores, store borrower records |
-| `loan_registry` | `CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI` | Loan lifecycle management |
+| `loan_registry` | `CBZPSUDYA466LJPFWT5SAD2POVVFJBOPY7GNHVTHZ2HJSECYRMTMV45Q` | Loan lifecycle management |
 | `vouching` | `CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F` | Staked community vouches |
-| `savings_bank` | `CAOWTHTJRNWKRF6BLFWQKK3H5AGTZI6HGHRUGIY2R2MCS4RHH2FBTSKS` | Real on-chain XLM deposit/withdraw balance |
+| `savings_bank` | `CCBBSPPNCOIXQVZFZXXQGA7PWZLIO7D2753USRTHOR5DN2YUQPIMSVJX` | Real on-chain XLM deposit/withdraw balance |
 
 `paluwagan` also exists as a contract crate in the workspace (`contracts/paluwagan`) but the shipped Paluwagan feature is currently Supabase-backed, not yet deployed on-chain.
 
@@ -326,9 +326,9 @@ VITE_SOROBAN_RPC=https://soroban-testnet.stellar.org
 
 # Deployed contract IDs (already on testnet — use these)
 VITE_CREDIT_SCORE_CONTRACT_ID=CCXRTCZ2OKHYMRAHZHR4BSSBIWK6TXY25WFPUJLIJE4NHK6MPV4YQMQE
-VITE_LOAN_REGISTRY_CONTRACT_ID=CCDH6T2RI3BBKXVN6RUILBFJBFUQRQKXUKI6WCGRB3GIFU2CQX3GDPTI
+VITE_LOAN_REGISTRY_CONTRACT_ID=CBZPSUDYA466LJPFWT5SAD2POVVFJBOPY7GNHVTHZ2HJSECYRMTMV45Q
 VITE_VOUCHING_CONTRACT_ID=CAQG6H57IFKD642FRELBZNVKAWRLZYQMCIUHXQBFBIIXRMWHTJHFBQ4F
-VITE_SAVINGS_BANK_CONTRACT_ID=CAOWTHTJRNWKRF6BLFWQKK3H5AGTZI6HGHRUGIY2R2MCS4RHH2FBTSKS
+VITE_SAVINGS_BANK_CONTRACT_ID=CCBBSPPNCOIXQVZFZXXQGA7PWZLIO7D2753USRTHOR5DN2YUQPIMSVJX
 
 # Supabase — create a free project at supabase.com
 VITE_SUPABASE_URL=https://your-project.supabase.co
