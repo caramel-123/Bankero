@@ -225,7 +225,7 @@ export default function Landing() {
   }, [])
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'transparent', fontFamily: 'var(--font)', color: '#fff', position: 'relative' }}>
+    <div className="landing-cursor" style={{ minHeight: '100dvh', background: 'transparent', fontFamily: 'var(--font)', color: '#fff', position: 'relative' }}>
 
       {/* ── GALAXY — fixed full-page background ── */}
       <div style={{ position: 'fixed', inset: 0, zIndex: -1, overflow: 'hidden' }}>
