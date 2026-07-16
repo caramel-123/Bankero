@@ -27,6 +27,7 @@ export const DEMO_LOANS = [
     appliedAt: new Date(Date.now() - 10 * 86400000).toISOString(),
     dueAt: new Date(Date.now() + 20 * 86400000).toISOString(),
     wallet: DEMO_WALLET,
+    backingType: 'savings' as const, backingAmount: 8,
   },
   {
     id: 'DEMO-LOAN-002',
@@ -38,6 +39,7 @@ export const DEMO_LOANS = [
     appliedAt: new Date(Date.now() - 45 * 86400000).toISOString(),
     dueAt: new Date(Date.now() - 30 * 86400000).toISOString(),
     wallet: DEMO_WALLET,
+    backingType: 'vouch' as const, backingAmount: 0,
   },
   {
     id: 'DEMO-LOAN-003',
@@ -49,8 +51,19 @@ export const DEMO_LOANS = [
     appliedAt: new Date(Date.now() - 90 * 86400000).toISOString(),
     dueAt: new Date(Date.now() - 82 * 86400000).toISOString(),
     wallet: DEMO_WALLET,
+    backingType: 'none' as const, backingAmount: 0,
   },
 ]
+
+/** Demo vouchers backing DEMO_WALLET, mirroring the on-chain vouching contract's Vouch record shape. */
+export const DEMO_VOUCHERS = [
+  { voucher: 'GJUAN1COUSIN0000000000000000000000000000000000000000001', borrower: DEMO_WALLET, stake_amount: 300_0000000, created_at: Math.floor(Date.now() / 1000) - 20 * 86400, is_active: true },
+  { voucher: 'GANA2NEIGHBOR000000000000000000000000000000000000000002', borrower: DEMO_WALLET, stake_amount: 500_0000000, created_at: Math.floor(Date.now() / 1000) - 18 * 86400, is_active: true },
+  { voucher: 'GPEDRO3FRIEND0000000000000000000000000000000000000000003', borrower: DEMO_WALLET, stake_amount: 200_0000000, created_at: Math.floor(Date.now() / 1000) - 15 * 86400, is_active: true },
+]
+
+/** Demo Savings Bank available (unlocked) balance for guest mode, in XLM. */
+export const DEMO_SAVINGS_AVAILABLE_XLM = 34.5
 
 export const DEMO_USER = {
   id: 'demo-user-id',

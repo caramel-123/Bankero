@@ -7,10 +7,14 @@ import {
   getAllLoansFromSupabase,
   upsertScoreCache,
   getScoreCacheFromSupabase,
+  setOnchainLoanId as setOnchainLoanIdInSupabase,
   type SupabaseLoan,
 } from './supabase'
 
 export type LoanStatus = 'Pending' | 'Approved' | 'Disbursed' | 'Repaid' | 'Defaulted' | 'Rejected'
+
+/** How the borrower chose to back this loan application, if at all. */
+export type BackingType = 'none' | 'vouch' | 'savings'
 
 export interface LocalLoan {
   id: string
@@ -25,6 +29,12 @@ export interface LocalLoan {
   dueAt: string | null
   wallet: string
   lenderWallet?: string
+  /** Community Vouch / Savings collateral / None — chosen at application time. */
+  backingType: BackingType
+  /** Meaningful only when backingType === 'savings'; XLM locked as collateral. */
+  backingAmount: number
+  /** The loan_registry loan_id, once a savings-backed loan's real on-chain apply_loan call succeeds. */
+  onchainLoanId?: number
 }
 
 const KEY = 'bankero_loans'
@@ -53,6 +63,9 @@ function supabaseToLocal(l: SupabaseLoan): LocalLoan {
     dueAt: l.due_at ?? null,
     wallet: l.borrower_wallet,
     lenderWallet: l.lender_wallet ?? undefined,
+    backingType: l.backing_type,
+    backingAmount: l.backing_amount,
+    onchainLoanId: l.onchain_loan_id ?? undefined,
   }
 }
 
@@ -119,6 +132,8 @@ export async function saveLoan(loan: LocalLoan): Promise<void> {
     notes: loan.notes ?? '',
     status: loan.status,
     applied_at: loan.appliedAt,
+    backing_type: loan.backingType,
+    backing_amount: loan.backingAmount,
   })
 
   const loans = cacheGet()
@@ -159,6 +174,17 @@ export async function updateLoanStatus(id: string, status: LoanStatus, extra?: {
     console.error('[Bankero] Loan status update to Supabase failed (cache updated):', err)
     throw err  // re-throw so callers (lender dashboard) can surface the error
   }
+}
+
+/** Record the on-chain loan_registry loan_id once a savings-backed loan's real apply_loan call succeeds. */
+export async function setOnchainLoanId(id: string, onchainLoanId: number): Promise<void> {
+  const loans = cacheGet()
+  const loan = loans.find(l => l.id === id)
+  if (loan) {
+    loan.onchainLoanId = onchainLoanId
+    cacheSet(loans)
+  }
+  await setOnchainLoanIdInSupabase(id, onchainLoanId)
 }
 
 /** Cancel a loan that hasn't been disbursed yet (borrower changed their mind / wrong amount). */

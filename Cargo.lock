@@ -817,6 +817,7 @@ name = "loan_registry"
 version = "0.1.0"
 dependencies = [
  "credit_score",
+ "savings_bank",
  "soroban-sdk",
 ]
 

@@ -4,11 +4,12 @@ import {
   ArrowLeft, CheckCircle, Users, AlertTriangle, Info,
   Search, TrendingUp, ExternalLink, XCircle,
 } from 'lucide-react'
-import { scoreTier, scorePercent, formatWallet, stellarExplorerUrl } from '../lib/stellar'
+import { scoreTier, scorePercent, formatWallet, stellarExplorerUrl, xlmToStroops, CONTRACT_IDS } from '../lib/stellar'
 import { DEMO_SCORE_RECORD, DEMO_WALLET } from '../lib/demoData'
 import GuestActionModal from '../components/GuestActionModal'
 import { getScoreCacheFromSupabase } from '../lib/supabase'
 import { computeLocalScore } from '../lib/loanStore'
+import { invokeContractWrite, twoAddressAmountArgs, ContractWriteError } from '../lib/contracts'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -48,6 +49,9 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
   } | null>(null)
   const [lookupError, setLookupError] = useState<string | null>(null)
   const [showGuestModal, setShowGuestModal] = useState(false)
+  const [vouching, setVouching] = useState(false)
+  const [vouchError, setVouchError] = useState<string | null>(null)
+  const [vouchTxHash, setVouchTxHash] = useState<string | null>(null)
 
   // Is the searched address the same as the logged-in wallet?
   const isSelfVouch = !wallet.isGuest && search.trim().length > 10 && wallet.publicKey
@@ -82,10 +86,29 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
     return () => clearTimeout(t)
   }, [search, doLookup])
 
-  function handleVouch() {
+  async function handleVouch() {
     if (wallet.isGuest) { setShowGuestModal(true); return }
-    if (!canVouch) return
-    setVouched(true)
+    if (!canVouch || !wallet.publicKey) return
+    if (!CONTRACT_IDS.vouching) {
+      setVouchError('Vouching contract is not configured yet.')
+      return
+    }
+    setVouching(true)
+    setVouchError(null)
+    try {
+      const args = twoAddressAmountArgs(wallet.publicKey, search.trim(), xlmToStroops(stake))
+      const { hash } = await invokeContractWrite(CONTRACT_IDS.vouching, 'vouch', args, wallet.publicKey)
+      setVouchTxHash(hash)
+      setVouched(true)
+    } catch (err) {
+      setVouchError(
+        err instanceof ContractWriteError || err instanceof Error
+          ? err.message
+          : 'Vouch failed — please try again.'
+      )
+    } finally {
+      setVouching(false)
+    }
   }
 
   const tier = borrower ? scoreTier(borrower.score) : null
@@ -112,11 +135,17 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
             <p style={{ color: 'var(--ink-3)', marginBottom: 6, lineHeight: 1.6 }}>
               Your <strong>{stake} XLM</strong> stake for <strong>{formatWallet(search.trim())}</strong> is now locked.
             </p>
-            <p style={{ color: 'var(--ink-4)', fontSize: 13, marginBottom: 24, lineHeight: 1.5 }}>
+            <p style={{ color: 'var(--ink-4)', fontSize: 13, marginBottom: 6, lineHeight: 1.5 }}>
               Stake is released when their loan is repaid. If they default, your stake goes to the lender.
             </p>
-            <button onClick={() => { setVouched(false); setSearch(''); setBorrower(null) }}
-              className="btn btn-primary" style={{ borderRadius: 'var(--r-lg)', padding: '12px 24px' }}>
+            {vouchTxHash && (
+              <a href={stellarExplorerUrl(vouchTxHash, 'tx')} target="_blank" rel="noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 18, fontSize: 12, fontWeight: 600, color: 'var(--ink-4)', textDecoration: 'none' }}>
+                <ExternalLink size={11} strokeWidth={2} /> View transaction on Stellar Explorer
+              </a>
+            )}
+            <button onClick={() => { setVouched(false); setSearch(''); setBorrower(null); setVouchTxHash(null); setVouchError(null) }}
+              className="btn btn-primary" style={{ borderRadius: 'var(--r-lg)', padding: '12px 24px', marginTop: vouchTxHash ? 0 : 18 }}>
               <Users size={15} strokeWidth={2} /> Vouch Again
             </button>
           </div>
@@ -249,15 +278,24 @@ export default function Vouch({ wallet }: { wallet: WalletHook }) {
               </p>
             </div>
 
+            {/* Vouch error */}
+            {vouchError && (
+              <div style={{ display: 'flex', gap: 10, padding: '12px 14px', borderRadius: 'var(--r-md)', background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                <XCircle size={15} strokeWidth={2} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
+                <p style={{ fontSize: 13, color: '#991B1B', margin: 0, lineHeight: 1.5 }}>{vouchError}</p>
+              </div>
+            )}
+
             {/* Submit */}
             {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
             <button
               onClick={handleVouch}
-              disabled={!canVouch && !wallet.isGuest}
+              disabled={(!canVouch && !wallet.isGuest) || vouching}
               className="btn btn-primary"
-              style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: canVouch || wallet.isGuest ? 1 : 0.45, cursor: canVouch || wallet.isGuest ? 'pointer' : 'not-allowed' }}
+              style={{ width: '100%', padding: '15px 0', fontSize: 15, borderRadius: 'var(--r-lg)', opacity: (canVouch || wallet.isGuest) && !vouching ? 1 : 0.45, cursor: (canVouch || wallet.isGuest) && !vouching ? 'pointer' : 'not-allowed' }}
             >
-              <Users size={16} strokeWidth={2} /> Stake &amp; Vouch for {borrower ? formatWallet(borrower.wallet) : 'Borrower'}
+              <Users size={16} strokeWidth={2} />
+              {vouching ? 'Staking…' : `Stake & Vouch for ${borrower ? formatWallet(borrower.wallet) : 'Borrower'}`}
             </button>
           </div>
         )}

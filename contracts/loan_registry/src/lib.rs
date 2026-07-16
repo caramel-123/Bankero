@@ -36,6 +36,8 @@ pub enum DataKey {
     Admin,
     ScoreContract,
     VouchContract,
+    /// Address of the deployed savings_bank contract (for savings-backed loans)
+    SavingsContract,
     XlmToken,
     /// Flat interest rate in basis points (e.g. 500 = 5%)
     InterestBps,
@@ -49,6 +51,19 @@ pub enum DataKey {
     BorrowerLoans(Address),
     /// borrower address → current active loan_id (0 = none)
     ActiveLoan(Address),
+}
+
+/// How a borrower chose to back their loan application, if at all. This is
+/// a per-loan *choice* record — the actual vouch stakes still live entirely
+/// in the vouching contract's own storage; this only tracks which
+/// mechanism (if any) `disburse_loan`/`repay_loan`/`mark_defaulted` should
+/// notify.
+#[contracttype]
+#[derive(Clone, Debug, PartialEq)]
+pub enum BackingType {
+    None,
+    Vouch,
+    Savings,
 }
 
 // ---------------------------------------------------------------------------
@@ -84,6 +99,11 @@ pub struct Loan {
     /// Term in days
     pub term_days: u32,
     pub status: LoanStatus,
+    /// Which mechanism (if any) backs this loan
+    pub backing_type: BackingType,
+    /// Meaningful only when `backing_type == Savings`; the amount of the
+    /// borrower's own savings locked as collateral, in stroops. 0 otherwise.
+    pub backing_amount: i128,
 }
 
 // ---------------------------------------------------------------------------
@@ -238,6 +258,70 @@ fn notify_release(env: &Env, borrower: &Address, reward: i128) {
     );
 }
 
+/// Notify savings_bank to reserve `amount` of the borrower's savings as
+/// collateral (loan disbursed).
+fn notify_lock_collateral(env: &Env, borrower: &Address, amount: i128) {
+    let savings_contract: Address = env
+        .storage()
+        .instance()
+        .get(&DataKey::SavingsContract)
+        .unwrap();
+    let this = env.current_contract_address();
+    let _: i128 = env.invoke_contract(
+        &savings_contract,
+        &soroban_sdk::Symbol::new(env, "lock_collateral"),
+        soroban_sdk::vec![
+            env,
+            soroban_sdk::IntoVal::into_val(&this, env),
+            soroban_sdk::IntoVal::into_val(borrower, env),
+            soroban_sdk::IntoVal::into_val(&amount, env),
+        ],
+    );
+}
+
+/// Notify savings_bank to un-reserve the borrower's locked collateral
+/// (loan repaid).
+fn notify_release_collateral(env: &Env, borrower: &Address, amount: i128) {
+    let savings_contract: Address = env
+        .storage()
+        .instance()
+        .get(&DataKey::SavingsContract)
+        .unwrap();
+    let this = env.current_contract_address();
+    let _: i128 = env.invoke_contract(
+        &savings_contract,
+        &soroban_sdk::Symbol::new(env, "release_collateral"),
+        soroban_sdk::vec![
+            env,
+            soroban_sdk::IntoVal::into_val(&this, env),
+            soroban_sdk::IntoVal::into_val(borrower, env),
+            soroban_sdk::IntoVal::into_val(&amount, env),
+        ],
+    );
+}
+
+/// Notify savings_bank to seize the borrower's locked collateral and send
+/// it to the lender (loan defaulted).
+fn notify_seize_collateral(env: &Env, borrower: &Address, lender: &Address, amount: i128) {
+    let savings_contract: Address = env
+        .storage()
+        .instance()
+        .get(&DataKey::SavingsContract)
+        .unwrap();
+    let this = env.current_contract_address();
+    let _: i128 = env.invoke_contract(
+        &savings_contract,
+        &soroban_sdk::Symbol::new(env, "seize_collateral"),
+        soroban_sdk::vec![
+            env,
+            soroban_sdk::IntoVal::into_val(&this, env),
+            soroban_sdk::IntoVal::into_val(borrower, env),
+            soroban_sdk::IntoVal::into_val(lender, env),
+            soroban_sdk::IntoVal::into_val(&amount, env),
+        ],
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Contract
 // ---------------------------------------------------------------------------
@@ -254,12 +338,14 @@ impl LoanRegistryContract {
     /// One-time setup. Must be called after credit_score and vouching are deployed.
     ///
     /// # Arguments
-    /// * `admin`          – wallet with admin privileges
-    /// * `score_contract` – deployed credit_score contract address
-    /// * `vouch_contract` – deployed vouching contract address
-    /// * `xlm_token`      – native XLM token contract address
-    /// * `interest_bps`   – flat interest in basis points (500 = 5%)
-    /// * `min_score`      – minimum credit score to apply for a loan (e.g. 300)
+    /// * `admin`            – wallet with admin privileges
+    /// * `score_contract`   – deployed credit_score contract address
+    /// * `vouch_contract`   – deployed vouching contract address
+    /// * `savings_contract` – deployed savings_bank contract address (for
+    ///                        savings-backed loans)
+    /// * `xlm_token`        – native XLM token contract address
+    /// * `interest_bps`     – flat interest in basis points (500 = 5%)
+    /// * `min_score`        – minimum credit score to apply for a loan (e.g. 300)
     ///
     /// # Panics
     /// * `ALREADY_INITIALIZED`
@@ -268,6 +354,7 @@ impl LoanRegistryContract {
         admin: Address,
         score_contract: Address,
         vouch_contract: Address,
+        savings_contract: Address,
         xlm_token: Address,
         interest_bps: u32,
         min_score: u32,
@@ -279,6 +366,7 @@ impl LoanRegistryContract {
         env.storage().instance().set(&DataKey::Admin, &admin);
         env.storage().instance().set(&DataKey::ScoreContract, &score_contract);
         env.storage().instance().set(&DataKey::VouchContract, &vouch_contract);
+        env.storage().instance().set(&DataKey::SavingsContract, &savings_contract);
         env.storage().instance().set(&DataKey::XlmToken, &xlm_token);
         env.storage().instance().set(&DataKey::InterestBps, &interest_bps);
         env.storage().instance().set(&DataKey::MinScore, &min_score);
@@ -294,10 +382,15 @@ impl LoanRegistryContract {
     /// Submit a loan application. Checks credit score and tier limits.
     ///
     /// # Arguments
-    /// * `borrower`   – the applicant (must authorize)
-    /// * `lender`     – the wallet that will fund the loan
-    /// * `amount`     – loan principal in stroops
-    /// * `term_days`  – repayment term (7, 14, or 30 days)
+    /// * `borrower`        – the applicant (must authorize)
+    /// * `lender`          – the wallet that will fund the loan
+    /// * `amount`          – loan principal in stroops
+    /// * `term_days`       – repayment term (7, 14, or 30 days)
+    /// * `backing_type`    – None / Vouch / Savings — the borrower's choice
+    ///                       of how to back this application, captured here
+    ///                       since this is the moment the borrower signs
+    /// * `backing_amount`  – meaningful only when `backing_type == Savings`;
+    ///                       ignored (forced to 0) otherwise
     ///
     /// Returns the new `loan_id`.
     ///
@@ -311,9 +404,20 @@ impl LoanRegistryContract {
         lender: Address,
         amount: i128,
         term_days: u32,
+        backing_type: BackingType,
+        backing_amount: i128,
     ) -> u64 {
         require_initialized(&env);
         borrower.require_auth();
+
+        // Defensive: a backing_amount only ever means anything for Savings
+        // backing — never trust a nonzero value the caller might send
+        // alongside None/Vouch.
+        let backing_amount = if backing_type == BackingType::Savings {
+            backing_amount
+        } else {
+            0
+        };
 
         // Check for existing active loan
         let active: u64 = env
@@ -356,6 +460,8 @@ impl LoanRegistryContract {
             repaid_at: 0,
             term_days,
             status: LoanStatus::Pending,
+            backing_type,
+            backing_amount,
         };
 
         env.storage().persistent().set(&DataKey::Loan(loan_id), &loan);
@@ -451,6 +557,11 @@ impl LoanRegistryContract {
 
         env.storage().persistent().set(&DataKey::Loan(loan_id), &loan);
 
+        // Cross-contract: lock the borrower's chosen savings collateral, if any
+        if loan.backing_type == BackingType::Savings && loan.backing_amount > 0 {
+            notify_lock_collateral(&env, &loan.borrower, loan.backing_amount);
+        }
+
         env.events().publish(
             (symbol_short!("disbsd"),),
             (loan_id, loan.borrower, loan.amount_stroops),
@@ -487,20 +598,26 @@ impl LoanRegistryContract {
         let xlm_token: Address = env.storage().instance().get(&DataKey::XlmToken).unwrap();
         let token_client = token::Client::new(&env, &xlm_token);
 
-        // Transfer repayment_amount from borrower to lender
-        // 1% of repayment_amount goes to vouchers; lender gets the rest
-        let reward_for_vouchers = loan.repayment_amount / 100; // 1%
+        // Transfer repayment_amount from borrower to lender. The 1% voucher
+        // reward only exists to incentivize an actual voucher who took on
+        // risk — only skim it when this loan was actually vouch-backed,
+        // otherwise the lender gets the full repayment.
+        let reward_for_vouchers = if loan.backing_type == BackingType::Vouch {
+            loan.repayment_amount / 100 // 1%
+        } else {
+            0
+        };
         let lender_receives = loan.repayment_amount - reward_for_vouchers;
 
         token_client.transfer(&borrower, &loan.lender, &lender_receives);
 
-        // Transfer voucher reward pool from borrower to vouching contract
-        let vouch_contract: Address = env
-            .storage()
-            .instance()
-            .get(&DataKey::VouchContract)
-            .unwrap();
         if reward_for_vouchers > 0 {
+            // Transfer voucher reward pool from borrower to vouching contract
+            let vouch_contract: Address = env
+                .storage()
+                .instance()
+                .get(&DataKey::VouchContract)
+                .unwrap();
             token_client.transfer(&borrower, &vouch_contract, &reward_for_vouchers);
         }
 
@@ -515,8 +632,12 @@ impl LoanRegistryContract {
             .persistent()
             .set(&DataKey::ActiveLoan(borrower.clone()), &0u64);
 
-        // Cross-contract: notify vouching to release stakes + reward
-        notify_release(&env, &borrower, reward_for_vouchers);
+        // Cross-contract: release whichever backing mechanism was used, if any
+        match loan.backing_type {
+            BackingType::Vouch => notify_release(&env, &borrower, reward_for_vouchers),
+            BackingType::Savings => notify_release_collateral(&env, &borrower, loan.backing_amount),
+            BackingType::None => {}
+        }
 
         // Cross-contract: notify credit_score of repayment
         notify_score_loan_event(&env, &borrower, true);
@@ -566,8 +687,16 @@ impl LoanRegistryContract {
             .persistent()
             .set(&DataKey::ActiveLoan(loan.borrower.clone()), &0u64);
 
-        // Cross-contract: slash voucher stakes → lender
-        notify_slash(&env, &loan.borrower, &loan.lender);
+        // Cross-contract: seize whichever backing mechanism was used, if any
+        match loan.backing_type {
+            BackingType::Vouch => notify_slash(&env, &loan.borrower, &loan.lender),
+            BackingType::Savings => {
+                if loan.backing_amount > 0 {
+                    notify_seize_collateral(&env, &loan.borrower, &loan.lender, loan.backing_amount);
+                }
+            }
+            BackingType::None => {}
+        }
 
         // Cross-contract: notify credit_score of default
         notify_score_loan_event(&env, &loan.borrower, false);
@@ -622,21 +751,23 @@ impl LoanRegistryContract {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Env};
+    use soroban_sdk::{testutils::Address as _, testutils::Ledger as _, Env};
 
     fn setup_token(env: &Env, admin: &Address) -> Address {
         let token_id = env.register_stellar_asset_contract_v2(admin.clone());
         token_id.address()
     }
 
-    /// Full test setup: registers credit_score + loan_registry contracts so
-    /// cross-contract calls to `compute_score` succeed in unit tests.
+    /// Full test setup: registers credit_score + savings_bank + loan_registry
+    /// contracts so cross-contract calls (`compute_score`, `lock_collateral`,
+    /// etc.) succeed in unit tests.
     fn setup() -> (
         Env,
         LoanRegistryContractClient<'static>,
         Address, // admin
         Address, // score_contract
         Address, // vouch_contract (mock — vouching not wired in unit tests)
+        savings_bank::SavingsBankContractClient<'static>,
         Address, // borrower
         Address, // lender
         Address, // xlm_token
@@ -653,6 +784,11 @@ mod tests {
         let loan_id = env.register(LoanRegistryContract, ());
         let client = LoanRegistryContractClient::new(&env, &loan_id);
 
+        // Register savings_bank, authorising loan_registry as its loan_contract
+        use savings_bank::SavingsBankContract;
+        let savings_id = env.register(SavingsBankContract, ());
+        let savings_client = savings_bank::SavingsBankContractClient::new(&env, &savings_id);
+
         let admin = Address::generate(&env);
         let vouch_contract = Address::generate(&env); // mock for unit tests
         let borrower = Address::generate(&env);
@@ -662,6 +798,7 @@ mod tests {
 
         // Initialize credit_score first (required before loan_registry can query it)
         score_client.initialize(&admin, &loan_id, &vouch_contract);
+        savings_client.initialize(&admin, &xlm_token, &loan_id);
 
         // Mint tokens
         use soroban_sdk::token::StellarAssetClient;
@@ -672,38 +809,41 @@ mod tests {
             &admin,
             &score_id,
             &vouch_contract,
+            &savings_id,
             &xlm_token,
             &500u32, // 5% interest
             &300u32, // min score 300 (matches new borrower default)
         );
 
-        (env, client, admin, score_id, vouch_contract, borrower, lender, xlm_token)
+        (env, client, admin, score_id, vouch_contract, savings_client, borrower, lender, xlm_token)
     }
 
     #[test]
     fn test_apply_loan_creates_record() {
-        let (_env, client, _admin, _score, _vouch, borrower, lender, _token) = setup();
-        let loan_id = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32);
+        let (_env, client, _admin, _score, _vouch, _savings, borrower, lender, _token) = setup();
+        let loan_id = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32, &BackingType::None, &0i128);
         assert_eq!(loan_id, 1);
         let loan = client.get_loan(&loan_id);
         assert_eq!(loan.status, LoanStatus::Pending);
         assert_eq!(loan.amount_stroops, 1_000_000_000i128);
+        assert_eq!(loan.backing_type, BackingType::None);
+        assert_eq!(loan.backing_amount, 0i128);
     }
 
     #[test]
     fn test_repayment_amount_includes_interest() {
-        let (_env, client, _admin, _score, _vouch, borrower, lender, _token) = setup();
+        let (_env, client, _admin, _score, _vouch, _savings, borrower, lender, _token) = setup();
         // 100 XLM principal at 5% = 105 XLM repayment
         let principal = 1_000_000_000i128; // 100 XLM
-        let loan_id = client.apply_loan(&borrower, &lender, &principal, &7u32);
+        let loan_id = client.apply_loan(&borrower, &lender, &principal, &7u32, &BackingType::None, &0i128);
         let loan = client.get_loan(&loan_id);
         assert_eq!(loan.repayment_amount, 1_050_000_000i128); // 105 XLM
     }
 
     #[test]
     fn test_approve_changes_status() {
-        let (_env, client, _admin, _score, _vouch, borrower, lender, _token) = setup();
-        let loan_id = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32);
+        let (_env, client, _admin, _score, _vouch, _savings, borrower, lender, _token) = setup();
+        let loan_id = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32, &BackingType::None, &0i128);
         client.approve_loan(&lender, &loan_id);
         let loan = client.get_loan(&loan_id);
         assert_eq!(loan.status, LoanStatus::Approved);
@@ -712,8 +852,8 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_only_lender_can_approve() {
-        let (env, client, _admin, _score, _vouch, borrower, lender, _token) = setup();
-        let loan_id = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32);
+        let (env, client, _admin, _score, _vouch, _savings, borrower, lender, _token) = setup();
+        let loan_id = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32, &BackingType::None, &0i128);
         let intruder = Address::generate(&env);
         client.approve_loan(&intruder, &loan_id);
     }
@@ -721,15 +861,15 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_double_active_loan_blocked() {
-        let (_env, client, _admin, _score, _vouch, borrower, lender, _token) = setup();
-        client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32);
-        client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32); // should panic
+        let (_env, client, _admin, _score, _vouch, _savings, borrower, lender, _token) = setup();
+        client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32, &BackingType::None, &0i128);
+        client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32, &BackingType::None, &0i128); // should panic
     }
 
     #[test]
     fn test_get_borrower_loans_history() {
-        let (_env, client, _admin, _score, _vouch, borrower, lender, _token) = setup();
-        let id1 = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32);
+        let (_env, client, _admin, _score, _vouch, _savings, borrower, lender, _token) = setup();
+        let id1 = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32, &BackingType::None, &0i128);
         let history = client.get_borrower_loans(&borrower);
         assert_eq!(history.len(), 1);
         assert_eq!(history.get(0).unwrap(), id1);
@@ -746,5 +886,110 @@ mod tests {
         assert_eq!(tier_limit_xlm(799), 5_000);
         assert_eq!(tier_limit_xlm(800), 10_000);
         assert_eq!(tier_limit_xlm(850), 10_000);
+    }
+
+    #[test]
+    fn test_apply_loan_ignores_backing_amount_when_not_savings() {
+        let (_env, client, _admin, _score, _vouch, _savings, borrower, lender, _token) = setup();
+        // Sends a nonzero backing_amount alongside BackingType::Vouch — must be zeroed out
+        let loan_id = client.apply_loan(&borrower, &lender, &1_000_000_000i128, &7u32, &BackingType::Vouch, &999_000_000i128);
+        let loan = client.get_loan(&loan_id);
+        assert_eq!(loan.backing_type, BackingType::Vouch);
+        assert_eq!(loan.backing_amount, 0i128);
+    }
+
+    /// End-to-end lifecycle for a savings-backed loan: apply → approve →
+    /// disburse (locks collateral) → repay (releases collateral).
+    #[test]
+    fn test_savings_backed_loan_disburse_locks_and_repay_releases() {
+        let (env, client, _admin, _score, _vouch, savings, borrower, lender, token) = setup();
+
+        // Borrower deposits 50 XLM into savings_bank and offers 20 XLM as collateral
+        savings.deposit(&borrower, &500_000_000i128);
+
+        let principal = 1_000_000_000i128; // 100 XLM
+        let backing_amount = 200_000_000i128; // 20 XLM
+        let loan_id = client.apply_loan(&borrower, &lender, &principal, &7u32, &BackingType::Savings, &backing_amount);
+
+        client.approve_loan(&lender, &loan_id);
+        client.disburse_loan(&lender, &loan_id);
+
+        // Collateral should now be locked
+        assert_eq!(savings.get_locked(&borrower), backing_amount);
+        assert_eq!(savings.get_available(&borrower), 500_000_000i128 - backing_amount);
+
+        // Borrower needs enough XLM to repay (principal was disbursed to them,
+        // plus interest funded from their pre-minted balance)
+        client.repay_loan(&borrower, &loan_id);
+
+        // Collateral released back, lender receives the FULL repayment (no
+        // 1% skim — that only applies to vouch-backed loans)
+        assert_eq!(savings.get_locked(&borrower), 0i128);
+        assert_eq!(savings.get_available(&borrower), 500_000_000i128);
+
+        let loan = client.get_loan(&loan_id);
+        assert_eq!(loan.status, LoanStatus::Repaid);
+
+        use soroban_sdk::token::TokenClient;
+        let token_client = TokenClient::new(&env, &token);
+        // Lender started with 1_000_000_000_000, paid out principal on
+        // disburse, then received the full repayment_amount (105 XLM) back
+        let expected_lender_balance = 1_000_000_000_000i128 - principal + loan.repayment_amount;
+        assert_eq!(token_client.balance(&lender), expected_lender_balance);
+    }
+
+    /// End-to-end default path for a savings-backed loan: collateral gets
+    /// seized and sent to the lender.
+    #[test]
+    fn test_savings_backed_loan_default_seizes_collateral() {
+        let (env, client, _admin, _score, _vouch, savings, borrower, lender, token) = setup();
+
+        savings.deposit(&borrower, &500_000_000i128);
+
+        let principal = 1_000_000_000i128;
+        let backing_amount = 200_000_000i128; // 20 XLM
+        let loan_id = client.apply_loan(&borrower, &lender, &principal, &7u32, &BackingType::Savings, &backing_amount);
+        client.approve_loan(&lender, &loan_id);
+        client.disburse_loan(&lender, &loan_id);
+
+        // Fast-forward past the due date
+        env.ledger().with_mut(|l| l.timestamp += 8 * 86_400);
+
+        client.mark_defaulted(&lender, &loan_id);
+
+        // Collateral seized: locked cleared, balance debited, lender paid
+        assert_eq!(savings.get_locked(&borrower), 0i128);
+        assert_eq!(savings.get_balance(&borrower), 500_000_000i128 - backing_amount);
+
+        use soroban_sdk::token::TokenClient;
+        let token_client = TokenClient::new(&env, &token);
+        let expected_lender_balance = 1_000_000_000_000i128 - principal + backing_amount;
+        assert_eq!(token_client.balance(&lender), expected_lender_balance);
+
+        let loan = client.get_loan(&loan_id);
+        assert_eq!(loan.status, LoanStatus::Defaulted);
+    }
+
+    #[test]
+    fn test_none_backed_loan_skips_all_notify_calls() {
+        // Regression: a None-backed loan should disburse/repay cleanly with
+        // no cross-contract collateral/vouch calls, and the lender should
+        // receive the FULL repayment amount (no 1% skim for a nonexistent
+        // voucher — this is the bug fix from the original unconditional skim).
+        let (env, client, _admin, _score, _vouch, _savings, borrower, lender, token) = setup();
+
+        let principal = 1_000_000_000i128;
+        let loan_id = client.apply_loan(&borrower, &lender, &principal, &7u32, &BackingType::None, &0i128);
+        client.approve_loan(&lender, &loan_id);
+        client.disburse_loan(&lender, &loan_id);
+        client.repay_loan(&borrower, &loan_id);
+
+        let loan = client.get_loan(&loan_id);
+        assert_eq!(loan.status, LoanStatus::Repaid);
+
+        use soroban_sdk::token::TokenClient;
+        let token_client = TokenClient::new(&env, &token);
+        let expected_lender_balance = 1_000_000_000_000i128 - principal + loan.repayment_amount;
+        assert_eq!(token_client.balance(&lender), expected_lender_balance);
     }
 }

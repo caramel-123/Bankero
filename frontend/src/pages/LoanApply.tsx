@@ -3,12 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, CheckCircle, CreditCard, Calendar, Tag, FileText,
   Info, AlertTriangle, ArrowRight, TrendingUp, ChevronRight, Check,
+  Users, PiggyBank, Ban,
 } from 'lucide-react'
-import { scoreTier, SCORE_TIERS, nextScoreTier, formatXlmAmount, xlmToPesoEstimate } from '../lib/stellar'
-import { saveLoan, fetchLoans, type LocalLoan } from '../lib/loanStore'
+import { scoreTier, SCORE_TIERS, nextScoreTier, formatXlmAmount, xlmToPesoEstimate, formatWallet, stroopsToXlm } from '../lib/stellar'
+import { saveLoan, fetchLoans, type LocalLoan, type BackingType } from '../lib/loanStore'
 import { useScore } from '../hooks/useScore'
-import { DEMO_SCORE_RECORD, DEMO_LOANS } from '../lib/demoData'
+import { DEMO_SCORE_RECORD, DEMO_LOANS, DEMO_VOUCHERS, DEMO_SAVINGS_AVAILABLE_XLM } from '../lib/demoData'
 import GuestActionModal from '../components/GuestActionModal'
+import CommunityVouchInfoModal from '../components/CommunityVouchInfoModal'
+import SavingsCollateralInfoModal from '../components/SavingsCollateralInfoModal'
+import { fetchBorrowerVouchers, fetchSavingsBankAvailable, type OnChainVouch } from '../lib/contracts'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
 
@@ -35,15 +39,32 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const [showLadder, setShowLadder] = useState(false)
   const [showGuestModal, setShowGuestModal] = useState(false)
 
+  // ── Backing choice: Community Vouch / Savings collateral / None ──
+  const [backingType, setBackingType] = useState<BackingType>('none')
+  const [savingsAmount, setSavingsAmount] = useState(1)
+  const [availableSavings, setAvailableSavings] = useState(0)
+  const [myVouchers, setMyVouchers] = useState<OnChainVouch[]>([])
+  const [vouchersLoading, setVouchersLoading] = useState(true)
+  const [showVouchInfo, setShowVouchInfo] = useState(false)
+  const [showSavingsInfo, setShowSavingsInfo] = useState(false)
+
   useEffect(() => {
     if (wallet.isGuest) {
       setMyLoans(DEMO_LOANS as unknown as LocalLoan[])
       setLoansLoading(false)
+      setMyVouchers(DEMO_VOUCHERS as unknown as OnChainVouch[])
+      setAvailableSavings(DEMO_SAVINGS_AVAILABLE_XLM)
+      setVouchersLoading(false)
       return
     }
     if (!wallet.publicKey) return
     fetchLoans(wallet.publicKey).then(l => { setMyLoans(l); setLoansLoading(false) })
+    fetchBorrowerVouchers(wallet.publicKey).then(v => { setMyVouchers(v); setVouchersLoading(false) })
+    fetchSavingsBankAvailable(wallet.publicKey).then(stroops => setAvailableSavings(stroopsToXlm(stroops)))
   }, [wallet.publicKey, wallet.isGuest])
+
+  const totalVouchStake = myVouchers.reduce((s, v) => s + stroopsToXlm(v.stake_amount), 0)
+  const safeSavingsAmount = Math.max(0, Math.min(savingsAmount, availableSavings))
 
   const activeLoan = myLoans.find(l => ['Pending', 'Approved', 'Disbursed'].includes(l.status))
 
@@ -70,6 +91,8 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
         appliedAt: new Date().toISOString(),
         dueAt: null,
         wallet: wallet.publicKey ?? 'unknown',
+        backingType,
+        backingAmount: backingType === 'savings' ? safeSavingsAmount : 0,
       }
       try {
         await saveLoan(loan)
@@ -266,6 +289,97 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
               ))}
             </div>
           </div>
+
+          {/* Backing choice */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+              <Users size={15} strokeWidth={2} color="var(--ink-4)" />
+              <label style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>Back Your Application</label>
+              <span style={{ fontSize: 12, color: 'var(--ink-4)', fontWeight: 400 }}>(optional — improves your approval odds)</span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {[
+                { key: 'vouch' as const,   label: 'Community Vouch',   Icon: Users,     onInfo: () => setShowVouchInfo(true) },
+                { key: 'savings' as const, label: 'Savings Collateral', Icon: PiggyBank, onInfo: () => setShowSavingsInfo(true) },
+                { key: 'none' as const,    label: 'None',              Icon: Ban,       onInfo: null },
+              ].map(opt => (
+                <button key={opt.key} onClick={() => setBackingType(opt.key)} className="btn"
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 6px', borderRadius: 'var(--r-md)', border: `2px solid ${backingType === opt.key ? 'var(--green)' : 'var(--border)'}`, background: backingType === opt.key ? 'var(--green-tint)' : 'var(--surface)', color: backingType === opt.key ? 'var(--green)' : 'var(--ink-3)' }}>
+                  <opt.Icon size={16} strokeWidth={2} />
+                  <span style={{ fontSize: 12, fontWeight: 700, textAlign: 'center' }}>{opt.label}</span>
+                  {opt.onInfo && (
+                    <span
+                      onClick={e => { e.stopPropagation(); opt.onInfo!() }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'var(--ink-4)', fontWeight: 600 }}
+                    >
+                      <Info size={10} strokeWidth={2} /> How it works
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {backingType === 'savings' && (
+              <div style={{ padding: '14px 16px', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>Amount to lock (XLM)</span>
+                  <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>{formatXlmAmount(availableSavings)} available</span>
+                </div>
+                {availableSavings > 0 ? (
+                  <>
+                    <input
+                      type="range" min={0} max={availableSavings} step={0.5}
+                      value={safeSavingsAmount}
+                      onChange={e => setSavingsAmount(Number(e.target.value))}
+                      style={{ width: '100%' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--ink-3)' }}>
+                      <span>0 XLM</span>
+                      <span style={{ fontWeight: 800, color: 'var(--green)' }}>{formatXlmAmount(safeSavingsAmount)}</span>
+                      <span>{formatXlmAmount(availableSavings)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-4)', margin: 0, lineHeight: 1.5 }}>
+                    You don't have any available savings yet — deposit into the Savings Bank first to use this option.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {backingType === 'vouch' && (
+              <div style={{ padding: '14px 16px', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-2)' }}>
+                {vouchersLoading ? (
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-4)', margin: 0 }}>Loading your vouchers…</p>
+                ) : myVouchers.length === 0 ? (
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-4)', margin: 0, lineHeight: 1.5 }}>
+                    No one has vouched for you yet — share your wallet address on the Vouch page to get backers.
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {myVouchers.map(v => {
+                      const stakeXlm = stroopsToXlm(v.stake_amount)
+                      const share = totalVouchStake > 0 ? (stakeXlm / totalVouchStake) * 100 : 0
+                      const rewardXlm = stakeXlm * 0.01 * 1.05
+                      return (
+                        <div key={v.voucher} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12.5 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink-3)' }}>{formatWallet(v.voucher)}</span>
+                          <span style={{ color: 'var(--ink-3)' }}>{formatXlmAmount(stakeXlm)} · {share.toFixed(0)}%</span>
+                          <span style={{ fontWeight: 700, color: 'var(--green)' }}>+{rewardXlm.toFixed(2)} XLM ({xlmToPesoEstimate(rewardXlm)}) if repaid</span>
+                        </div>
+                      )
+                    })}
+                    <div style={{ borderTop: '1px dashed var(--border)', paddingTop: 6, marginTop: 2, display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>
+                      <span>Total staked for you</span><span>{formatXlmAmount(totalVouchStake)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {showVouchInfo && <CommunityVouchInfoModal onClose={() => setShowVouchInfo(false)} />}
+          {showSavingsInfo && <SavingsCollateralInfoModal onClose={() => setShowSavingsInfo(false)} />}
 
           {/* Notes */}
           <div style={{ marginBottom: 24 }}>

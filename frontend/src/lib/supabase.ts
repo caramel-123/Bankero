@@ -63,6 +63,9 @@ export interface SupabaseLoan {
   defaulted_at: string | null
   created_at: string
   updated_at: string
+  backing_type: 'none' | 'vouch' | 'savings'
+  backing_amount: number
+  onchain_loan_id: number | null
 }
 
 export interface ScoreCache {
@@ -392,6 +395,8 @@ export async function saveLoanToSupabase(loan: {
   notes: string
   status: SupabaseLoan['status']
   applied_at: string
+  backing_type: SupabaseLoan['backing_type']
+  backing_amount: number
 }): Promise<SupabaseLoan> {
   const { data, error } = await supabase
     .from('loans')
@@ -400,6 +405,15 @@ export async function saveLoanToSupabase(loan: {
     .single()
   if (error) throw new Error(error.message)
   return data as SupabaseLoan
+}
+
+/** Record the on-chain loan_registry loan_id once a savings-backed loan's real apply_loan call succeeds. */
+export async function setOnchainLoanId(id: string, onchainLoanId: number): Promise<void> {
+  const { error } = await supabase
+    .from('loans')
+    .update({ onchain_loan_id: onchainLoanId })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 export async function updateLoanStatusInSupabase(
