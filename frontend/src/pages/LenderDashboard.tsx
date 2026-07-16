@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import {
   Home, Users, CreditCard, BarChart2, UserCircle,
   LogOut, Check, X, Banknote, TrendingUp, AlertCircle,
-  Clock, Save, RefreshCw, Lock, Shield, ExternalLink,
+  Clock, Save, RefreshCw, Lock, Shield, ExternalLink, PiggyBank, Ban,
 } from 'lucide-react'
 import {
   formatXlmAmount, formatWallet, scoreTier, scorePercent, stellarExplorerUrl,
-  connectWallet, disburseXlmPayment, xlmToPesoEstimate,
+  connectWallet, disburseXlmPayment, xlmToPesoEstimate, CONTRACT_IDS,
 } from '../lib/stellar'
-import { fetchAllLoans, updateLoanStatus, computeLocalScore, getScoreCache, type LocalLoan } from '../lib/loanStore'
-import { fetchOnChainScore } from '../lib/contracts'
+import { fetchAllLoans, updateLoanStatus, computeLocalScore, getScoreCache, type LocalLoan, type BackingType } from '../lib/loanStore'
+import { fetchOnChainScore, fetchBorrowerVouchers, invokeContractWrite, addressLoanIdArgs, ContractWriteError } from '../lib/contracts'
 import { computeAnchorScore } from '../lib/anchorStore'
 import {
   ensureLenderProfile, signOutLender, updateLenderSettings, getBorrowerNames, type Lender,
@@ -253,6 +253,30 @@ function StatusPill({ status }: { status: string }) {
   )
 }
 
+/** Shows a lender at a glance whether a loan has real backing behind it, and how much. */
+function BackingBadge({ backingType, backingAmount, vouchTotal }: { backingType: BackingType; backingAmount: number; vouchTotal?: number }) {
+  const style = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, whiteSpace: 'nowrap' as const }
+  if (backingType === 'vouch') {
+    return (
+      <span style={{ ...style, background: '#FEF3C7', color: '#B45309' }}>
+        <Users size={11} strokeWidth={2} /> {vouchTotal != null ? `${formatXlmAmount(vouchTotal)} vouched` : 'Vouched'}
+      </span>
+    )
+  }
+  if (backingType === 'savings') {
+    return (
+      <span style={{ ...style, background: '#EFF6FF', color: '#1D4ED8' }}>
+        <PiggyBank size={11} strokeWidth={2} /> {formatXlmAmount(backingAmount)} locked
+      </span>
+    )
+  }
+  return (
+    <span style={{ ...style, background: 'var(--surface-2)', color: 'var(--ink-4)' }}>
+      <Ban size={11} strokeWidth={2} /> No backing
+    </span>
+  )
+}
+
 export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
   const nav  = useNavigate()
   const [page, setPage]   = useState('Dashboard')
@@ -339,6 +363,18 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
     getBorrowerNames(wallets).then(setBorrowerNames)
   }, [loans])
 
+  // Total XLM vouched per borrower, for the BackingBadge on vouch-backed loans.
+  const [vouchTotals, setVouchTotals] = useState<Record<string, number>>({})
+  useEffect(() => {
+    const vouchBackedWallets = [...new Set(loans.filter(l => l.backingType === 'vouch').map(l => l.wallet))]
+    if (vouchBackedWallets.length === 0) return
+    Promise.all(vouchBackedWallets.map(async w => {
+      const vouchers = await fetchBorrowerVouchers(w)
+      const total = vouchers.reduce((s, v) => s + v.stake_amount / 10_000_000, 0)
+      return [w, total] as const
+    })).then(entries => setVouchTotals(Object.fromEntries(entries)))
+  }, [loans])
+
   async function approve(id: string) {
     await updateLoanStatus(id, 'Approved', { lenderWallet: lender?.wallet_address })
     refreshLoans()
@@ -360,17 +396,36 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
         setLenderWalletAddr(walletAddr)
       }
 
-      // Step 2: send real XLM payment from lender → borrower
-      const txHash = await disburseXlmPayment({
-        lenderAddress: walletAddr,
-        borrowerAddress: loan.wallet,
-        xlmAmount: loan.amount,
-        loanId: loan.id,
-      })
+      let txHash: string
+      if (loan.backingType === 'savings') {
+        // Savings-backed loans go through the real on-chain loan_registry —
+        // the borrower must have already signed the on-chain apply_loan
+        // ("Lock Your Collateral" on their Loan Tracking page) before this
+        // loan_id exists on-chain. disburse_loan itself transfers the
+        // principal AND locks the collateral, so no separate Horizon
+        // payment happens for this path (that would double-pay the borrower).
+        if (loan.onchainLoanId == null) {
+          throw new Error("The borrower hasn't confirmed their collateral yet. Ask them to lock it from their Loan Tracking page, then try disbursing again.")
+        }
+        await invokeContractWrite(CONTRACT_IDS.loanRegistry, 'approve_loan', addressLoanIdArgs(walletAddr, loan.onchainLoanId), walletAddr)
+        const result = await invokeContractWrite(CONTRACT_IDS.loanRegistry, 'disburse_loan', addressLoanIdArgs(walletAddr, loan.onchainLoanId), walletAddr)
+        txHash = result.hash
+      } else {
+        // Vouch-backed and unbacked loans keep today's behavior: a direct
+        // Horizon payment, no on-chain loan_registry involvement (see
+        // docs/loan-backing-deployment.md for why this scope was kept
+        // deliberately narrow to savings-backed loans only).
+        txHash = await disburseXlmPayment({
+          lenderAddress: walletAddr,
+          borrowerAddress: loan.wallet,
+          xlmAmount: loan.amount,
+          loanId: loan.id,
+        })
+      }
 
       setDisburseTxHash(txHash)
 
-      // Step 3: record disbursement in Bankero
+      // Record disbursement in Bankero
       await updateLoanStatus(loan.id, 'Disbursed', { lenderWallet: walletAddr })
       refreshLoans()
     } catch (err: any) {
@@ -386,8 +441,21 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       setDisbursingId(null)
     }
   }
-  async function markDefaulted(id: string) {
-    await updateLoanStatus(id, 'Defaulted')
+  async function markDefaulted(loan: LocalLoan) {
+    if (loan.backingType === 'savings' && loan.onchainLoanId != null) {
+      try {
+        let walletAddr = lenderWalletAddr
+        if (!walletAddr) {
+          walletAddr = await connectWallet()
+          setLenderWalletAddr(walletAddr)
+        }
+        await invokeContractWrite(CONTRACT_IDS.loanRegistry, 'mark_defaulted', addressLoanIdArgs(walletAddr, loan.onchainLoanId), walletAddr)
+      } catch (err) {
+        setDisburseError(err instanceof ContractWriteError || err instanceof Error ? err.message : 'Could not mark this loan defaulted on-chain.')
+        return
+      }
+    }
+    await updateLoanStatus(loan.id, 'Defaulted')
     refreshLoans()
   }
   function isOverdue(loan: LocalLoan) {
@@ -675,6 +743,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       {loan.purpose} · {loan.term} days · Applied {new Date(loan.appliedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
                     </p>
                   </div>
+                  <BackingBadge backingType={loan.backingType} backingAmount={loan.backingAmount} vouchTotal={vouchTotals[loan.wallet]} />
                   <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</p>
                   <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
                     <button onClick={() => openApproveConfirm(loan)} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)' }}>
@@ -711,13 +780,20 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                         {loan.purpose} · {loan.term} days
                       </p>
                     </div>
+                    <BackingBadge backingType={loan.backingType} backingAmount={loan.backingAmount} vouchTotal={vouchTotals[loan.wallet]} />
                     <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</p>
                     <div onClick={e => e.stopPropagation()}>
-                      <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
-                        {disbursingId === loan.id
-                          ? <><div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
-                          : <><Banknote size={13} strokeWidth={2} /> Disburse {formatXlmAmount(loan.amount)}</>}
-                      </button>
+                      {loan.backingType === 'savings' && loan.onchainLoanId == null ? (
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#B45309', padding: '8px 12px', display: 'inline-block' }}>
+                          Waiting for borrower to lock collateral
+                        </span>
+                      ) : (
+                        <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
+                          {disbursingId === loan.id
+                            ? <><div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
+                            : <><Banknote size={13} strokeWidth={2} /> Disburse {formatXlmAmount(loan.amount)}</>}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -781,6 +857,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       </div>
                     </div>
                   )}
+                  <BackingBadge backingType={loan.backingType} backingAmount={loan.backingAmount} vouchTotal={vouchTotals[loan.wallet]} />
                   <StatusPill status={loan.status} />
                   <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
                     {loan.status === 'Pending' && (<>
@@ -792,14 +869,18 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
                       </button>
                     </>)}
                     {loan.status === 'Approved' && (
-                      <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
-                        {disbursingId === loan.id
-                          ? <><div style={{ width: 11, height: 11, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
-                          : <><Banknote size={12} strokeWidth={2} /> Disburse {formatXlmAmount(loan.amount)}</>}
-                      </button>
+                      loan.backingType === 'savings' && loan.onchainLoanId == null ? (
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#B45309' }}>Waiting for borrower</span>
+                      ) : (
+                        <button onClick={() => disburse(loan)} disabled={disbursingId === loan.id} className="btn btn-sm btn-primary" style={{ borderRadius: 'var(--r-md)', opacity: disbursingId === loan.id ? 0.65 : 1 }}>
+                          {disbursingId === loan.id
+                            ? <><div style={{ width: 11, height: 11, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Sending…</>
+                            : <><Banknote size={12} strokeWidth={2} /> Disburse {formatXlmAmount(loan.amount)}</>}
+                        </button>
+                      )
                     )}
                     {isOverdue(loan) && (
-                      <button onClick={() => markDefaulted(loan.id)} className="btn btn-sm" style={{ borderRadius: 'var(--r-md)', background: '#FEF2F2', color: '#DC2626', border: 'none', fontSize: 11 }}>
+                      <button onClick={() => markDefaulted(loan)} className="btn btn-sm" style={{ borderRadius: 'var(--r-md)', background: '#FEF2F2', color: '#DC2626', border: 'none', fontSize: 11 }}>
                         <AlertCircle size={11} strokeWidth={2.5} /> Mark Defaulted
                       </button>
                     )}

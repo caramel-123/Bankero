@@ -141,7 +141,7 @@ export function formatXlmAmount(amount: number): string {
 
 const NETWORK_SLUG = import.meta.env.VITE_STELLAR_NETWORK === 'testnet' ? 'testnet' : 'public'
 
-export function stellarExplorerUrl(address: string, type: 'account' | 'contract' = 'account'): string {
+export function stellarExplorerUrl(address: string, type: 'account' | 'contract' | 'tx' = 'account'): string {
   return `https://stellar.expert/explorer/${NETWORK_SLUG}/${type}/${address}`
 }
 

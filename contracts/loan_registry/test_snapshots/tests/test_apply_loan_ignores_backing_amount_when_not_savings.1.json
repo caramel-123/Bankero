@@ -1,6 +1,6 @@
 {
   "generators": {
-    "address": 9,
+    "address": 8,
     "nonce": 0
   },
   "auth": [
@@ -190,14 +190,14 @@
                 {
                   "vec": [
                     {
-                      "symbol": "None"
+                      "symbol": "Vouch"
                     }
                   ]
                 },
                 {
                   "i128": {
                     "hi": 0,
-                    "lo": 0
+                    "lo": 999000000
                   }
                 }
               ]
@@ -509,7 +509,7 @@
                       "val": {
                         "vec": [
                           {
-                            "symbol": "None"
+                            "symbol": "Vouch"
                           }
                         ]
                       }

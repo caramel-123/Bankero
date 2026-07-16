@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, FileText, ArrowRight, Clock, CheckCircle, Zap,
-  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Trash2, ChevronDown, Info,
+  AlertTriangle, XCircle, RefreshCw, CreditCard, TrendingUp, X, Trash2, ChevronDown, Info, PiggyBank,
 } from 'lucide-react'
-import { formatXlmAmount, scoreTier, scorePercent } from '../lib/stellar'
+import { formatXlmAmount, scoreTier, scorePercent, xlmToStroops, CONTRACT_IDS } from '../lib/stellar'
 import {
-  fetchLoans, updateLoanStatus, updateScoreOnRepay, updateScoreOnDefault, deleteLoan,
+  fetchLoans, updateLoanStatus, updateScoreOnRepay, updateScoreOnDefault, deleteLoan, setOnchainLoanId,
   computeLocalScore, getScoreCache, daysUntil, formatDate,
   type LocalLoan, type LoanStatus
 } from '../lib/loanStore'
+import { invokeContractWrite, applyLoanArgs, addressLoanIdArgs, ContractWriteError } from '../lib/contracts'
 import { DEMO_LOANS, DEMO_SCORE_RECORD } from '../lib/demoData'
 import { useScore } from '../hooks/useScore'
 import { markLoansSeen } from '../hooks/useLoanAlerts'
@@ -29,8 +30,8 @@ const STATUS_CFG: Record<LoanStatus, { label: string; color: string; bg: string;
 }
 
 // ── Repay Modal ────────────────────────────────────────────
-function RepayModal({ loan, wallet, onConfirm, onClose }: {
-  loan: LocalLoan; wallet: string; onConfirm: () => void; onClose: () => void
+function RepayModal({ loan, wallet, onConfirm, onClose, repaying, error }: {
+  loan: LocalLoan; wallet: string; onConfirm: () => void; onClose: () => void; repaying: boolean; error: string | null
 }) {
   const cache = getScoreCache(wallet)
   const scoreBefore = computeLocalScore(cache.repayment_score, 0, 0, 0)
@@ -92,10 +93,17 @@ function RepayModal({ loan, wallet, onConfirm, onClose }: {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5, fontSize: 10, color: 'var(--ink-4)', fontWeight: 700 }}><span>300</span><span>850</span></div>
         </div>
 
-        <button onClick={onConfirm} style={{ width: '100%', padding: '15px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(22,163,74,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9 }}>
-          <CheckCircle size={17} strokeWidth={2} /> Confirm Repayment — {formatXlmAmount(loan.total)}
+        {error && (
+          <div style={{ display: 'flex', gap: 8, padding: '10px 14px', borderRadius: 10, background: '#FEF2F2', border: '1px solid #FECACA', marginBottom: 14, fontSize: 12.5, color: '#991B1B' }}>
+            <AlertTriangle size={14} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> {error}
+          </div>
+        )}
+        <button onClick={onConfirm} disabled={repaying} style={{ width: '100%', padding: '15px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', cursor: repaying ? 'default' : 'pointer', opacity: repaying ? 0.65 : 1, boxShadow: '0 4px 16px rgba(22,163,74,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9 }}>
+          {repaying
+            ? <><div style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Repaying…</>
+            : <><CheckCircle size={17} strokeWidth={2} /> Confirm Repayment — {formatXlmAmount(loan.total)}</>}
         </button>
-        <button onClick={onClose} style={{ width: '100%', marginTop: 10, padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
+        <button onClick={onClose} disabled={repaying} style={{ width: '100%', marginTop: 10, padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
           Cancel
         </button>
       </div>
@@ -171,6 +179,10 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [cancelingLoan, setCancelingLoan] = useState<LocalLoan | null>(null)
   const [showBreakdown, setShowBreakdown] = useState(false)
+  const [repaying, setRepaying] = useState(false)
+  const [repayError, setRepayError] = useState<string | null>(null)
+  const [lockingCollateralId, setLockingCollateralId] = useState<string | null>(null)
+  const [lockError, setLockError] = useState<string | null>(null)
 
   const { record: liveRecord, isLoading: scoreLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
   const scoreRecord = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
@@ -212,15 +224,59 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   async function handleRepayConfirm() {
     if (!repayingLoan) return
     const w = wallet.publicKey ?? repayingLoan.wallet
+    setRepayError(null)
+
+    // Savings-backed loans moved their principal through the real on-chain
+    // loan_registry when disbursed (see disburse_loan on the lender side),
+    // so repayment must also be a real on-chain transaction here — this is
+    // the moment collateral gets released. Vouch/none-backed loans keep
+    // today's Supabase-only status flip, unchanged.
+    if (repayingLoan.backingType === 'savings' && repayingLoan.onchainLoanId != null && wallet.publicKey) {
+      setRepaying(true)
+      try {
+        await invokeContractWrite(
+          CONTRACT_IDS.loanRegistry, 'repay_loan',
+          addressLoanIdArgs(wallet.publicKey, repayingLoan.onchainLoanId),
+          wallet.publicKey
+        )
+      } catch (err) {
+        setRepayError(err instanceof ContractWriteError || err instanceof Error ? err.message : 'Repayment failed on-chain — please try again.')
+        setRepaying(false)
+        return
+      }
+      setRepaying(false)
+    }
+
     const cacheBefore = getScoreCache(w)
     const scoreBefore = computeLocalScore(cacheBefore.repayment_score, 0, 0, 0)
     await updateLoanStatus(repayingLoan.id, 'Repaid')
     const updated = await updateScoreOnRepay(w)
     const scoreAfter = computeLocalScore(updated.repayment_score, 0, 0, 0)
     setRepayingLoan(null)
+    setRepayError(null)
     setActiveTab('Repaid')
     await refresh()
     setSuccessInfo({ newScore: scoreAfter, diff: scoreAfter - scoreBefore })
+  }
+
+  async function handleLockCollateral(loan: LocalLoan) {
+    if (!wallet.publicKey || !loan.lenderWallet) return
+    setLockingCollateralId(loan.id)
+    setLockError(null)
+    try {
+      const args = applyLoanArgs(
+        wallet.publicKey, loan.lenderWallet,
+        xlmToStroops(loan.amount), loan.term,
+        'savings', xlmToStroops(loan.backingAmount)
+      )
+      const { returnValue } = await invokeContractWrite(CONTRACT_IDS.loanRegistry, 'apply_loan', args, wallet.publicKey)
+      await setOnchainLoanId(loan.id, Number(returnValue))
+      await refresh()
+    } catch (err) {
+      setLockError(err instanceof ContractWriteError || err instanceof Error ? err.message : 'Could not lock collateral — please try again.')
+    } finally {
+      setLockingCollateralId(null)
+    }
   }
 
   async function handleCancelConfirm() {
@@ -245,7 +301,12 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
         <CancelLoanModal loan={cancelingLoan} onConfirm={handleCancelConfirm} onClose={() => setCancelingLoan(null)} />
       )}
       {repayingLoan && wallet.publicKey && (
-        <RepayModal loan={repayingLoan} wallet={wallet.publicKey} onConfirm={handleRepayConfirm} onClose={() => setRepayingLoan(null)} />
+        <RepayModal
+          loan={repayingLoan} wallet={wallet.publicKey}
+          onConfirm={handleRepayConfirm}
+          onClose={() => { setRepayingLoan(null); setRepayError(null) }}
+          repaying={repaying} error={repayError}
+        />
       )}
       {successInfo && (
         <RepaySuccessBanner newScore={successInfo.newScore} scoreDiff={successInfo.diff} onDismiss={() => setSuccessInfo(null)} />
@@ -479,7 +540,26 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                         </div>
                       )}
 
-                      {isApproved && (
+                      {isApproved && loan.backingType === 'savings' && loan.onchainLoanId == null && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <button
+                            onClick={() => wallet.isGuest ? setShowGuestModal(true) : handleLockCollateral(loan)}
+                            disabled={lockingCollateralId === loan.id}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px', borderRadius: 11, fontSize: 14, fontWeight: 700, color: '#fff', background: '#2563EB', border: 'none', cursor: lockingCollateralId === loan.id ? 'default' : 'pointer', opacity: lockingCollateralId === loan.id ? 0.65 : 1 }}
+                          >
+                            {lockingCollateralId === loan.id
+                              ? <><div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Locking…</>
+                              : <><PiggyBank size={16} strokeWidth={2} /> Lock {formatXlmAmount(loan.backingAmount)} Collateral</>}
+                          </button>
+                          {lockError && (
+                            <div style={{ display: 'flex', gap: 6, fontSize: 12, color: '#DC2626', maxWidth: 320 }}>
+                              <AlertTriangle size={12} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> {lockError}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {isApproved && !(loan.backingType === 'savings' && loan.onchainLoanId == null) && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, background: '#EFF6FF', border: '1px solid #BFDBFE', fontSize: 13, fontWeight: 600, color: '#1D4ED8' }}>
                           <CheckCircle size={14} strokeWidth={2} /> Approved — waiting for lender to disburse funds
                         </div>
