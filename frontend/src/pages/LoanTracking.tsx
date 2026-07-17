@@ -30,16 +30,17 @@ const STATUS_CFG: Record<LoanStatus, { label: string; color: string; bg: string;
 }
 
 // ── Repay Modal ────────────────────────────────────────────
-function RepayModal({ loan, wallet, onConfirm, onClose, repaying, error }: {
-  loan: LocalLoan; wallet: string; onConfirm: () => void; onClose: () => void; repaying: boolean; error: string | null
+function RepayModal({ loan, wallet, txScore, vouchScore, anchorScore, onConfirm, onClose, repaying, error }: {
+  loan: LocalLoan; wallet: string; txScore: number; vouchScore: number; anchorScore: number
+  onConfirm: () => void; onClose: () => void; repaying: boolean; error: string | null
 }) {
   const cache = getScoreCache(wallet)
-  const scoreBefore = computeLocalScore(cache.repayment_score, 0, 0, 0)
+  const scoreBefore = computeLocalScore(cache.repayment_score, txScore, vouchScore, anchorScore)
   const total = cache.total_loans + 1
   const repaid = cache.loans_repaid + 1
   // Laplace smoothing preview
   const newRepayment = Math.min(100, Math.round((repaid / (total + 2)) * 100))
-  const scoreAfter = computeLocalScore(newRepayment, 0, 0, 0)
+  const scoreAfter = computeLocalScore(newRepayment, txScore, vouchScore, anchorScore)
   const scoreDiff = scoreAfter - scoreBefore
   const tierAfter = scoreTier(scoreAfter)
 
@@ -247,11 +248,14 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
       setRepaying(false)
     }
 
+    const txScore = scoreRecord?.tx_score ?? 0
+    const vouchScore = scoreRecord?.vouch_score ?? 0
+    const anchorScore = scoreRecord?.anchor_score ?? 0
     const cacheBefore = getScoreCache(w)
-    const scoreBefore = computeLocalScore(cacheBefore.repayment_score, 0, 0, 0)
+    const scoreBefore = computeLocalScore(cacheBefore.repayment_score, txScore, vouchScore, anchorScore)
     await updateLoanStatus(repayingLoan.id, 'Repaid')
     const updated = await updateScoreOnRepay(w)
-    const scoreAfter = computeLocalScore(updated.repayment_score, 0, 0, 0)
+    const scoreAfter = computeLocalScore(updated.repayment_score, txScore, vouchScore, anchorScore)
     setRepayingLoan(null)
     setRepayError(null)
     setActiveTab('Repaid')
@@ -303,6 +307,9 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
       {repayingLoan && wallet.publicKey && (
         <RepayModal
           loan={repayingLoan} wallet={wallet.publicKey}
+          txScore={scoreRecord?.tx_score ?? 0}
+          vouchScore={scoreRecord?.vouch_score ?? 0}
+          anchorScore={scoreRecord?.anchor_score ?? 0}
           onConfirm={handleRepayConfirm}
           onClose={() => { setRepayingLoan(null); setRepayError(null) }}
           repaying={repaying} error={repayError}
