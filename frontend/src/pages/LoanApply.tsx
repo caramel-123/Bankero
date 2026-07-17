@@ -6,7 +6,7 @@ import {
   Users, PiggyBank, Ban,
 } from 'lucide-react'
 import { scoreTier, SCORE_TIERS, nextScoreTier, formatXlmAmount, xlmToPesoEstimate, formatWallet, stroopsToXlm } from '../lib/stellar'
-import { saveLoan, fetchLoans, type LocalLoan, type BackingType } from '../lib/loanStore'
+import { saveLoan, fetchLoans, computeRepaymentScore, type LocalLoan, type BackingType } from '../lib/loanStore'
 import { useScore } from '../hooks/useScore'
 import { DEMO_SCORE_RECORD, DEMO_LOANS, DEMO_VOUCHERS, DEMO_SAVINGS_AVAILABLE_XLM } from '../lib/demoData'
 import GuestActionModal from '../components/GuestActionModal'
@@ -18,6 +18,17 @@ type WalletHook = ReturnType<typeof useWallet>
 
 const PURPOSES = ['Business', 'Medical', 'Education', 'Housing', 'Food', 'Other']
 const TERMS    = [7, 14, 30]
+
+/** How many more consecutive clean repayments (no defaults) until the Repayment History score next ticks up, and to what value — early repayments can jump several points at once, so this doesn't assume a flat +1. */
+function repaymentsUntilNextPoint(totalLoans: number, loansRepaid: number, loansDefaulted: number): { count: number; nextScore: number } | null {
+  const current = computeRepaymentScore(totalLoans, loansRepaid, loansDefaulted)
+  if (current >= 100) return null
+  for (let n = 1; n <= 500; n++) {
+    const next = computeRepaymentScore(totalLoans + n, loansRepaid + n, loansDefaulted)
+    if (next > current) return { count: n, nextScore: next }
+  }
+  return null
+}
 
 export default function LoanApply({ wallet }: { wallet: WalletHook }) {
   const nav  = useNavigate()
@@ -156,6 +167,23 @@ export default function LoanApply({ wallet }: { wallet: WalletHook }) {
             </p>
           </div>
         </div>
+
+        {/* ── Repayment History monitor — how many loans repaid so far, and how many more until the next point ── */}
+        {!isLoading && record && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 'var(--r-xl)', background: 'var(--surface)', border: '1px solid var(--border-2)', marginBottom: 20 }}>
+            <TrendingUp size={16} strokeWidth={2} color="var(--green)" style={{ flexShrink: 0 }} />
+            <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>
+              <strong style={{ color: 'var(--ink)' }}>{record.loans_repaid}</strong> loans repaid ·
+              {' '}Repayment History <strong style={{ color: 'var(--ink)' }}>{record.repayment_score}/100</strong>
+              {(() => {
+                const next = repaymentsUntilNextPoint(record.total_loans, record.loans_repaid, record.loans_defaulted)
+                return next == null
+                  ? null
+                  : <> · {next.count} more repayment{next.count === 1 ? '' : 's'} to reach {next.nextScore}/100</>
+              })()}
+            </div>
+          </div>
+        )}
 
         {/* ── Active loan blocker ──────────────────────── */}
         {activeLoan && (
