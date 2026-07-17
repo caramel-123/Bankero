@@ -266,14 +266,18 @@ async function persistScore(cache: ScoreCache): Promise<void> {
   }).catch(() => {}) // non-blocking
 }
 
+/** Laplace-smoothed repayment score: first repay ≈ 33pts, not 100, with a flat per-default penalty. Shared by the local cache updates below and by useScore's on-chain/local merge, so both always derive the score the same way instead of drifting apart. */
+export function computeRepaymentScore(totalLoans: number, loansRepaid: number, loansDefaulted: number): number {
+  return Math.min(100, Math.max(0,
+    Math.round((loansRepaid / (totalLoans + 2)) * 100) - (loansDefaulted * 15)
+  ))
+}
+
 export async function updateScoreOnRepay(wallet: string): Promise<ScoreCache> {
   const prev = scoreGet(wallet)
   const total = prev.total_loans + 1
   const repaid = prev.loans_repaid + 1
-  // Laplace smoothing: first repay ≈ 33pts, not 100
-  const repayment_score = Math.min(100, Math.max(0,
-    Math.round((repaid / (total + 2)) * 100) - (prev.loans_defaulted * 15)
-  ))
+  const repayment_score = computeRepaymentScore(total, repaid, prev.loans_defaulted)
   const updated: ScoreCache = {
     wallet, repayment_score, total_loans: total, loans_repaid: repaid,
     loans_defaulted: prev.loans_defaulted, last_updated: new Date().toISOString(),
@@ -286,9 +290,7 @@ export async function updateScoreOnDefault(wallet: string): Promise<ScoreCache> 
   const prev = scoreGet(wallet)
   const total = prev.total_loans + 1
   const defaulted = prev.loans_defaulted + 1
-  const repayment_score = Math.min(100, Math.max(0,
-    Math.round((prev.loans_repaid / (total + 2)) * 100) - (defaulted * 15)
-  ))
+  const repayment_score = computeRepaymentScore(total, prev.loans_repaid, defaulted)
   const updated: ScoreCache = {
     wallet, repayment_score, total_loans: total, loans_repaid: prev.loans_repaid,
     loans_defaulted: defaulted, last_updated: new Date().toISOString(),
