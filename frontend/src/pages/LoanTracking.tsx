@@ -304,16 +304,21 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
     const txScore = scoreRecord?.tx_score ?? 0
     const vouchScore = scoreRecord?.vouch_score ?? 0
     const anchorScore = scoreRecord?.anchor_score ?? 0
+    const totalLoansBefore = scoreRecord?.total_loans ?? 0
+    const loansRepaidBefore = scoreRecord?.loans_repaid ?? 0
+    const loansDefaulted = scoreRecord?.loans_defaulted ?? 0
     const scoreBefore = computeLocalScore(scoreRecord?.repayment_score ?? 0, txScore, vouchScore, anchorScore)
     await updateLoanStatus(repayingLoan.id, 'Repaid')
-    const updated = await updateScoreOnRepay(w)
-    // Re-merge with whatever the on-chain side already knew (captured in
-    // scoreRecord before this repay), same logic useScore.ts uses, so this
-    // preview matches what the next Home page load will actually show.
-    const totalLoansAfter     = Math.max(scoreRecord?.total_loans ?? 0, updated.total_loans)
-    const loansRepaidAfter    = Math.max(scoreRecord?.loans_repaid ?? 0, updated.loans_repaid)
-    const loansDefaultedAfter = Math.max(scoreRecord?.loans_defaulted ?? 0, updated.loans_defaulted)
-    const repaymentAfter = computeRepaymentScore(totalLoansAfter, loansRepaidAfter, loansDefaultedAfter)
+    // Still needed for its side effect (persists the increment to the local
+    // cache + Supabase score_cache table) — but its *return value* isn't
+    // used for the number below, since it increments from that same local
+    // cache, which can be far behind the real merged total (scoreRecord),
+    // and Math.max-ing against a smaller "+1" would silently no-op, exactly
+    // the bug that made this notification disagree with the modal's own
+    // preview. Increment the merged snapshot directly instead, the same way
+    // the modal's preview already does, so both always agree.
+    await updateScoreOnRepay(w)
+    const repaymentAfter = computeRepaymentScore(totalLoansBefore + 1, loansRepaidBefore + 1, loansDefaulted)
     const scoreAfter = computeLocalScore(repaymentAfter, txScore, vouchScore, anchorScore)
     setRepayingLoan(null)
     setRepayError(null)
