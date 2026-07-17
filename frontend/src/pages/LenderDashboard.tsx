@@ -545,9 +545,15 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
     try {
       const onChain = await fetchOnChainScore(wallet)
       const local = getScoreCache(wallet)
-      const totalLoans     = Math.max(onChain?.total_loans ?? 0, local.total_loans, borrowerLoans.length)
-      const loansRepaid    = Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid, borrowerLoans.filter(l => l.status === 'Repaid').length)
-      const loansDefaulted = Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted, borrowerLoans.filter(l => l.status === 'Defaulted').length)
+      // totalLoans only counts loans with a *final* outcome (repaid or
+      // defaulted) — using borrowerLoans.length here would count pending/
+      // active applications too, dragging the score down the moment a new
+      // loan is applied for, before it's even been decided. See useScore.ts.
+      const repaidCount    = borrowerLoans.filter(l => l.status === 'Repaid').length
+      const defaultedCount = borrowerLoans.filter(l => l.status === 'Defaulted').length
+      const totalLoans     = Math.max(onChain?.total_loans ?? 0, local.total_loans, repaidCount + defaultedCount)
+      const loansRepaid    = Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid, repaidCount)
+      const loansDefaulted = Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted, defaultedCount)
       // Derived from the merged counts (not Math.max of two precomputed
       // scores) — see useScore.ts for why that got stuck at a stale ceiling.
       const repayment = computeRepaymentScore(totalLoans, loansRepaid, loansDefaulted)
@@ -566,9 +572,11 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       // On-chain fetch failed — fall back to whatever's in the local cache
       const local = getScoreCache(wallet)
       const anchor = computeAnchorScore(wallet)
-      const totalLoans     = Math.max(local.total_loans, borrowerLoans.length)
-      const loansRepaid    = Math.max(local.loans_repaid, borrowerLoans.filter(l => l.status === 'Repaid').length)
-      const loansDefaulted = Math.max(local.loans_defaulted, borrowerLoans.filter(l => l.status === 'Defaulted').length)
+      const repaidCount    = borrowerLoans.filter(l => l.status === 'Repaid').length
+      const defaultedCount = borrowerLoans.filter(l => l.status === 'Defaulted').length
+      const totalLoans     = Math.max(local.total_loans, repaidCount + defaultedCount)
+      const loansRepaid    = Math.max(local.loans_repaid, repaidCount)
+      const loansDefaulted = Math.max(local.loans_defaulted, defaultedCount)
       const repayment = computeRepaymentScore(totalLoans, loansRepaid, loansDefaulted)
       setProfile({
         wallet,

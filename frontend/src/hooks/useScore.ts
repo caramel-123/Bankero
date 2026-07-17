@@ -24,9 +24,13 @@ export function useScore(publicKey: string | null) {
       // behind the real `loans` table (e.g. after switching browsers/devices),
       // so the actual Supabase loan rows for this wallet are included too —
       // the same source LenderDashboard's borrower-profile view already uses.
+      // total_loans only counts loans that reached a *final* outcome (repaid
+      // or defaulted) — a pending or still-active application shouldn't drag
+      // the ratio down before it's even been decided, so this must NOT be
+      // actualLoans.length (every loan regardless of status).
       const repaidLoans     = actualLoans.filter(l => l.status === 'Repaid').length
       const defaultedLoans  = actualLoans.filter(l => l.status === 'Defaulted').length
-      const total_loans     = Math.max(onChain?.total_loans ?? 0, local.total_loans, actualLoans.length)
+      const total_loans     = Math.max(onChain?.total_loans ?? 0, local.total_loans, repaidLoans + defaultedLoans)
       const loans_repaid    = Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid, repaidLoans)
       const loans_defaulted = Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted, defaultedLoans)
       const repayment_score = computeRepaymentScore(total_loans, loans_repaid, loans_defaulted)
