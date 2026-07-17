@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { CONTRACT_IDS, xlmToStroops, stroopsToXlm } from '../lib/stellar'
 import {
-  fetchSavingsBankBalance, fetchSavingsBankTxCount, invokeContractWrite, addressAmountArgs,
+  fetchSavingsBankBalance, invokeContractWrite, addressAmountArgs,
 } from '../lib/contracts'
 import { updateSavingsStreak } from './savingsTracker'
 import type { SavingsBankTransaction } from '../types/savingsBank'
@@ -32,9 +32,7 @@ export async function getTransactions(userId: string, limit = 20): Promise<Savin
 const DEPOSIT_BONUS = 2
 const MAX_SAVINGS_BANK_BONUS = 20
 
-async function awardSavingsBankBonus(walletAddress: string, txCountAfter: number): Promise<number> {
-  if (txCountAfter > 10) return 0 // bonus caps out after 10 qualifying transactions
-
+async function awardSavingsBankBonus(walletAddress: string): Promise<number> {
   const { data: cache, error: readError } = await supabase
     .from('score_cache')
     .select('*')
@@ -46,7 +44,15 @@ async function awardSavingsBankBonus(walletAddress: string, txCountAfter: number
   }
 
   const currentTxScore = cache?.tx_score ?? 0
-  const bonus = Math.min(DEPOSIT_BONUS, MAX_SAVINGS_BANK_BONUS, 100 - currentTxScore)
+  // Cap savings-bank's own contribution at MAX_SAVINGS_BANK_BONUS by
+  // checking the actually-recorded score, not on-chain transaction count —
+  // that used to double as the cap (10 qualifying deposits × 2 each = 20),
+  // but score_cache writes silently failed for a long stretch (missing
+  // column/constraint/RLS policy), so on-chain tx count kept climbing while
+  // the real recorded bonus stayed at 0. Using the real value self-corrects
+  // once those bugs are fixed, instead of staying permanently capped out.
+  if (currentTxScore >= MAX_SAVINGS_BANK_BONUS) return 0
+  const bonus = Math.min(DEPOSIT_BONUS, MAX_SAVINGS_BANK_BONUS - currentTxScore, 100 - currentTxScore)
   if (bonus <= 0) return 0
 
   const { error: writeError } = await supabase.from('score_cache').upsert({
@@ -71,7 +77,7 @@ async function recordTransaction(opts: {
   balanceAfterXlm: number
 }): Promise<void> {
   const bonus = opts.type === 'deposit'
-    ? await awardSavingsBankBonus(opts.walletAddress, await fetchSavingsBankTxCount(opts.walletAddress))
+    ? await awardSavingsBankBonus(opts.walletAddress)
     : 0
 
   await supabase.from('savings_bank_transactions').insert({
