@@ -68,9 +68,12 @@ export function useScore(publicKey: string | null) {
     load(publicKey)
   }, [publicKey, load])
 
-  // Allow manual refresh (e.g. after repayment)
+  // Allow manual refresh (e.g. after repayment). Returns the load promise so
+  // callers can await a guaranteed-fresh record before reading it (e.g. the
+  // Repay modal, which needs live numbers, not whatever was loaded whenever
+  // the page first mounted).
   const refresh = useCallback(() => {
-    if (publicKey) load(publicKey)
+    return publicKey ? load(publicKey) : Promise.resolve()
   }, [publicKey, load])
 
   return { record, loadState, isLoading: loadState === 'loading', refresh }

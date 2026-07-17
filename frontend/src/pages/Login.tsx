@@ -210,7 +210,7 @@ export default function Login() {
             {(['borrower', 'lender'] as const).map(t => (
               <button
                 key={t}
-                onClick={() => { setTab(t); setLenderError(null) }}
+                onClick={() => { setTab(t); setLenderError(null); localStorage.setItem('bankero_last_role', t) }}
                 className="btn"
                 style={{
                   flex: 1, padding: '9px 0', borderRadius: 'var(--r-md)',
