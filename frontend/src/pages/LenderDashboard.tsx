@@ -9,7 +9,7 @@ import {
   formatXlmAmount, formatWallet, scoreTier, scorePercent, stellarExplorerUrl,
   connectWallet, disburseXlmPayment, xlmToPesoEstimate, CONTRACT_IDS,
 } from '../lib/stellar'
-import { fetchAllLoans, updateLoanStatus, computeLocalScore, getScoreCache, type LocalLoan, type BackingType } from '../lib/loanStore'
+import { fetchAllLoans, updateLoanStatus, computeLocalScore, computeRepaymentScore, getScoreCache, type LocalLoan, type BackingType } from '../lib/loanStore'
 import { fetchOnChainScore, fetchBorrowerVouchers, invokeContractWrite, addressLoanIdArgs, ContractWriteError } from '../lib/contracts'
 import { computeAnchorScore } from '../lib/anchorStore'
 import {
@@ -545,7 +545,12 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
     try {
       const onChain = await fetchOnChainScore(wallet)
       const local = getScoreCache(wallet)
-      const repayment = Math.max(onChain?.repayment_score ?? 0, local.repayment_score)
+      const totalLoans     = Math.max(onChain?.total_loans ?? 0, local.total_loans, borrowerLoans.length)
+      const loansRepaid    = Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid, borrowerLoans.filter(l => l.status === 'Repaid').length)
+      const loansDefaulted = Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted, borrowerLoans.filter(l => l.status === 'Defaulted').length)
+      // Derived from the merged counts (not Math.max of two precomputed
+      // scores) — see useScore.ts for why that got stuck at a stale ceiling.
+      const repayment = computeRepaymentScore(totalLoans, loansRepaid, loansDefaulted)
       const tx = onChain?.tx_score ?? 0
       const vouch = onChain?.vouch_score ?? 0
       const anchor = Math.max(onChain?.anchor_score ?? 0, computeAnchorScore(wallet))
@@ -554,23 +559,23 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
         name: borrowerNames[wallet] ?? null,
         score: computeLocalScore(repayment, tx, vouch, anchor),
         repayment, tx, vouch, anchor,
-        totalLoans: Math.max(onChain?.total_loans ?? 0, local.total_loans, borrowerLoans.length),
-        loansRepaid: Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid, borrowerLoans.filter(l => l.status === 'Repaid').length),
-        loansDefaulted: Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted, borrowerLoans.filter(l => l.status === 'Defaulted').length),
+        totalLoans, loansRepaid, loansDefaulted,
         loans: borrowerLoans,
       })
     } catch {
       // On-chain fetch failed — fall back to whatever's in the local cache
       const local = getScoreCache(wallet)
       const anchor = computeAnchorScore(wallet)
+      const totalLoans     = Math.max(local.total_loans, borrowerLoans.length)
+      const loansRepaid    = Math.max(local.loans_repaid, borrowerLoans.filter(l => l.status === 'Repaid').length)
+      const loansDefaulted = Math.max(local.loans_defaulted, borrowerLoans.filter(l => l.status === 'Defaulted').length)
+      const repayment = computeRepaymentScore(totalLoans, loansRepaid, loansDefaulted)
       setProfile({
         wallet,
         name: borrowerNames[wallet] ?? null,
-        score: computeLocalScore(local.repayment_score, 0, 0, anchor),
-        repayment: local.repayment_score, tx: 0, vouch: 0, anchor,
-        totalLoans: Math.max(local.total_loans, borrowerLoans.length),
-        loansRepaid: Math.max(local.loans_repaid, borrowerLoans.filter(l => l.status === 'Repaid').length),
-        loansDefaulted: Math.max(local.loans_defaulted, borrowerLoans.filter(l => l.status === 'Defaulted').length),
+        score: computeLocalScore(repayment, 0, 0, anchor),
+        repayment, tx: 0, vouch: 0, anchor,
+        totalLoans, loansRepaid, loansDefaulted,
         loans: borrowerLoans,
       })
     } finally {
