@@ -445,10 +445,18 @@ export async function getLoansFromSupabase(borrowerWallet: string): Promise<Supa
   return data as SupabaseLoan[]
 }
 
-/** Cancel/remove a loan the borrower no longer wants — DB policy only allows this while Pending/Approved (not yet disbursed). */
+/**
+ * Cancel/remove a loan. Requesting `.select()` back is what surfaces a
+ * silent no-op as a real error — an RLS policy that filters out the row
+ * (e.g. this loan's status isn't one the DELETE policy allows) makes
+ * Postgres match zero rows and Supabase reports success with no error,
+ * so without checking the returned rows a caller has no way to tell a
+ * blocked delete from a successful one.
+ */
 export async function deleteLoanFromSupabase(id: string): Promise<void> {
-  const { error } = await supabase.from('loans').delete().eq('id', id)
+  const { data, error } = await supabase.from('loans').delete().eq('id', id).select()
   if (error) throw new Error(error.message)
+  if (!data || data.length === 0) throw new Error('This loan could not be removed — its current status may not allow it.')
 }
 
 export async function getAllLoansFromSupabase(): Promise<SupabaseLoan[]> {
