@@ -190,7 +190,9 @@ function CancelLoanModal({ loan, onConfirm, onClose }: { loan: LocalLoan; onConf
         </div>
         <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}>Remove this loan?</h2>
         <p style={{ fontSize: 14, color: 'var(--ink-3)', marginBottom: 24, lineHeight: 1.6 }}>
-          This cancels your application for <strong style={{ color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</strong>. Since it hasn't been disbursed yet, this won't affect your credit score.
+          {loan.status === 'Disbursed'
+            ? <>This loan for <strong style={{ color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</strong> has already been disbursed. Removing it here only clears it from your list, it does not repay it, mark it defaulted, or release any locked collateral on its own. Only remove an active loan this way if it's stuck (e.g. the on-chain loan record no longer exists).</>
+            : <>This cancels your application for <strong style={{ color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</strong>. Since it hasn't been disbursed yet, this won't affect your credit score.</>}
         </p>
         <button onClick={onConfirm} style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: '#fff', background: '#DC2626', border: 'none', cursor: 'pointer', marginBottom: 10 }}>
           Yes, remove it
@@ -644,7 +646,7 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                         </div>
                       )}
 
-                      {(isPending || isApproved) && (
+                      {(isPending || isApproved || isActive) && (
                         <button
                           onClick={() => wallet.isGuest ? setShowGuestModal(true) : setCancelingLoan(loan)}
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer' }}
