@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { fetchOnChainScore, type BorrowerRecord } from '../lib/contracts'
 import { getScoreCache, computeLocalScore, computeRepaymentScore, fetchLoans } from '../lib/loanStore'
 import { computeAnchorScore } from '../lib/anchorStore'
+import { getScoreCacheFromSupabase } from '../lib/supabase'
 
 export type ScoreLoadState = 'idle' | 'loading' | 'loaded' | 'error'
 
@@ -12,7 +13,9 @@ export function useScore(publicKey: string | null) {
   const load = useCallback(async (wallet: string) => {
     setLoadState('loading')
     try {
-      const [onChain, actualLoans] = await Promise.all([fetchOnChainScore(wallet), fetchLoans(wallet)])
+      const [onChain, actualLoans, remoteScoreCache] = await Promise.all([
+        fetchOnChainScore(wallet), fetchLoans(wallet), getScoreCacheFromSupabase(wallet),
+      ])
       const local = getScoreCache(wallet)
       // Merge loan counters from all three sources (whichever has seen more
       // activity), then derive repayment_score fresh from the merged counts.
@@ -34,7 +37,12 @@ export function useScore(publicKey: string | null) {
       const loans_repaid    = Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid, repaidLoans)
       const loans_defaulted = Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted, defaultedLoans)
       const repayment_score = computeRepaymentScore(total_loans, loans_repaid, loans_defaulted)
-      const tx_score    = onChain?.tx_score    ?? 0
+      // tx_score has no on-chain write path at all today (nothing calls
+      // credit_score.update_score for it) — savingsBank.ts/savingsTracker.ts/
+      // paluwaganScoring.ts award real capped bonuses for deposits, streaks,
+      // and Paluwagan contributions, but write them to Supabase's score_cache
+      // table, which nothing was reading back into the displayed score.
+      const tx_score    = Math.max(onChain?.tx_score ?? 0, remoteScoreCache?.tx_score ?? 0)
       const vouch_score = onChain?.vouch_score ?? 0
       // Use highest of on-chain anchor_score or locally-linked payment accounts
       const anchor_score= Math.max(onChain?.anchor_score ?? 0, computeAnchorScore(wallet))

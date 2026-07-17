@@ -75,6 +75,8 @@ export interface ScoreCache {
   loans_repaid: number
   loans_defaulted: number
   last_updated: string
+  /** Written by savingsBank.ts/savingsTracker.ts/paluwaganScoring.ts's capped bonuses — not part of the original loan-repayment cache, but the same table/row. */
+  tx_score?: number
 }
 
 export interface Notification {
