@@ -375,8 +375,24 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
     })).then(entries => setVouchTotals(Object.fromEntries(entries)))
   }, [loans])
 
-  async function approve(id: string) {
-    await updateLoanStatus(id, 'Approved', { lenderWallet: lender?.wallet_address })
+  async function approve(loan: LocalLoan) {
+    // Savings-backed loans need the borrower to lock collateral against a
+    // real on-chain lender address before disbursement. `lender.wallet_address`
+    // is just a synthetic `lender_<id>` placeholder assigned at signup, real
+    // Freighter wallets are normally only captured at disburse() time, so for
+    // this backing type we have to connect it here instead, or the borrower's
+    // later "Lock Collateral" call fails trying to build an Address from that
+    // placeholder string.
+    let lenderWallet = lender?.wallet_address
+    if (loan.backingType === 'savings') {
+      let walletAddr = lenderWalletAddr
+      if (!walletAddr) {
+        walletAddr = await connectWallet()
+        setLenderWalletAddr(walletAddr)
+      }
+      lenderWallet = walletAddr
+    }
+    await updateLoanStatus(loan.id, 'Approved', { lenderWallet })
     refreshLoans()
   }
   async function reject(id: string) {
@@ -502,7 +518,19 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
     if (!confirmingLoan) return
     const loan = confirmingLoan
     setConfirmingLoan(null)
-    await approve(loan.id) // bookkeeping — if the disbursement below fails, the loan lands in the existing "Approved — Disburse Now" list, retryable from there
+    try {
+      await approve(loan) // bookkeeping — if the disbursement below fails, the loan lands in the existing "Approved — Disburse Now" list, retryable from there
+    } catch (err: any) {
+      const msg = err?.message ?? 'Could not approve this loan.'
+      if (msg === 'FREIGHTER_NOT_INSTALLED') {
+        setDisburseError('Freighter wallet not found. Please install the Freighter browser extension to approve a savings-backed loan.')
+      } else if (msg.toLowerCase().includes('cancel') || msg.toLowerCase().includes('reject') || msg.toLowerCase().includes('denied')) {
+        setDisburseError('Wallet connection was cancelled, so the loan was not approved.')
+      } else {
+        setDisburseError(msg)
+      }
+      return
+    }
     await disburse(loan)
   }
 
