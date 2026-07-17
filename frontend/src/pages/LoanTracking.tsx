@@ -72,6 +72,18 @@ function RepayModal({
           <div style={{ fontSize: 13, fontWeight: 700, color: '#15803D', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}>
             <TrendingUp size={14} strokeWidth={2} /> Score impact after repayment
           </div>
+
+          {/* Repayment is the only one of the 4 factors this action changes —
+              showing it directly explains why the overall score (40% weight)
+              moves by less than the factor itself does. */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, padding: '10px 12px', background: 'rgba(255,255,255,.6)', borderRadius: 10 }}>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: '#166534' }}>Repayment History (40% weight)</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#166534', display: 'flex', alignItems: 'center', gap: 6 }}>
+              {repaymentScore}/100 <ArrowRight size={12} strokeWidth={2.5} /> {newRepayment}/100
+            </span>
+          </div>
+
+          <div style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 700, marginBottom: 8 }}>OVERALL CREDIT SCORE</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 700, marginBottom: 4 }}>BEFORE</div>
