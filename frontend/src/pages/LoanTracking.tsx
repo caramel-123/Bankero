@@ -43,6 +43,9 @@ function RepayModal({
   const scoreAfter = computeLocalScore(newRepayment, txScore, vouchScore, anchorScore)
   const scoreDiff = scoreAfter - scoreBefore
   const tierAfter = scoreTier(scoreAfter)
+  const [showExplainer, setShowExplainer] = useState(false)
+  const rawBefore = repaymentScore * 40 + txScore * 25 + vouchScore * 20 + anchorScore * 15
+  const rawAfter = newRepayment * 40 + txScore * 25 + vouchScore * 20 + anchorScore * 15
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(11,31,58,.5)', backdropFilter: 'blur(6px)' }}>
@@ -69,9 +72,36 @@ function RepayModal({
         </div>
 
         <div style={{ background: 'var(--green-tint)', borderRadius: 14, padding: 16, border: '1px solid #BBF7D0', marginBottom: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#15803D', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}>
-            <TrendingUp size={14} strokeWidth={2} /> Score impact after repayment
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#15803D', display: 'flex', alignItems: 'center', gap: 7 }}>
+              <TrendingUp size={14} strokeWidth={2} /> Score impact after repayment
+            </div>
+            <button
+              onClick={() => setShowExplainer(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, border: 'none', background: 'none', cursor: 'pointer', color: '#15803D', fontSize: 11.5, fontWeight: 700, padding: 0 }}
+            >
+              <Info size={13} strokeWidth={2} /> Why these numbers?
+            </button>
           </div>
+
+          {showExplainer && (
+            <div style={{ background: 'var(--ink)', borderRadius: 10, padding: '12px 14px', marginBottom: 14, fontSize: 11.5, lineHeight: 1.7, color: '#CBD5E1', fontFamily: 'monospace', overflowX: 'auto' }}>
+              <div style={{ color: '#4ADE80', fontWeight: 700, marginBottom: 4 }}>1. Repayment History moves ({loansRepaid}/{totalLoans} repaid → {loansRepaid + 1}/{totalLoans + 1}):</div>
+              round( {loansRepaid} ÷ ({totalLoans}+2) × 100 ) = {repaymentScore}/100<br />
+              round( {loansRepaid + 1} ÷ ({totalLoans + 1}+2) × 100 ) = {newRepayment}/100
+              <div style={{ color: '#4ADE80', fontWeight: 700, margin: '10px 0 4px' }}>2. That factor feeds into your weighted raw score (repayment × 40, tx × 25, community × 20, remittance × 15):</div>
+              before: ({repaymentScore}×40)+({txScore}×25)+({vouchScore}×20)+({anchorScore}×15) = {rawBefore}<br />
+              after:&nbsp;&nbsp;({newRepayment}×40)+({txScore}×25)+({vouchScore}×20)+({anchorScore}×15) = {rawAfter}
+              <div style={{ color: '#4ADE80', fontWeight: 700, margin: '10px 0 4px' }}>3. Rescaled onto the 300–850 range:</div>
+              before: 300 + round( {rawBefore} × 550 ÷ 10,000 ) = {scoreBefore}<br />
+              after:&nbsp;&nbsp;300 + round( {rawAfter} × 550 ÷ 10,000 ) = {scoreAfter}
+              <div style={{ color: '#FBBF24', fontWeight: 700, marginTop: 10 }}>
+                {scoreDiff === 0
+                  ? `Same rounded repayment factor (${repaymentScore}→${newRepayment}) means no visible change this time — it still counted, just not enough yet to tip the rounding.`
+                  : `${scoreAfter} − ${scoreBefore} = +${scoreDiff} pts, entirely from the Repayment History move above.`}
+              </div>
+            </div>
+          )}
 
           {/* Repayment is the only one of the 4 factors this action changes —
               showing it directly explains why the overall score (40% weight)
