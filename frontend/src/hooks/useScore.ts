@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchOnChainScore, type BorrowerRecord } from '../lib/contracts'
-import { getScoreCache, computeLocalScore } from '../lib/loanStore'
+import { getScoreCache, computeLocalScore, computeRepaymentScore } from '../lib/loanStore'
 import { computeAnchorScore } from '../lib/anchorStore'
 
 export type ScoreLoadState = 'idle' | 'loading' | 'loaded' | 'error'
@@ -13,9 +13,18 @@ export function useScore(publicKey: string | null) {
     setLoadState('loading')
     try {
       const onChain = await fetchOnChainScore(wallet)
-      // Merge with local repayment history (local wins for repayment_score if higher)
       const local = getScoreCache(wallet)
-      const repayment_score = Math.max(onChain?.repayment_score ?? 0, local.repayment_score)
+      // Merge loan counters first (whichever source has seen more activity),
+      // then derive repayment_score fresh from the merged counts. Taking
+      // Math.max of the on-chain and local *scores* directly would get stuck
+      // at whichever side hit a high number first, on-chain repayment_score
+      // isn't updated by vouch/none-backed repayments (only savings-backed
+      // loans call the real on-chain repay_loan), so new repayments could
+      // never move the displayed score once on-chain's value was ahead.
+      const total_loans     = Math.max(onChain?.total_loans ?? 0, local.total_loans)
+      const loans_repaid    = Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid)
+      const loans_defaulted = Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted)
+      const repayment_score = computeRepaymentScore(total_loans, loans_repaid, loans_defaulted)
       const tx_score    = onChain?.tx_score    ?? 0
       const vouch_score = onChain?.vouch_score ?? 0
       // Use highest of on-chain anchor_score or locally-linked payment accounts
@@ -29,9 +38,9 @@ export function useScore(publicKey: string | null) {
         vouch_score,
         anchor_score,
         last_updated:     onChain?.last_updated ?? 0,
-        total_loans:      Math.max(onChain?.total_loans ?? 0, local.total_loans),
-        loans_repaid:     Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid),
-        loans_defaulted:  Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted),
+        total_loans,
+        loans_repaid,
+        loans_defaulted,
       }
       setRecord(merged)
       setLoadState('loaded')
