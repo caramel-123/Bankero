@@ -35,21 +35,29 @@ const MAX_SAVINGS_BANK_BONUS = 20
 async function awardSavingsBankBonus(walletAddress: string, txCountAfter: number): Promise<number> {
   if (txCountAfter > 10) return 0 // bonus caps out after 10 qualifying transactions
 
-  const { data: cache } = await supabase
+  const { data: cache, error: readError } = await supabase
     .from('score_cache')
     .select('*')
     .eq('wallet_address', walletAddress)
     .maybeSingle()
+  if (readError) {
+    console.error('[Bankero] score_cache read failed while awarding a savings bonus:', readError)
+    return 0
+  }
 
   const currentTxScore = cache?.tx_score ?? 0
   const bonus = Math.min(DEPOSIT_BONUS, MAX_SAVINGS_BANK_BONUS, 100 - currentTxScore)
   if (bonus <= 0) return 0
 
-  await supabase.from('score_cache').upsert({
+  const { error: writeError } = await supabase.from('score_cache').upsert({
     wallet_address: walletAddress,
     tx_score: currentTxScore + bonus,
     last_updated: new Date().toISOString(),
   }, { onConflict: 'wallet_address' })
+  if (writeError) {
+    console.error('[Bankero] score_cache write failed while awarding a savings bonus:', writeError)
+    return 0
+  }
 
   return bonus
 }
