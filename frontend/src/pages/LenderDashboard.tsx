@@ -13,7 +13,7 @@ import { fetchAllLoans, updateLoanStatus, computeLocalScore, computeRepaymentSco
 import { fetchOnChainScore, fetchBorrowerVouchers, invokeContractWrite, addressLoanIdArgs, ContractWriteError } from '../lib/contracts'
 import { computeAnchorScore } from '../lib/anchorStore'
 import {
-  ensureLenderProfile, signOutLender, updateLenderSettings, getBorrowerNames, type Lender,
+  ensureLenderProfile, signOutLender, updateLenderSettings, getBorrowerNames, getScoreCacheFromSupabase, type Lender,
 } from '../lib/supabase'
 import type { useWallet } from '../hooks/useWallet'
 type WalletHook = ReturnType<typeof useWallet>
@@ -543,7 +543,7 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
     setProfileLoading(wallet)
     const borrowerLoans = loans.filter(l => l.wallet === wallet)
     try {
-      const onChain = await fetchOnChainScore(wallet)
+      const [onChain, remoteScoreCache] = await Promise.all([fetchOnChainScore(wallet), getScoreCacheFromSupabase(wallet)])
       const local = getScoreCache(wallet)
       // totalLoans only counts loans with a *final* outcome (repaid or
       // defaulted) — using borrowerLoans.length here would count pending/
@@ -557,7 +557,9 @@ export default function LenderDashboard({ wallet: _ }: { wallet: WalletHook }) {
       // Derived from the merged counts (not Math.max of two precomputed
       // scores) — see useScore.ts for why that got stuck at a stale ceiling.
       const repayment = computeRepaymentScore(totalLoans, loansRepaid, loansDefaulted)
-      const tx = onChain?.tx_score ?? 0
+      // See useScore.ts — tx_score's real bonuses (savings deposits/streaks/
+      // Paluwagan) are written to Supabase's score_cache, not on-chain.
+      const tx = Math.max(onChain?.tx_score ?? 0, remoteScoreCache?.tx_score ?? 0)
       const vouch = onChain?.vouch_score ?? 0
       const anchor = Math.max(onChain?.anchor_score ?? 0, computeAnchorScore(wallet))
       setProfile({
