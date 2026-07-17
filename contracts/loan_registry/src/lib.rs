@@ -165,6 +165,13 @@ fn require_admin_or_lender(env: &Env, caller: &Address, loan: &Loan) {
     }
 }
 
+fn require_admin(env: &Env, caller: &Address) {
+    let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+    if caller != &admin {
+        panic_with_error(env, errors::UNAUTHORIZED);
+    }
+}
+
 fn next_loan_id(env: &Env) -> u64 {
     let id: u64 = env
         .storage()
@@ -741,6 +748,37 @@ impl LoanRegistryContract {
             .instance()
             .get(&DataKey::LoanCounter)
             .unwrap_or(0)
+    }
+
+    // -----------------------------------------------------------------------
+    // Admin: repoint linked contracts (e.g. after credit_score, vouching, or
+    // savings_bank gets redeployed) without having to redeploy this contract
+    // and lose every borrower's active/pending loan records.
+    // -----------------------------------------------------------------------
+
+    /// Update which credit_score contract gets notified via
+    /// `record_loan_event` on repayment/default. Admin only.
+    pub fn set_score_contract(env: Env, caller: Address, new_score_contract: Address) {
+        require_initialized(&env);
+        caller.require_auth();
+        require_admin(&env, &caller);
+        env.storage().instance().set(&DataKey::ScoreContract, &new_score_contract);
+    }
+
+    /// Update which vouching contract handles vouch-backed loans. Admin only.
+    pub fn set_vouch_contract(env: Env, caller: Address, new_vouch_contract: Address) {
+        require_initialized(&env);
+        caller.require_auth();
+        require_admin(&env, &caller);
+        env.storage().instance().set(&DataKey::VouchContract, &new_vouch_contract);
+    }
+
+    /// Update which savings_bank contract handles savings-backed loans. Admin only.
+    pub fn set_savings_contract(env: Env, caller: Address, new_savings_contract: Address) {
+        require_initialized(&env);
+        caller.require_auth();
+        require_admin(&env, &caller);
+        env.storage().instance().set(&DataKey::SavingsContract, &new_savings_contract);
     }
 }
 

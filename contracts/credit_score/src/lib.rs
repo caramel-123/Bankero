@@ -432,6 +432,30 @@ impl CreditScoreContract {
         require_initialized(&env);
         env.storage().instance().get(&DataKey::Admin).unwrap()
     }
+
+    // -----------------------------------------------------------------------
+    // Admin: repoint linked contracts (e.g. after loan_registry gets
+    // redeployed) without having to redeploy this contract and lose every
+    // borrower's accumulated on-chain history.
+    // -----------------------------------------------------------------------
+
+    /// Update which loan_registry contract is authorized to call
+    /// `record_loan_event`. Admin only.
+    pub fn set_loan_contract(env: Env, caller: Address, new_loan_contract: Address) {
+        require_initialized(&env);
+        caller.require_auth();
+        require_admin(&env, &caller);
+        env.storage().instance().set(&DataKey::LoanContract, &new_loan_contract);
+    }
+
+    /// Update which vouching contract is authorized to call `update_score`.
+    /// Admin only.
+    pub fn set_vouch_contract(env: Env, caller: Address, new_vouch_contract: Address) {
+        require_initialized(&env);
+        caller.require_auth();
+        require_admin(&env, &caller);
+        env.storage().instance().set(&DataKey::VouchContract, &new_vouch_contract);
+    }
 }
 
 // ---------------------------------------------------------------------------
