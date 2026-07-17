@@ -178,7 +178,9 @@ function RepaySuccessBanner({ newScore, scoreDiff, onDismiss }: { newScore: numb
 }
 
 // ── Cancel loan modal ───────────────────────────────────────
-function CancelLoanModal({ loan, onConfirm, onClose }: { loan: LocalLoan; onConfirm: () => void; onClose: () => void }) {
+function CancelLoanModal({ loan, onConfirm, onClose, removing, error }: {
+  loan: LocalLoan; onConfirm: () => void; onClose: () => void; removing: boolean; error: string | null
+}) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(11,31,58,.5)', backdropFilter: 'blur(6px)' }}>
       <div style={{ width: 420, background: 'var(--surface)', borderRadius: 24, padding: 32, boxShadow: '0 24px 64px rgba(11,31,58,.24)', position: 'relative' }}>
@@ -194,8 +196,13 @@ function CancelLoanModal({ loan, onConfirm, onClose }: { loan: LocalLoan; onConf
             ? <>This loan for <strong style={{ color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</strong> has already been disbursed. Removing it here only clears it from your list, it does not repay it, mark it defaulted, or release any locked collateral on its own. Only remove an active loan this way if it's stuck (e.g. the on-chain loan record no longer exists).</>
             : <>This cancels your application for <strong style={{ color: 'var(--ink)' }}>{formatXlmAmount(loan.amount)}</strong>. Since it hasn't been disbursed yet, this won't affect your credit score.</>}
         </p>
-        <button onClick={onConfirm} style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: '#fff', background: '#DC2626', border: 'none', cursor: 'pointer', marginBottom: 10 }}>
-          Yes, remove it
+        {error && (
+          <div style={{ display: 'flex', gap: 8, padding: '10px 14px', borderRadius: 10, background: '#FEF2F2', border: '1px solid #FECACA', marginBottom: 14, fontSize: 12.5, color: '#991B1B' }}>
+            <AlertTriangle size={14} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> {error}
+          </div>
+        )}
+        <button onClick={onConfirm} disabled={removing} style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: '#fff', background: '#DC2626', border: 'none', cursor: removing ? 'default' : 'pointer', opacity: removing ? 0.7 : 1, marginBottom: 10 }}>
+          {removing ? 'Removing…' : 'Yes, remove it'}
         </button>
         <button onClick={onClose} style={{ width: '100%', padding: '13px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1.5px solid var(--border)', cursor: 'pointer' }}>
           Keep it
@@ -223,6 +230,8 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [showGuestModal, setShowGuestModal] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [cancelingLoan, setCancelingLoan] = useState<LocalLoan | null>(null)
+  const [removing, setRemoving] = useState(false)
+  const [removeError, setRemoveError] = useState<string | null>(null)
   const [showBreakdown, setShowBreakdown] = useState(false)
   const [repaying, setRepaying] = useState(false)
   const [repayError, setRepayError] = useState<string | null>(null)
@@ -352,9 +361,17 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   async function handleCancelConfirm() {
     if (!cancelingLoan) return
     if (wallet.isGuest) { setShowGuestModal(true); setCancelingLoan(null); return }
-    await deleteLoan(cancelingLoan.id)
-    setCancelingLoan(null)
-    await refresh()
+    setRemoving(true)
+    setRemoveError(null)
+    try {
+      await deleteLoan(cancelingLoan.id)
+      setCancelingLoan(null)
+      await refresh()
+    } catch (err) {
+      setRemoveError(err instanceof Error ? err.message : 'Could not remove this loan — please try again.')
+    } finally {
+      setRemoving(false)
+    }
   }
 
   const tabLoans = loans.filter(l => l.status === activeTab)
@@ -368,7 +385,11 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
       {showGuestModal && <GuestActionModal onClose={() => setShowGuestModal(false)} />}
       {showInfoModal && <ScoreInfoModal onClose={() => setShowInfoModal(false)} />}
       {cancelingLoan && (
-        <CancelLoanModal loan={cancelingLoan} onConfirm={handleCancelConfirm} onClose={() => setCancelingLoan(null)} />
+        <CancelLoanModal
+          loan={cancelingLoan} onConfirm={handleCancelConfirm}
+          onClose={() => { setCancelingLoan(null); setRemoveError(null) }}
+          removing={removing} error={removeError}
+        />
       )}
       {repayingLoan && wallet.publicKey && (
         <RepayModal
