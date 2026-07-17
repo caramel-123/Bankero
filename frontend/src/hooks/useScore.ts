@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchOnChainScore, type BorrowerRecord } from '../lib/contracts'
-import { getScoreCache, computeLocalScore, computeRepaymentScore } from '../lib/loanStore'
+import { getScoreCache, computeLocalScore, computeRepaymentScore, fetchLoans } from '../lib/loanStore'
 import { computeAnchorScore } from '../lib/anchorStore'
 
 export type ScoreLoadState = 'idle' | 'loading' | 'loaded' | 'error'
@@ -12,18 +12,23 @@ export function useScore(publicKey: string | null) {
   const load = useCallback(async (wallet: string) => {
     setLoadState('loading')
     try {
-      const onChain = await fetchOnChainScore(wallet)
+      const [onChain, actualLoans] = await Promise.all([fetchOnChainScore(wallet), fetchLoans(wallet)])
       const local = getScoreCache(wallet)
-      // Merge loan counters first (whichever source has seen more activity),
-      // then derive repayment_score fresh from the merged counts. Taking
-      // Math.max of the on-chain and local *scores* directly would get stuck
-      // at whichever side hit a high number first, on-chain repayment_score
-      // isn't updated by vouch/none-backed repayments (only savings-backed
-      // loans call the real on-chain repay_loan), so new repayments could
-      // never move the displayed score once on-chain's value was ahead.
-      const total_loans     = Math.max(onChain?.total_loans ?? 0, local.total_loans)
-      const loans_repaid    = Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid)
-      const loans_defaulted = Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted)
+      // Merge loan counters from all three sources (whichever has seen more
+      // activity), then derive repayment_score fresh from the merged counts.
+      // Taking Math.max of the on-chain and local *scores* directly would get
+      // stuck at whichever side hit a high number first, on-chain
+      // repayment_score isn't updated by vouch/none-backed repayments (only
+      // savings-backed loans call the real on-chain repay_loan). The local
+      // score_cache is also just this device's own bookkeeping and can drift
+      // behind the real `loans` table (e.g. after switching browsers/devices),
+      // so the actual Supabase loan rows for this wallet are included too —
+      // the same source LenderDashboard's borrower-profile view already uses.
+      const repaidLoans     = actualLoans.filter(l => l.status === 'Repaid').length
+      const defaultedLoans  = actualLoans.filter(l => l.status === 'Defaulted').length
+      const total_loans     = Math.max(onChain?.total_loans ?? 0, local.total_loans, actualLoans.length)
+      const loans_repaid    = Math.max(onChain?.loans_repaid ?? 0, local.loans_repaid, repaidLoans)
+      const loans_defaulted = Math.max(onChain?.loans_defaulted ?? 0, local.loans_defaulted, defaultedLoans)
       const repayment_score = computeRepaymentScore(total_loans, loans_repaid, loans_defaulted)
       const tx_score    = onChain?.tx_score    ?? 0
       const vouch_score = onChain?.vouch_score ?? 0
