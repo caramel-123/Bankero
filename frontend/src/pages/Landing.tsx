@@ -195,6 +195,17 @@ export default function Landing() {
   const nav = useNavigate()
   const heroRef = useRef<HTMLElement>(null)
 
+  // "Get Started" used to always drop into the borrower tab, even for
+  // someone who had just explicitly chosen lender (e.g. bounced back here
+  // after a lender sign-in hiccup) — now it remembers the last role picked.
+  function goToLogin() {
+    nav(localStorage.getItem('bankero_last_role') === 'lender' ? '/login?role=lender' : '/login')
+  }
+  function goToLenderLogin() {
+    localStorage.setItem('bankero_last_role', 'lender')
+    nav('/login?role=lender')
+  }
+
   useEffect(() => {
     const obs = new IntersectionObserver(
       entries => entries.forEach(e => e.target.classList.toggle('in', e.isIntersecting)),
@@ -353,7 +364,7 @@ export default function Landing() {
           ))}
         </div>
 
-        <button onClick={() => nav('/login')} className="lg-green" style={{
+        <button onClick={goToLogin} className="lg-green" style={{
           display: 'inline-flex', alignItems: 'center', gap: 7,
           padding: '9px 20px', borderRadius: 'var(--r-full)',
           color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', border: 'none',
@@ -403,7 +414,7 @@ export default function Landing() {
             </p>
 
             <div className="hero-blur-up" style={{ animationDelay: '600ms', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button onClick={() => nav('/login')} className="lg-green" style={{
+              <button onClick={goToLogin} className="lg-green" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 10,
                 padding: '14px 32px', borderRadius: 'var(--r-full)',
                 color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', border: 'none',
@@ -500,7 +511,7 @@ export default function Landing() {
                 Your score lives on Stellar — immutable, transparent, and owned by you. No bank can close your account. No algorithm is hidden. Every factor is auditable by anyone.
               </p>
             </div>
-            <button onClick={() => nav('/login')} className="lg-green" style={{
+            <button onClick={goToLogin} className="lg-green" style={{
               alignSelf: 'flex-start', marginTop: 'auto',
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '9px 18px', borderRadius: 'var(--r-full)',
@@ -555,14 +566,14 @@ export default function Landing() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 12, flexShrink: 0, position: 'relative', flexWrap: 'wrap' }}>
-            <button onClick={() => nav('/login')} className="lg-green" style={{
+            <button onClick={goToLogin} className="lg-green" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '14px 28px', borderRadius: 'var(--r-full)',
               color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none',
             }}>
               <Wallet size={16} strokeWidth={2} /> Get Started
             </button>
-            <button onClick={() => nav('/login?role=lender')} className="lg" style={{
+            <button onClick={goToLenderLogin} className="lg" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '14px 28px', borderRadius: 'var(--r-full)',
               color: 'rgba(255,255,255,.85)', fontSize: 15, fontWeight: 600, cursor: 'pointer', border: 'none',

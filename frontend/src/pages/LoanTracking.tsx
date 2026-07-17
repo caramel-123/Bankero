@@ -227,7 +227,18 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
   const [lockingCollateralId, setLockingCollateralId] = useState<string | null>(null)
   const [lockError, setLockError] = useState<string | null>(null)
 
-  const { record: liveRecord, isLoading: scoreLoading } = useScore(wallet.isGuest ? null : wallet.publicKey)
+  const { record: liveRecord, isLoading: scoreLoading, refresh: refreshScore } = useScore(wallet.isGuest ? null : wallet.publicKey)
+  const [openingRepayId, setOpeningRepayId] = useState<string | null>(null)
+
+  // The Repay modal needs a guaranteed-fresh score, not whatever was loaded
+  // whenever this page first mounted — that staleness was why its BEFORE/AFTER
+  // preview kept disagreeing with what Home actually showed post-repayment.
+  async function openRepayModal(loan: LocalLoan) {
+    setOpeningRepayId(loan.id)
+    await refreshScore()
+    setOpeningRepayId(null)
+    setRepayingLoan(loan)
+  }
   const scoreRecord = wallet.isGuest ? DEMO_SCORE_RECORD : liveRecord
 
   async function refresh() {
@@ -585,9 +596,13 @@ export default function LoanTracking({ wallet }: { wallet: WalletHook }) {
                     <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
 
                       {isActive && (
-                        <button onClick={() => wallet.isGuest ? setShowGuestModal(true) : setRepayingLoan(loan)}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 11, fontSize: 14, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', cursor: 'pointer', boxShadow: '0 3px 12px rgba(22,163,74,.28)' }}>
-                          <CheckCircle size={16} strokeWidth={2} /> Repay Loan — {formatXlmAmount(loan.total)}
+                        <button
+                          onClick={() => wallet.isGuest ? setShowGuestModal(true) : openRepayModal(loan)}
+                          disabled={openingRepayId === loan.id}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 11, fontSize: 14, fontWeight: 700, color: '#fff', background: 'var(--green)', border: 'none', cursor: openingRepayId === loan.id ? 'default' : 'pointer', opacity: openingRepayId === loan.id ? 0.7 : 1, boxShadow: '0 3px 12px rgba(22,163,74,.28)' }}>
+                          {openingRepayId === loan.id
+                            ? <><div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} /> Loading…</>
+                            : <><CheckCircle size={16} strokeWidth={2} /> Repay Loan — {formatXlmAmount(loan.total)}</>}
                         </button>
                       )}
 
