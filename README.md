@@ -248,6 +248,18 @@ cd frontend
 npm test
 ```
 
+**Soroban contract test suite — 56 tests, all passing** across all 5 contracts (`credit_score`, `loan_registry`, `vouching`, `savings_bank`, `paluwagan`):
+
+```bash
+cargo test --workspace
+```
+
+---
+
+## Security
+
+`cargo clippy --workspace --all-targets` runs clean (no correctness/safety lints), and every state-mutating contract entrypoint was manually reviewed for `require_auth()` / admin-gating and arithmetic-overflow safety. See **[`SECURITY.md`](SECURITY.md)** for the full internal review — including a real bug the review caught and fixed (3 failing `paluwagan` tests, root-caused to a test-fixture error, not a contract bug). No third-party audit has been performed yet; this is an internal review ahead of one.
+
 ---
 
 ## Transaction Hash (Contract Interaction)
