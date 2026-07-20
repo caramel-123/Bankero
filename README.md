@@ -592,6 +592,22 @@ This feedback validates that Bankero solves a real accessibility problem in lend
 
 ---
 
+## Product Improvements (Based on User Feedback)
+
+A number of fixes already shipped in this repo address themes raised directly in the feedback round — each linked to its commit for verification:
+
+| Feedback theme | Shipped improvement | Commit |
+|---|---|---|
+| Clearer explanation of how credit score and vouches affect reputation | Live "Why these numbers?" breakdown in the Repay modal, a collapsible score walkthrough, and a before/after view of the Repayment History factor | [`b68b749`](https://github.com/caramel-123/Bankero/commit/b68b749), [`bb6434e`](https://github.com/caramel-123/Bankero/commit/bb6434e), [`4c66002`](https://github.com/caramel-123/Bankero/commit/4c66002) |
+| Better onboarding for first-time Freighter / wallet users | Connect Wallet buttons now show loading/error feedback instead of failing silently; Freighter connection retries once before reporting "not installed" | [`e857d67`](https://github.com/caramel-123/Bankero/commit/e857d67), [`c949f0a`](https://github.com/caramel-123/Bankero/commit/c949f0a) |
+| Status updates for loan events | Borrower nav red-dot alert expanded to cover every loan event, not just Approved/Disbursed; repay success message now matches the modal's own preview instead of disagreeing with it | [`3b69fa3`](https://github.com/caramel-123/Bankero/commit/3b69fa3), [`c1f4439`](https://github.com/caramel-123/Bankero/commit/c1f4439) |
+| Better analytics and loan history | Apply page now surfaces loans-repaid count and the next Repayment History milestone; Scan History always renders, including for guest mode | [`5551534`](https://github.com/caramel-123/Bankero/commit/5551534), [`655c37b`](https://github.com/caramel-123/Bankero/commit/655c37b) |
+| Improved mobile responsiveness | Fixed layout/padding issues on the My Account profile cards | [`d1e7f57`](https://github.com/caramel-123/Bankero/commit/d1e7f57) |
+
+The remaining suggestions — native mobile app, push/SMS/email reminders, multi-wallet support beyond Freighter, live chat, lender risk analytics, and educational content — are not yet shipped and are tracked in the Improvement Plan below.
+
+---
+
 ## Improvement Plan (Based on User Feedback)
 
 The following improvements are planned for Phase 2, informed directly by user feedback:
