@@ -545,6 +545,45 @@ Live response sheet: [Bankero User Onboarding & Feedback — Responses](https://
 
 ---
 
+## User Feedback Iteration Summary
+
+We collected feedback from **51 users** (50 borrowers, 1 lender) after testing Bankero. Responses were overwhelmingly positive, with users calling out the platform's transparency, ease of use, and blockchain-based credit system as its biggest strengths.
+
+| Metric | Result |
+|--------|--------|
+| Total Responses | 51 (50 borrowers, 1 lender) |
+| Average Rating | **4.9 / 5** |
+| Recommendation Rate | Nearly all respondents would continue using or recommend Bankero |
+| Key Strengths | Transparency, ease of use, blockchain verification, Community Vouching, Credit Certificates |
+| Primary Focus for Improvement | Onboarding, wallet support, mobile experience, notifications, education |
+
+### What Users Liked Most
+
+1. 🔁 **Transparent Loan Process** — being able to monitor every stage of the loan lifecycle (application → approval → disbursement → repayment) in real time increased confidence in the platform.
+2. 🖱️ **Easy-to-Use Interface** — described as fast, clean, and beginner-friendly despite running on blockchain infrastructure.
+3. 🤝 **Community Vouching** — a well-received alternative to traditional credit history, letting borrowers with limited financial records build credibility through trust within their community.
+4. 📄 **Credit Certificate** — borrowers valued the verifiable certificate earned after successful repayment, seeing it as useful proof for future loans and financial responsibility.
+5. ⛓️ **Blockchain Transparency** — transactions and credit data verifiable on the Stellar blockchain, rather than relying solely on Bankero's internal records.
+6. 🏦 **Lender Experience** — the lender highlighted that reviewing requests, monitoring repayments, and verifying transactions on-chain made lending transparent and efficient.
+
+### Common Suggestions for Improvement
+
+- Better onboarding for first-time Freighter / blockchain wallet users
+- Support for more Stellar wallet providers beyond Freighter
+- Native mobile app for Android and iOS
+- Push, email, or SMS notifications for loan status and repayment reminders
+- More educational content on blockchain, Stellar, and Community Vouching
+- Improved mobile responsiveness and overall performance
+- Clearer explanation of how credit score and community vouches affect borrower reputation
+- Live chat or customer support for new users
+- Better analytics, loan history, and downloadable repayment reports
+- Estimated loan approval and blockchain confirmation times
+- Lender analytics — borrower risk scoring, portfolio summaries, repayment predictions
+
+This feedback validates that Bankero solves a real accessibility problem in lending, and directly shapes the roadmap below.
+
+---
+
 ## Improvement Plan (Based on User Feedback)
 
 The following improvements are planned for Phase 2, informed directly by user feedback:
