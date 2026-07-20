@@ -519,7 +519,6 @@ mod test {
         // ensure organizer is not first
         let first = Address::generate(&env);
         members.set(0, first);
-        members.push_back(organizer.clone());
 
         client.create_group(&organizer, &members, &100_000_000i128, &7u32);
     }
@@ -630,27 +629,24 @@ mod test {
         let organizer = Address::generate(&env);
         let m1 = Address::generate(&env);
         let m2 = Address::generate(&env);
-        let m3 = Address::generate(&env); // organizer's slot
 
         let mut members = Vec::new(&env);
         members.push_back(m1.clone()); // receives on cycle 1
         members.push_back(m2.clone());
-        members.push_back(m3.clone());
+        members.push_back(organizer.clone()); // organizer's slot
 
         let contribution = 100_000_000i128;
         fund(&env, &admin, &xlm, &organizer, contribution * 10);
         fund(&env, &admin, &xlm, &m1, contribution * 10);
         fund(&env, &admin, &xlm, &m2, contribution * 10);
-        fund(&env, &admin, &xlm, &m3, contribution * 10);
 
         // organizer not first — all good
         let group_id = client.create_group(&organizer, &members, &contribution, &7u32);
 
         // All members contribute cycle 1
-        client.contribute(&group_id, &organizer);
         client.contribute(&group_id, &m1);
         client.contribute(&group_id, &m2);
-        let done = client.contribute(&group_id, &m3);
+        let done = client.contribute(&group_id, &organizer);
         assert!(done);
 
         // Release pot — should go to m1 (index 0, cycle 1)
@@ -667,26 +663,23 @@ mod test {
         let organizer = Address::generate(&env);
         let m1 = Address::generate(&env);
         let m2 = Address::generate(&env);
-        let m3 = Address::generate(&env);
 
         let mut members = Vec::new(&env);
         members.push_back(m1.clone());
         members.push_back(m2.clone());
-        members.push_back(m3.clone());
+        members.push_back(organizer.clone());
 
         let contribution = 100_000_000i128;
         fund(&env, &admin, &xlm, &organizer, contribution * 10);
         fund(&env, &admin, &xlm, &m1, contribution * 10);
         fund(&env, &admin, &xlm, &m2, contribution * 10);
-        fund(&env, &admin, &xlm, &m3, contribution * 10);
 
         let group_id = client.create_group(&organizer, &members, &contribution, &7u32);
 
         // Cycle 1
-        client.contribute(&group_id, &organizer);
         client.contribute(&group_id, &m1);
         client.contribute(&group_id, &m2);
-        client.contribute(&group_id, &m3);
+        client.contribute(&group_id, &organizer);
         client.release_pot(&group_id);
 
         let group = client.get_group(&group_id);
