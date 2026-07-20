@@ -153,6 +153,14 @@ The borrower receives the XLM and repays through the platform before the due dat
 
 ---
 
+### Testnet Load Test — 50 Wallets, Real On-Chain Activity
+
+To validate the deployed contracts under realistic concurrent load, `scripts/testnet-activity/run.mjs` generates 50 real Stellar testnet wallets, funds them via Friendbot, and drives real transactions against `savings_bank` and `loan_registry` — including 10 full loan lifecycles (apply → approve → disburse → repay). Every transaction is a real, independently verifiable Stellar testnet transaction.
+
+**This is a technical stress test, not a claim of organic user adoption** — see [`docs/testnet-user-activity-proof.md`](docs/testnet-user-activity-proof.md) for the full write-up, sample transaction hashes, and an explicit note on what it does and doesn't prove.
+
+---
+
 ### Mobile Responsive Design
 
 Bankero is fully responsive at 390px viewport — tested on iPhone-sized screens via the built-in Mobile View toggle.
