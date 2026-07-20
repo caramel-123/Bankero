@@ -85,8 +85,9 @@ async function fundWithFriendbot(publicKey) {
     const res = await fetch(`${FRIENDBOT_URL}?addr=${encodeURIComponent(publicKey)}`)
     if (!res.ok) {
       const body = await res.text().catch(() => '')
-      // Already-funded accounts 400 with a specific message — treat as success.
-      if (body.includes('createAccountAlreadyExist')) return
+      // Already-funded accounts respond 400 with one of a couple of wordings
+      // depending on friendbot's version — treat both as success.
+      if (body.includes('createAccountAlreadyExist') || body.includes('already funded')) return
       throw new Error(`friendbot HTTP ${res.status}: ${body.slice(0, 200)}`)
     }
   })
@@ -144,32 +145,49 @@ async function runPool(items, concurrency, worker) {
 // ── Step 1: generate + fund wallets ────────────────────────────────────
 async function generateAndFundWallets() {
   const walletsPath = new URL('./wallets.json', import.meta.url)
+  let data
   if (existsSync(walletsPath)) {
     console.log('wallets.json already exists — reusing existing wallets instead of generating new ones.')
-    return JSON.parse(await readFile(walletsPath, 'utf8'))
+    data = JSON.parse(await readFile(walletsPath, 'utf8'))
+  } else {
+    console.log(`Generating ${TOTAL_WALLETS} testnet keypairs + 1 dedicated lender wallet...`)
+    const borrowers = NAMES.slice(0, TOTAL_WALLETS).map(label => {
+      const kp = Keypair.random()
+      return { label, publicKey: kp.publicKey(), secret: kp.secret() }
+    })
+    const lenderKp = Keypair.random()
+    const lender = { label: 'Bankero Test Lender', publicKey: lenderKp.publicKey(), secret: lenderKp.secret() }
+    data = { borrowers, lender }
+
+    // Write the keys to disk before funding starts — funding can partially
+    // fail or the process can crash mid-run, and losing the private keys
+    // themselves (vs. just needing to retry funding) would mean starting over.
+    await writeFile(walletsPath, JSON.stringify(data, null, 2))
+    console.log(`Wrote ${walletsPath.pathname}`)
   }
 
-  console.log(`Generating ${TOTAL_WALLETS} testnet keypairs + 1 dedicated lender wallet...`)
-  const borrowers = NAMES.slice(0, TOTAL_WALLETS).map(label => {
-    const kp = Keypair.random()
-    return { label, publicKey: kp.publicKey(), secret: kp.secret() }
-  })
-  const lenderKp = Keypair.random()
-  const lender = { label: 'Bankero Test Lender', publicKey: lenderKp.publicKey(), secret: lenderKp.secret() }
-
+  const { borrowers, lender } = data
+  // Always (re-)attempt funding, even on a reused wallets.json — friendbot
+  // funding is idempotent (a 400 "already funded" now counts as success),
+  // so this safely retries only whichever wallets didn't get funded last time.
   const all = [...borrowers, lender]
   console.log('Funding all wallets via Friendbot (this takes a few minutes)...')
   let funded = 0
+  let failed = 0
   await runPool(all, CONCURRENCY, async (w) => {
-    await fundWithFriendbot(w.publicKey)
-    funded++
-    console.log(`  funded ${funded}/${all.length}: ${w.label} (${w.publicKey.slice(0, 8)}...)`)
+    try {
+      await fundWithFriendbot(w.publicKey)
+      funded++
+      console.log(`  funded ${funded}/${all.length}: ${w.label} (${w.publicKey.slice(0, 8)}...)`)
+    } catch (err) {
+      failed++
+      console.error(`  [funding FAILED] ${w.label} (${w.publicKey.slice(0, 8)}...): ${err.message || err}`)
+    }
     await sleep(300)
   })
-
-  const data = { borrowers, lender }
-  await writeFile(walletsPath, JSON.stringify(data, null, 2))
-  console.log(`Wrote ${walletsPath.pathname}`)
+  if (failed > 0) {
+    console.warn(`\n${failed}/${all.length} wallet(s) failed to fund — their later deposit/loan steps will fail with a clear on-chain error. Re-run \`npm start\` to retry just the failed ones (already-funded wallets are skipped safely).`)
+  }
   return data
 }
 
