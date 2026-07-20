@@ -1,2 +1,7 @@
 .vercel
 target/debug/
+
+# Testnet activity script output — contains real (testnet-only) secret keys
+scripts/testnet-activity/node_modules/
+scripts/testnet-activity/wallets.json
+scripts/testnet-activity/results.json
