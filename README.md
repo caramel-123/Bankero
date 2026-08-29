@@ -561,7 +561,7 @@ The form collects:
 - What users liked most
 - What users want improved
 
-All responses are exported and maintained in **[`docs/bankero-user-feedback.xlsx`](https://docs.google.com/spreadsheets/d/1ldxLIkkKX8oN_QacRhFOykQQQxW4l2hBhd9EUiaQvO0/edit?usp=sharing)** and serve as the primary record for product iteration decisions.
+All responses are exported and maintained in **[`docs/bankero-user-feedback.xlsx`](docs/bankero-user-feedback.xlsx)** and serve as the primary record for product iteration decisions.
 
 Live response sheet: [Bankero User Onboarding & Feedback — Responses](https://docs.google.com/spreadsheets/d/1ldxLIkkKX8oN_QacRhFOykQQQxW4l2hBhd9EUiaQvO0/edit?usp=sharing)
 
@@ -678,4 +678,4 @@ Bankero is currently an MVP targeting the Stellar testnet. The roadmap ahead:
 
 ## License
 
-MIT © 2026 Mel Bernabe — Built for the Stellar White Belt Challenge
+MIT © 2026 Mel Bernabe — Built for the Stellar Blue Belt Challenge
