@@ -187,11 +187,11 @@ Live visitor tracking via Vercel Analytics — installed and active on [bankero.
 
 Bankero was pitched live at **APAC Stellar Demo Day (Philippines)**, hosted at the GCash Office, W Global Center, Bonifacio Global City, Taguig — July 18, 2026 — as part of the region-wide **APAC Stellar Hackathon** (Rise In × Stellar).
 
-<img src="docs/screenshots/apac-stellar-demo-day-presenting.jpeg" alt="Presenting Bankero on stage at APAC Stellar Demo Day, Philippines" width="700" />
+<img src="https://raw.githubusercontent.com/caramel-123/Bankero/main/docs/screenshots/apac-stellar-demo-day-presenting.jpeg" alt="Presenting Bankero on stage at APAC Stellar Demo Day, Philippines" width="700" />
 
 Pitching the problem, solution, and loan lifecycle (apply → review/approve → repay → standing certificate) to the room:
 
-<img src="docs/screenshots/apac-stellar-demo-day-pitch-slide.jpeg" alt="Bankero pitch deck slide on screen at APAC Stellar Demo Day" width="700" />
+<img src="https://raw.githubusercontent.com/caramel-123/Bankero/main/docs/screenshots/apac-stellar-demo-day-pitch-slide.jpeg" alt="Bankero pitch deck slide on screen at APAC Stellar Demo Day" width="700" />
 
 ---
 
