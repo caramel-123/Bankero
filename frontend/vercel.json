@@ -4,7 +4,7 @@
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/((?!docs/).*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
