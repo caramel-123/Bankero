@@ -6,7 +6,7 @@
 ![CI](https://github.com/caramel-123/bankero/actions/workflows/ci.yml/badge.svg)
 
 🌐 **Live App:** [https://bankero.vercel.app](https://bankero.vercel.app)
-📚 **Documentation Site:** [https://caramel-123.github.io/Bankero/](https://caramel-123.github.io/Bankero/)
+📚 **Documentation Site:** [https://bankero.vercel.app/docs/](https://bankero.vercel.app/docs/)
 🎥 **Demo Video:** [Watch on YouTube](https://youtu.be/xhMVzAy9vIE?feature=shared)
 📊 **Pitch Deck:** [View on Canva](https://canva.link/bgjjy7fbpq9yswg)
 📘 **Facebook:** [Bankero](https://www.facebook.com/share/19U2hDoon3/)
